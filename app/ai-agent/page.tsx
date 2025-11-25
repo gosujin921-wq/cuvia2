@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';

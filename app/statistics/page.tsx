@@ -1,5 +1,6 @@
-'use client';
+"use client";
 
+import React, { Suspense } from "react";
 import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
