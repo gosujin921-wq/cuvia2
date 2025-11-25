@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -52,7 +52,7 @@ interface EnvironmentImpact {
   riskChange: number;
 }
 
-export default function IncidentResponsePage() {
+const IncidentResponsePageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [input, setInput] = useState('');
@@ -680,6 +680,21 @@ export default function IncidentResponsePage() {
         </div>
       </div>
     </div>
+  );
+};
+
+export default function IncidentResponsePage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen bg-[#0f0f0f]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-400 text-sm">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <IncidentResponsePageContent />
+    </Suspense>
   );
 }
 

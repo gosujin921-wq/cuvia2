@@ -38,7 +38,7 @@ interface TrendEvent {
   color: string;
 }
 
-export default function StatisticsPage() {
+const StatisticsPageContent = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [input, setInput] = useState('');
@@ -452,5 +452,20 @@ export default function StatisticsPage() {
         </div>
       </div>
     </div>
+  );
+};
+
+export default function StatisticsPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen bg-[#0f0f0f]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-400 text-sm">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <StatisticsPageContent />
+    </Suspense>
   );
 }
