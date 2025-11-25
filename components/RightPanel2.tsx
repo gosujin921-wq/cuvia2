@@ -100,6 +100,32 @@ const RightPanel2 = () => {
     rainfall: 0.3,
     windSpeed: 1.2,
   });
+  const [clockTime, setClockTime] = useState<string>('');
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
+  
+  // 날씨 데이터 (샘플)
+  const weatherData = {
+    icon: 'mdi:weather-partly-cloudy',
+    high: 25, // 섭씨
+    low: 18, // 섭씨
+  };
+  
+  useEffect(() => {
+    const formatTime = () =>
+      new Date().toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      });
+
+    setClockTime(formatTime());
+    setLastUpdateTime(formatTime());
+    const timer = setInterval(() => {
+      setClockTime(formatTime());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // 각 지점별 썸네일 롤링 (5초 간격)
   useEffect(() => {
@@ -564,6 +590,21 @@ const RightPanel2 = () => {
           className="flex-1 overflow-y-auto p-3 pl-10 pr-9 space-y-8"
           ref={scrollContainerRef}
         >
+        {/* 시간 및 날씨 */}
+        <div className="flex items-center justify-between pb-3 border-b border-[#31353a]">
+          <div className="text-white text-sm font-medium">
+            {clockTime || '--:--:--'}
+          </div>
+          <div className="flex items-center gap-2">
+            <Icon icon={weatherData.icon} className="w-6 h-6 text-white" />
+            <div className="flex items-baseline gap-1">
+              <span className="text-white text-sm font-medium">{weatherData.high}°</span>
+              <span className="text-gray-400 text-xs">/</span>
+              <span className="text-gray-400 text-xs">{weatherData.low}°</span>
+            </div>
+          </div>
+        </div>
+        
         {/* 1) CCTV 운영 현황 */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
@@ -684,12 +725,7 @@ const RightPanel2 = () => {
                 const currentThumbnailIndex = spotThumbnailIndices[spot.spotId] || 0;
                 const currentThumbnails = spot.thumbnails || [];
                 const currentThumbnail = currentThumbnails[currentThumbnailIndex];
-                const currentTime = new Date().toLocaleTimeString('ko-KR', {
-                  hour: '2-digit', 
-                  minute: '2-digit', 
-                  second: '2-digit',
-                  hour12: true 
-                });
+                const currentTime = clockTime || '--:--:--';
 
                 return (
                   <div
@@ -752,7 +788,7 @@ const RightPanel2 = () => {
           <div className="flex items-center justify-between">
             <h3 className="text-white font-semibold text-sm">실시간 환경 센서 모니터링</h3>
             <span className="text-gray-300 text-xs">
-              마지막 업데이트: {new Date(sensorData.lastUpdate).toLocaleTimeString('ko-KR')}
+              마지막 업데이트: {lastUpdateTime || '--:--:--'}
             </span>
           </div>
           <div className="grid grid-cols-3 gap-2">

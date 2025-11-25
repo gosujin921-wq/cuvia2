@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { Event } from '@/types';
 import { getEventById, getEventCategory, getAIInsightKeywords } from '@/lib/events-data';
@@ -13,11 +14,29 @@ interface EventListProps {
 }
 
 const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: EventListProps) => {
-  // 이벤트 정렬: 우선순위 > 경보 수준 > 최신순
+  const router = useRouter();
+  const agentPathByDomain: Record<string, string> = {
+    A: '/112-agent',
+    B: '/119-agent',
+    C: '/vulnerable-agent',
+    D: '/ai-behavior-agent',
+    E: '/disaster-agent',
+    F: '/city-operations-agent',
+  };
+  const [priorityFilter, setPriorityFilter] = useState<'ALL' | 'High' | 'Medium' | 'Low' | 'GENERAL'>('ALL');
+  // 이벤트 정렬: 특정 이벤트 최우선 > 우선순위 > 경보 수준 > 최신순
   const sortedEvents = [...events].sort((a, b) => {
     // Evidence는 가장 아래로
     if (a.status === 'EVIDENCE' && b.status !== 'EVIDENCE') return 1;
     if (b.status === 'EVIDENCE' && a.status !== 'EVIDENCE') return -1;
+    
+    // 특정 이벤트를 최우선으로 (오토바이 도주, 은행강도 연관의심)
+    const topPriorityTitles = ['오토바이 도주', '은행강도 연관의심', '은행 강도'];
+    const aIsTopPriority = topPriorityTitles.some(title => a.title?.includes(title));
+    const bIsTopPriority = topPriorityTitles.some(title => b.title?.includes(title));
+    
+    if (aIsTopPriority && !bIsTopPriority) return -1;
+    if (!aIsTopPriority && bIsTopPriority) return 1;
     
     // 우선순위 순서
     const priorityOrder = { High: 3, Medium: 2, Low: 1 };
@@ -124,13 +143,66 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
     }
   };
 
+  const filteredGroups =
+    priorityFilter === 'GENERAL'
+      ? []
+      : groupedEvents.filter(({ main }) =>
+          priorityFilter === 'ALL' ? true : main.priority === priorityFilter,
+        );
+
+  const tabs = [
+    { label: '전체', value: 'ALL' as const },
+    { label: 'High', value: 'High' as const },
+    { label: 'Medium', value: 'Medium' as const },
+    { label: 'Low', value: 'Low' as const },
+    { label: '일반', value: 'GENERAL' as const },
+  ];
+
   return (
     <div className="w-full bg-[#161719] flex flex-col h-full overflow-y-auto">
-      <div className="p-4 border-b border-[#31353a]">
-        <h2 className="text-white font-semibold text-sm">이벤트 리스트</h2>
+      <div className="border-t border-b border-[#31353a]">
+        <div className="flex items-center justify-center gap-4" style={{ paddingTop: '14px' }}>
+          {tabs.map((tab, index) => {
+            const isActive = priorityFilter === tab.value;
+            const getPriorityDot = () => {
+              if (tab.value === 'High') {
+                return <span className="w-2 h-2 rounded-full border-2 border-red-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
+              } else if (tab.value === 'Medium') {
+                return <span className="w-2 h-2 rounded-full border-2 border-yellow-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
+              } else if (tab.value === 'Low') {
+                return <span className="w-2 h-2 rounded-full border-2 border-blue-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
+              }
+              return null;
+            };
+            return (
+              <>
+                <button
+                  key={tab.value}
+                  onClick={() => setPriorityFilter(tab.value)}
+                  className={`pb-2 text-xs font-semibold tracking-tight transition-colors flex items-center ${
+                    isActive
+                      ? 'text-white border-b-2 border-blue-400'
+                      : 'text-gray-400 border-b-2 border-transparent hover:text-white'
+                  }`}
+                >
+                  {getPriorityDot()}
+                  {tab.label}
+                </button>
+                {tab.value === 'Low' && (
+                  <span key={`divider-${index}`} className="w-1 h-1 rounded-full bg-gray-500 self-center" style={{ marginBottom: '10px' }} />
+                )}
+              </>
+            );
+          })}
+        </div>
       </div>
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
-        {groupedEvents.map((group) => {
+      <div className="flex-1 overflow-y-auto space-y-2">
+        {filteredGroups.length === 0 ? (
+          <div className="text-gray-500 text-xs px-3 py-6 border-b border-[#2f3136]">
+            표시할 이벤트가 없습니다.
+          </div>
+        ) : (
+        filteredGroups.map((group) => {
           const { main, evidence } = group;
           const isSelected = selectedEventId === main.id;
           const statusBadge = getStatusBadge(main.status);
@@ -140,17 +212,29 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
             <div key={main.id} className="space-y-1">
               {/* 메인 이벤트 */}
               <div
-                onClick={() => onEventSelect?.(main.id)}
+                onClick={() => {
+                  if (main.eventId) {
+                    const baseEvent = getEventById(main.eventId);
+                    if (baseEvent) {
+                      const route = agentPathByDomain[baseEvent.domain];
+                      if (route) {
+                        router.push(`${route}?eventId=${main.eventId}`);
+                        return;
+                      }
+                    }
+                  }
+                  onEventSelect?.(main.id);
+                }}
                 onMouseEnter={() => onEventHover?.(main.id)}
                 onMouseLeave={() => onEventHover?.(null)}
-                className={`w-full text-left border p-3 transition-all ${
+                className={`w-full text-left border-b pt-3 pb-3 pr-3 transition-all duration-200 ${
                   isSelected
                     ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
-                    : 'bg-[#36383B] border-[#31353a] hover:bg-[#161719]'
+                    : 'bg-transparent border-[#2f3136] shadow-[0_4px_14px_-8px_rgba(0,0,0,0.8)] hover:bg-[#24272d] hover:border-[#4f7cff] hover:shadow-[0_6px_18px_-6px_rgba(79,124,255,0.35)]'
                 }`}
-                style={{ borderWidth: '1px' }}
+                style={{ paddingLeft: '14px' }}
               >
-                {/* 1. 시간 / 신고기관 / 순위(위험도) */}
+                {/* 1. 시간 / 신고기관 / 우선순위 뷸렛 */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-300 text-[0.7rem] font-medium">{main.timestamp}</span>
@@ -165,15 +249,15 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                       );
                     })()}
                   </div>
-                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                    main.priority === 'High'
-                      ? 'bg-red-500/20 text-red-400'
-                      : main.priority === 'Medium'
-                        ? 'bg-yellow-500/20 text-yellow-400'
-                        : 'bg-blue-500/20 text-blue-400'
-                  }`}>
-                    {main.priority}
-                  </span>
+                  {main.priority === 'High' && (
+                    <span className="w-2 h-2 rounded-full border-2 border-red-400 inline-block" style={{ borderWidth: '3px' }} />
+                  )}
+                  {main.priority === 'Medium' && (
+                    <span className="w-2 h-2 rounded-full border-2 border-yellow-400 inline-block" style={{ borderWidth: '3px' }} />
+                  )}
+                  {main.priority === 'Low' && (
+                    <span className="w-2 h-2 rounded-full border-2 border-blue-400 inline-block" style={{ borderWidth: '3px' }} />
+                  )}
                 </div>
 
                 {/* 2. 유형 / 카테고리 */}
@@ -229,8 +313,8 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                       {keywords.map((keyword, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 bg-[#252629] border border-[#50545a] text-[0.7rem] text-white tracking-tight"
-                          style={{ borderWidth: '1px' }}
+                          className="px-3 py-0.5 text-[0.65rem] text-white tracking-tight rounded-full"
+                          style={{ backgroundColor: '#36383B' }}
                         >
                           {keyword}
                         </span>
@@ -238,6 +322,14 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                     </div>
                   );
                 })()}
+
+                {/* 이벤트 처리 현황 */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="text-gray-400 text-[0.65rem]">이벤트 상태</span>
+                  <span className="text-[0.7rem] text-white tracking-tight">
+                    {main.processingStage}
+                  </span>
+                </div>
 
               </div>
 
@@ -264,7 +356,7 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
               )}
             </div>
           );
-        })}
+        }))}
       </div>
     </div>
   );

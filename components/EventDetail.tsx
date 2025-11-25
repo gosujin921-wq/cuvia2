@@ -71,12 +71,13 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
     <>
       {/* 모달 오버레이 */}
       <div 
-        className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+        className="fixed inset-0 bg-black/50 flex items-center justify-center"
+        style={{ zIndex: 300 }}
         onClick={onClose}
       >
         {/* 모달 컨텐츠 */}
         <div 
-          className="w-[90vw] max-w-2xl bg-[#36383B] border border-[#31353a] flex flex-col max-h-[90vh]"
+          className="w-[90vw] max-w-2xl bg-[#161719] border border-[#31353a] flex flex-col max-h-[90vh]"
           style={{ borderWidth: '1px' }}
           onClick={(e) => e.stopPropagation()}
         >
@@ -97,7 +98,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {/* 기본 정보 */}
         <div>
           <h3 className="text-white font-medium mb-2">기본 정보</h3>
-          <div className="bg-[#36383B] rounded-lg p-3 space-y-2 border border-[#31353a]" style={{ borderWidth: '1px' }}>
+          <div className="bg-[#36383B] p-3 space-y-2 border border-[#31353a]" style={{ borderWidth: '1px' }}>
             {event.eventId && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-400 text-sm">사건번호</span>
@@ -140,6 +141,34 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
           </div>
         </div>
 
+        {/* 처리 현황 */}
+        <div>
+          <h3 className="text-white font-medium mb-2">처리 현황</h3>
+          <div className="bg-[#36383B] p-3 border border-[#31353a] space-y-3" style={{ borderWidth: '1px' }}>
+            <div className="flex items-center justify-between">
+              <span className="text-gray-400 text-sm">이벤트 상태</span>
+              <span className="px-3 py-1 border border-[#50545a] text-white text-sm tracking-tight" style={{ borderWidth: '1px' }}>
+                {event.processingStage}
+              </span>
+            </div>
+            {event.processingStage === '종결' ? (
+              <div>
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-400 text-sm">처리 결과 · {event.resolution.category}</span>
+                  <span className="text-white text-sm font-semibold">{event.resolution.code}</span>
+                </div>
+                <p className="text-gray-300 text-sm mt-1 leading-relaxed">
+                  {event.resolution.description}
+                </p>
+              </div>
+            ) : (
+              <p className="text-gray-400 text-sm">
+                처리 결과는 종결 단계에서 제공됩니다.
+              </p>
+            )}
+          </div>
+        </div>
+
         {/* AI 인사이트 */}
         <div>
           <div className="flex items-center justify-between mb-2">
@@ -172,7 +201,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {/* 주변 CCTV */}
         <div>
           <h3 className="text-white font-medium mb-2">주변 CCTV</h3>
-          <div className="bg-[#36383B] rounded-lg p-3">
+          <div className="bg-[#36383B] p-3">
             <p className="text-gray-400 text-sm">CCTV 정보를 불러오는 중...</p>
           </div>
         </div>
@@ -180,7 +209,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {/* 위험도 */}
         <div>
           <h3 className="text-white font-medium mb-2">위험도 분석</h3>
-          <div className="bg-[#36383B] rounded-lg p-3">
+          <div className="bg-[#36383B] p-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-gray-400 text-sm">위험도 점수</span>
@@ -215,7 +244,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {/* AI Insights */}
         <div>
           <h3 className="text-white font-medium mb-2">AI 인사이트</h3>
-          <div className="bg-[#36383B] rounded-lg p-3">
+          <div className="bg-[#36383B] p-3">
             <p className="text-gray-400 text-sm mb-2">AI 분석 결과가 표시됩니다.</p>
             {onSummaryRequest && (
               <button
@@ -232,7 +261,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {event.type === '119-화재' && event.nearbyResources?.fireStations && (
           <div>
             <h3 className="text-white font-medium mb-2">소방서 전파</h3>
-            <div className="bg-[#36383B] rounded-lg p-3 space-y-2 border border-[#31353a]" style={{ borderWidth: '1px' }}>
+            <div className="bg-[#36383B] p-3 space-y-2 border border-[#31353a]" style={{ borderWidth: '1px' }}>
               <div className="space-y-2 mb-3">
                 {event.nearbyResources.fireStations.map((station) => (
                   <div key={station.id} className="flex items-center justify-between text-sm">

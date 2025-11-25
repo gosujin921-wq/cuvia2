@@ -18,7 +18,7 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
   if (!isVisible) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-40 bg-[#161719] border-t border-[#31353a] px-4 py-3 z-50">
+    <div className="absolute bottom-0 left-0 right-0 h-40 bg-[#161719] border-t border-[#31353a] px-4 py-3" style={{ zIndex: 300 }}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Icon icon="mdi:cctv" className="w-5 h-5 text-white" />

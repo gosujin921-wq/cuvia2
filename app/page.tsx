@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Icon } from '@iconify/react';
+import { useRouter } from 'next/navigation';
 import EventSummary from '@/components/EventSummary';
 import EventList from '@/components/EventList';
 import MapView from '@/components/MapView';
@@ -13,6 +14,7 @@ import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent, getEventsByStatus, getEventsByRisk } from '@/lib/events-data';
 
 export default function Home() {
+  const router = useRouter();
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
   const [showEventDetail, setShowEventDetail] = useState(false);
@@ -20,27 +22,72 @@ export default function Home() {
 
   // 공통 데이터 사용
   const events: Event[] = useMemo(() => {
-    return allEvents.map((event, index) => convertToDashboardEvent(event, index));
+    return allEvents
+      .map((event, index) => convertToDashboardEvent(event, index))
+      .filter((event) => event.processingStage !== '종결');
   }, []);
 
-  // 이벤트 요약 계산
+  // 이벤트 요약 계산 (처리결과 기준)
   const eventSummary: EventSummaryType = useMemo(() => {
-    const inProgress = getEventsByStatus('IN_PROGRESS').length + getEventsByStatus('ACTIVE').length;
-    const high = getEventsByRisk('HIGH').length;
+    // 모든 이벤트를 변환 (종결 포함)
+    const allConvertedEvents = allEvents.map((event, index) => convertToDashboardEvent(event, index));
+    
+    // 진행중: 생성, 선별, 착수, 사실 검증, 추적 · 지원, 전파
+    const inProgressStages: Array<'생성' | '선별' | '착수' | '사실 검증' | '추적 · 지원' | '전파'> = [
+      '생성',
+      '선별',
+      '착수',
+      '사실 검증',
+      '추적 · 지원',
+      '전파',
+    ];
+    const inProgress = allConvertedEvents.filter((event) =>
+      inProgressStages.includes(event.processingStage as any)
+    ).length;
+    
+    // 종결: 종결 상태만
+    const closed = allConvertedEvents.filter((event) => event.processingStage === '종결').length;
+    
     return {
-      total: allEvents.length,
+      total: allConvertedEvents.length,
       inProgress,
-      high,
-      overlapped: 1, // 스레드 연결된 이벤트 수
+      closed,
     };
   }, []);
 
   const selectedEvent = events.find((e) => e.id === selectedEventId) || null;
 
-  const handleEventSelect = (eventId: string) => {
+  const agentRouteByDomain: Record<string, string> = {
+    A: '/112-agent',
+    B: '/119-agent',
+    C: '/vulnerable-agent',
+    D: '/ai-behavior-agent',
+    E: '/disaster-agent',
+    F: '/city-operations-agent',
+  };
+
+  const shouldRedirectToAgent = (eventId: string) => {
+    const targetEvent = events.find((event) => event.id === eventId);
+    const domainCode = targetEvent?.eventId?.split('-')[0];
+    const route = domainCode ? agentRouteByDomain[domainCode] : undefined;
+    if (route && targetEvent?.eventId) {
+      router.push(`${route}?eventId=${targetEvent.eventId}`);
+      return true;
+    }
+    return false;
+  };
+
+  const openEventDetail = (eventId: string) => {
     setSelectedEventId(eventId);
     setShowEventDetail(true);
     setHighlightedEventId(eventId);
+  };
+
+  const handleEventSelect = (eventId: string) => {
+    if (shouldRedirectToAgent(eventId)) {
+      return;
+    }
+    openEventDetail(eventId);
   };
 
   const handleEventHover = (eventId: string | null) => {
@@ -48,7 +95,10 @@ export default function Home() {
   };
 
   const handleEventClick = (eventId: string) => {
-    handleEventSelect(eventId);
+    if (shouldRedirectToAgent(eventId)) {
+      return;
+    }
+    openEventDetail(eventId);
     setShowCCTVView(true);
   };
 
@@ -93,8 +143,8 @@ export default function Home() {
     <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 overflow-hidden relative">
-          <div className="flex flex-col flex-shrink-0 w-80 border-r border-[#31353a]" style={{ borderWidth: '1px' }}>
-            <div className="px-6 py-4">
+          <div className="flex flex-col flex-shrink-0 w-80 border-r border-[#31353a] pl-6 pr-5">
+            <div className="py-4">
               <div className="w-24 h-5 flex items-center justify-start">
                 <img 
                   src="/logo.svg" 
@@ -103,16 +153,10 @@ export default function Home() {
                 />
               </div>
             </div>
-            <div className="px-4">
-              <div className="h-px bg-[#31353a]" />
-            </div>
-            <div className="px-4 py-3">
+            <div className="py-3">
               <EventSummary summary={eventSummary} />
             </div>
-            <div className="px-4">
-              <div className="h-px bg-[#31353a]" />
-            </div>
-            <div className="flex-1 overflow-hidden px-4 py-3">
+            <div className="flex-1 overflow-hidden">
               <EventList
                 events={events}
                 selectedEventId={selectedEventId || undefined}
@@ -122,15 +166,6 @@ export default function Home() {
             </div>
           </div>
           <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
-            {/* Agent Hub 임시 버튼 */}
-            <Link
-              href="/agent-hub"
-              className="absolute top-4 left-4 z-40 flex items-center gap-2 px-4 py-2 border border-blue-500 bg-blue-600/20 text-white text-sm font-medium hover:bg-blue-500/30 transition-colors"
-              aria-label="Agent Hub"
-            >
-              <Icon icon="mdi:robot" className="w-4 h-4" />
-              <span>Agent Hub</span>
-            </Link>
               <MapView
                 events={events}
                 highlightedEventId={highlightedEventId}

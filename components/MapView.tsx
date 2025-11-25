@@ -2,6 +2,8 @@
 
 import { Event } from '@/types';
 import { Icon } from '@iconify/react';
+import { useMemo, useState, useRef, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface MapViewProps {
   events: Event[];
@@ -11,6 +13,35 @@ interface MapViewProps {
 }
 
 const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId }: MapViewProps) => {
+  const router = useRouter();
+  const [searchInput, setSearchInput] = useState('');
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const shouldOpenFireStatistics = (query: string) => {
+    const normalized = query
+      .normalize('NFC')
+      .toLowerCase()
+      .replace(/[\s\?\!\.]/g, '');
+
+    const triggers = ['요즘화재가늘었어', '요즘화재늘었어'];
+    return triggers.some((trigger) => normalized.includes(trigger));
+  };
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      if (searchInput.trim()) {
+        const query = searchInput.trim();
+        if (shouldOpenFireStatistics(query)) {
+          router.push('/statistics?focus=fire-trend');
+          return;
+        }
+        router.push(`/statistics?query=${encodeURIComponent(query)}`);
+      } else {
+        router.push('/statistics');
+      }
+    }
+  };
   const getEventIcon = (type: string) => {
     switch (type) {
       case '119-화재':
@@ -30,25 +61,87 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId }: 
     }
   };
 
-  const getEventPosition = (event: Event) => {
-    switch (event.id) {
-      case '1': // 화재
-        return { left: 25, top: 30 };
-      case '2': // 미아
-        return { left: 45, top: 40 };
-      case '3': // 배회 (증거)
-        return { left: 47, top: 42 };
-      case '4': // 약자
-        return { left: 35, top: 55 };
-      case '5': // NDMS
-        return { left: 50, top: 50 };
-      default:
-        return { left: 30, top: 35 };
+  // 이벤트 ID를 기반으로 일관된 랜덤 값 생성
+  const seededRandom = (seed: string) => {
+    let hash = 0;
+    for (let i = 0; i < seed.length; i += 1) {
+      const char = seed.charCodeAt(i);
+      hash = ((hash << 5) - hash) + char;
+      hash = hash & hash; // 32bit 정수로 변환
     }
+    return Math.abs(hash) / 2147483647; // 0~1 사이 값으로 정규화
+  };
+
+  const clampPercentage = (value: number) => Math.max(5, Math.min(95, value));
+  const centerX = 50;
+  const centerY = 50;
+  const baseRadius = 12;
+  const ringGap = 10;
+  const maxPinsPerRing = 6;
+
+  const positionsById = useMemo(() => {
+    if (!events || events.length === 0) {
+      return {};
+    }
+
+    const priorityWeight: Record<Event['priority'], number> = {
+      High: 0,
+      Medium: 1,
+      Low: 2,
+    };
+
+    const sortedEvents = [...events].sort((a, b) => {
+      const priorityDiff = priorityWeight[a.priority] - priorityWeight[b.priority];
+      if (priorityDiff !== 0) {
+        return priorityDiff;
+      }
+      return a.id.localeCompare(b.id);
+    });
+
+    const rings: Event[][] = [];
+    sortedEvents.forEach((event, index) => {
+      const ringIndex = Math.floor(index / maxPinsPerRing);
+      if (!rings[ringIndex]) {
+        rings[ringIndex] = [];
+      }
+      rings[ringIndex].push(event);
+    });
+
+    const computedPositions: Record<string, { left: number; top: number }> = {};
+
+    rings.forEach((ringEvents, ringIndex) => {
+      if (!ringEvents || ringEvents.length === 0) {
+        return;
+      }
+
+      const radius = baseRadius + (ringIndex * ringGap);
+      const angleStep = (Math.PI * 2) / ringEvents.length;
+      const ringAngleOffset = seededRandom(`ring-${ringIndex}`) * angleStep;
+
+      ringEvents.forEach((event, idx) => {
+        const angleJitter = (seededRandom(`${event.id}-angle`) - 0.5) * angleStep * 0.4;
+        const angle = ringAngleOffset + (idx * angleStep) + angleJitter;
+        const left = centerX + (radius * Math.cos(angle));
+        const top = centerY + (radius * Math.sin(angle));
+
+        computedPositions[event.id] = {
+          left: clampPercentage(left),
+          top: clampPercentage(top),
+        };
+      });
+    });
+
+    return computedPositions;
+  }, [events]);
+
+  // 핀 위치 계산 - 단순히 퍼센트 위치 유지
+  const getEventPosition = (event: Event) => {
+    return positionsById[event.id] || { left: centerX, top: centerY };
   };
 
   return (
     <div 
+      ref={containerRef}
       className="relative bg-[#0f0f0f] overflow-hidden" 
       style={{ 
         width: '100%', 
@@ -175,6 +268,47 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId }: 
         }
         return null;
       })()}
+
+      {/* 플로팅 검색창 */}
+      <div 
+        className="absolute"
+        style={{
+          bottom: '20px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          zIndex: 200,
+          width: '500px',
+        }}
+      >
+        <div
+          className="flex items-center gap-3 bg-white border rounded-full shadow-lg"
+          style={{
+            padding: '12px 16px',
+            borderColor: '#d1d5db',
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.25)',
+          }}
+        >
+          <div className="w-10 h-10 rounded-full border border-gray-200 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-400 flex items-center justify-center animate-[pulse_4s_ease_infinite] shadow-md">
+            <Icon icon="mdi:sparkles" className="w-5 h-5 text-white drop-shadow-md" />
+          </div>
+          <input
+            type="text"
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            placeholder="통계를 조회하세요... (예: 요즘 화재가 늘었어?)"
+            className="flex-1 bg-transparent text-[#161719] placeholder-gray-500 focus:outline-none"
+          />
+          {searchInput && (
+            <button
+              onClick={() => setSearchInput('')}
+              className="p-2 hover:bg-[#f3f4f6] rounded-full transition-colors"
+            >
+              <Icon icon="mdi:close" className="w-5 h-5 text-gray-400" />
+            </button>
+          )}
+        </div>
+      </div>
 
       {/* NDMS 경보 */}
       <div 

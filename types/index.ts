@@ -1,6 +1,31 @@
 export type EventPriority = 'High' | 'Medium' | 'Low';
 export type EventStatus = 'NEW' | 'MONITORING' | 'RESOLVED' | 'EVIDENCE';
-export type EventType = '119-화재' | '112-미아' | '약자' | 'AI-배회' | 'NDMS' | '소방서';
+export type EventType =
+  | '119-화재'
+  | '119-구조'
+  | '112-미아'
+  | '112-치안'
+  | '약자'
+  | 'AI-배회'
+  | 'NDMS'
+  | '소방서';
+
+export type ProcessingStage =
+  | '생성'
+  | '선별'
+  | '착수'
+  | '사실 검증'
+  | '추적 · 지원'
+  | '전파'
+  | '종결';
+
+export type ResolutionCategory = '112' | '119' | '약자' | 'AI' | '재난' | '도시운영';
+
+export interface EventResolution {
+  category: ResolutionCategory;
+  code: string;
+  description: string;
+}
 
 export interface Event {
   id: string;
@@ -27,6 +52,8 @@ export interface Event {
       coordinates: [number, number];
     }>;
   };
+  processingStage: ProcessingStage;
+  resolution: EventResolution;
 }
 
 export interface AgentMessage {
@@ -39,8 +66,7 @@ export interface AgentMessage {
 export interface EventSummary {
   total: number;
   inProgress: number;
-  high: number;
-  overlapped: number;
+  closed: number;
 }
 
 export interface BroadcastDraft {
