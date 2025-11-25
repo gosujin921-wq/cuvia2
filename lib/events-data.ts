@@ -1,0 +1,776 @@
+// 공통 이벤트 데이터 - 모든 페이지에서 공유
+// 이벤트 ID 규칙: [도메인코드]-[연도월일]-[시퀀스]
+
+export interface BaseEvent {
+  eventId: string; // 규칙에 따른 이벤트 ID
+  id: string; // 내부 사용 ID
+  type: string;
+  title: string;
+  time: string;
+  location: string;
+  description?: string;
+  source?: string;
+  risk: 'HIGH' | 'MEDIUM' | 'LOW';
+  status: 'URGENT' | 'ACTIVE' | 'NEW' | 'IN_PROGRESS' | 'CLOSED';
+  pScore?: number;
+  domain: 'A' | 'B' | 'C' | 'D' | 'E' | 'F'; // 도메인 코드
+}
+
+// 20개의 가상 이벤트 데이터 생성
+const today = '20241124'; // 2024년 11월 24일
+let sequence = 1;
+
+const generateEventId = (domain: 'A' | 'B' | 'C' | 'D' | 'E' | 'F'): string => {
+  return `${domain}-${today}-${String(sequence++).padStart(3, '0')}`;
+};
+
+export const allEvents: BaseEvent[] = [
+  // A - 112 치안 · 방범
+  {
+    eventId: generateEventId('A'),
+    id: 'event-1',
+    type: '폭행 · 상해',
+    title: '흉기 소지 남성 위협 행동',
+    time: '18:42',
+    location: '안양시 동안구 비산동 123-7',
+    description: '112 신고자 "흉기 든 남성이 위협 중"',
+    source: '안양112센터',
+    risk: 'HIGH',
+    status: 'URGENT',
+    pScore: 92,
+    domain: 'A',
+  },
+  {
+    eventId: generateEventId('A'),
+    id: 'event-2',
+    type: '절도 · 강도',
+    title: '상가 절도 의심, 현금 절취 포착',
+    time: '18:33',
+    location: '안양시 만안구 안양동 674',
+    description: 'AI 감지: 가방에서 현금 다발을 넣는 장면 포착',
+    source: 'AI',
+    risk: 'MEDIUM',
+    status: 'ACTIVE',
+    pScore: 78,
+    domain: 'A',
+  },
+  {
+    eventId: generateEventId('A'),
+    id: 'event-3',
+    type: '차량도주 · 용의차량 추적',
+    title: '오토바이 도주, 은행 강도 연관 의심',
+    time: '18:21',
+    location: '안양시 동안구 평촌대로 456',
+    description: '도주 오토바이, 은행 강도와 연관 가능성',
+    source: '안양112센터',
+    risk: 'HIGH',
+    status: 'ACTIVE',
+    pScore: 85,
+    domain: 'A',
+  },
+  {
+    eventId: generateEventId('A'),
+    id: 'event-4',
+    type: '기물파손',
+    title: '음주 난동 및 기물 파손 다수',
+    time: '18:05',
+    location: '안양시 만안구 석수동 시장로 789',
+    description: '음주 난동 + 기물 파손 신고 다수',
+    source: '안양112센터',
+    risk: 'MEDIUM',
+    status: 'NEW',
+    pScore: 65,
+    domain: 'A',
+  },
+  {
+    eventId: generateEventId('A'),
+    id: 'event-5',
+    type: '실종 · 미아',
+    title: '8세 남아 실종, 마지막 목격 30분 전',
+    time: '17:50',
+    location: '안양시 동안구 평촌동 123-45',
+    description: '8세 남아 실종, 마지막 목격 30분 전',
+    source: '안양112센터',
+    risk: 'HIGH',
+    status: 'URGENT',
+    pScore: 88,
+    domain: 'A',
+  },
+  {
+    eventId: generateEventId('A'),
+    id: 'event-6',
+    type: '위험행동(흉기 소지 등)',
+    title: '흉기 소지 위험 행동',
+    time: '17:30',
+    location: '안양시 만안구 안양역 앞 광장 1번 출구',
+    description: 'AI 감지: 긴 물체 소지, 위협 행동',
+    source: 'AI',
+    risk: 'HIGH',
+    status: 'ACTIVE',
+    pScore: 90,
+    domain: 'A',
+  },
+
+  // B - 119 재난 · 구조
+  {
+    eventId: generateEventId('B'),
+    id: 'event-7',
+    type: '화재(실화/의심)',
+    title: '주택 2층 연기 발생, 주민 대피 중',
+    time: '17:45',
+    location: '안양시 동안구 비산동 205-12',
+    description: '주택 2층에서 연기 발생, 주민 대피 중',
+    source: '안양119센터',
+    risk: 'HIGH',
+    status: 'IN_PROGRESS',
+    pScore: 88,
+    domain: 'B',
+  },
+  {
+    eventId: generateEventId('B'),
+    id: 'event-8',
+    type: '연기 감지',
+    title: '산림 인접 연기 발생, 확산 위험',
+    time: '16:30',
+    location: '안양시 동안구 산림로 120-4',
+    description: '산림 인접 밭에서 연기 발생, 확산 위험',
+    source: 'AI',
+    risk: 'HIGH',
+    status: 'ACTIVE',
+    pScore: 92,
+    domain: 'B',
+  },
+  {
+    eventId: generateEventId('B'),
+    id: 'event-9',
+    type: '교통사고(경상/중상)',
+    title: '차량 3대 추돌, 부상자 2명',
+    time: '16:30',
+    location: '안양시 동안구 평촌대로 234',
+    description: '차량 3대 추돌, 부상자 2명',
+    source: '안양119센터',
+    risk: 'MEDIUM',
+    status: 'ACTIVE',
+    pScore: 72,
+    domain: 'B',
+  },
+  {
+    eventId: generateEventId('B'),
+    id: 'event-10',
+    type: '쓰러짐(응급)',
+    title: '보행 중 갑자기 쓰러짐, 응급 상황',
+    time: '15:20',
+    location: '안양시 만안구 안양역 앞 광장 1번 출구',
+    description: '보행 중 갑자기 쓰러짐, 응급 상황',
+    source: '안양119센터',
+    risk: 'HIGH',
+    status: 'IN_PROGRESS',
+    pScore: 87,
+    domain: 'B',
+  },
+
+  // C - 사회적 약자 보호
+  {
+    eventId: generateEventId('C'),
+    id: 'event-11',
+    type: '배회(장기)',
+    title: '80대 남성, 2시간 이상 동일 구역 배회',
+    time: '19:15',
+    location: '안양시 동안구 평촌동 234-56',
+    description: '80대 남성, 2시간 이상 동일 구역 배회',
+    source: 'AI',
+    risk: 'MEDIUM',
+    status: 'ACTIVE',
+    pScore: 68,
+    domain: 'C',
+  },
+  {
+    eventId: generateEventId('C'),
+    id: 'event-12',
+    type: '보호구역 이탈',
+    title: '치매 노인 보호구역 이탈, 추적 중',
+    time: '14:50',
+    location: '안양시 만안구 안양동 567-89 (안양요양원)',
+    description: '요양원에서 이탈, 현재 추적 중',
+    source: '안양요양원',
+    risk: 'HIGH',
+    status: 'ACTIVE',
+    pScore: 82,
+    domain: 'C',
+  },
+  {
+    eventId: generateEventId('C'),
+    id: 'event-13',
+    type: '약자 긴급 호출(단말기)',
+    title: '노인 낙상, 응급실 이송 요청',
+    time: '13:30',
+    location: '안양시 동안구 평촌동 456-78',
+    description: '노인 낙상, 응급실 이송 요청',
+    source: '안양119센터',
+    risk: 'MEDIUM',
+    status: 'CLOSED',
+    pScore: 60,
+    domain: 'C',
+  },
+  {
+    eventId: generateEventId('C'),
+    id: 'event-14',
+    type: '쓰러짐(고령자/약자)',
+    title: '80대 여성 쓰러짐, 의식 확인 중',
+    time: '12:20',
+    location: '안양시 만안구 석수동 345-67',
+    description: '80대 여성 쓰러짐, 의식 확인 중',
+    source: 'AI',
+    risk: 'HIGH',
+    status: 'ACTIVE',
+    pScore: 85,
+    domain: 'C',
+  },
+
+  // D - AI 이상행동/상황
+  {
+    eventId: generateEventId('D'),
+    id: 'event-15',
+    type: '쓰러짐',
+    title: '보행 중 갑자기 쓰러짐, 응급 상황',
+    time: '19:30',
+    location: '안양시 만안구 안양역 앞 광장 1번 출구',
+    description: 'CCTV AI 감지: 보행 중 갑자기 쓰러짐',
+    source: 'AI',
+    risk: 'HIGH',
+    status: 'URGENT',
+    pScore: 87,
+    domain: 'D',
+  },
+  {
+    eventId: generateEventId('D'),
+    id: 'event-16',
+    type: '싸움/격투',
+    title: '주먹 공격 행위 포착',
+    time: '18:55',
+    location: '안양시 동안구 비산동 345-67',
+    description: 'AI 감지: 주먹으로 공격하는 행위 포착',
+    source: 'AI',
+    risk: 'HIGH',
+    status: 'ACTIVE',
+    pScore: 91,
+    domain: 'D',
+  },
+  {
+    eventId: generateEventId('D'),
+    id: 'event-17',
+    type: '무단침입/월담',
+    title: '야간 상가 창문 부수고 침입 시도',
+    time: '17:20',
+    location: '안양시 만안구 안양동 중앙시장 123',
+    description: '야간 상가 창문 부수고 침입 시도',
+    source: 'AI',
+    risk: 'MEDIUM',
+    status: 'ACTIVE',
+    pScore: 75,
+    domain: 'D',
+  },
+  {
+    eventId: generateEventId('D'),
+    id: 'event-18',
+    type: '배회',
+    title: '3시간 이상 동일 구역 배회',
+    time: '16:10',
+    location: '안양시 동안구 평촌동 중앙공원 1',
+    description: 'AI 감지: 3시간 이상 동일 구역 배회',
+    source: 'AI',
+    risk: 'MEDIUM',
+    status: 'NEW',
+    pScore: 58,
+    domain: 'D',
+  },
+
+  // E - 재난(NDMS)
+  {
+    eventId: generateEventId('E'),
+    id: 'event-19',
+    type: '산불',
+    title: '연기 발생, 산불 가능성',
+    time: '15:45',
+    location: '안양시 동안구 관악산로 567',
+    description: '연기 발생, 산불 가능성',
+    source: 'NDMS',
+    risk: 'HIGH',
+    status: 'IN_PROGRESS',
+    pScore: 89,
+    domain: 'E',
+  },
+  {
+    eventId: generateEventId('E'),
+    id: 'event-20',
+    type: '호우(침수)',
+    title: '시간당 50mm 이상 강우 예상',
+    time: '14:00',
+    location: '안양시 동안구 평촌동 일대',
+    description: '시간당 50mm 이상 강우 예상',
+    source: 'NDMS',
+    risk: 'MEDIUM',
+    status: 'ACTIVE',
+    pScore: 70,
+    domain: 'E',
+  },
+  {
+    eventId: generateEventId('E'),
+    id: 'event-21',
+    type: '강풍·낙하물 위험',
+    title: '강풍주의보, 낙하물 위험',
+    time: '13:15',
+    location: '안양시 만안구 안양동 일대',
+    description: '강풍주의보 발령, 낙하물 위험',
+    source: 'NDMS',
+    risk: 'HIGH',
+    status: 'ACTIVE',
+    pScore: 83,
+    domain: 'E',
+  },
+
+  // F - 도시 운영 · 환경
+  {
+    eventId: generateEventId('F'),
+    id: 'event-22',
+    type: 'IoT 장비 장애-오프라인',
+    title: 'CCTV 센서 신호 이상, 오프라인',
+    time: '12:30',
+    location: '안양시 동안구 평촌대로 789',
+    description: 'CCTV 센서 신호 이상, 오프라인 상태',
+    source: 'IoT',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 45,
+    domain: 'F',
+  },
+  {
+    eventId: generateEventId('F'),
+    id: 'event-23',
+    type: '조명 인프라 이상-가로등',
+    title: '가로등 5개 전원 차단',
+    time: '11:20',
+    location: '안양시 만안구 석수동 678-90',
+    description: '가로등 5개 전원 차단',
+    source: 'IoT',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 40,
+    domain: 'F',
+  },
+  {
+    eventId: generateEventId('F'),
+    id: 'event-24',
+    type: '교통 운영 이벤트-신호기',
+    title: '교통 신호등 제어 시스템 오류',
+    time: '10:15',
+    location: '안양시 동안구 평촌대로 234',
+    description: '교통 신호등 제어 시스템 오류',
+    source: 'IoT',
+    risk: 'MEDIUM',
+    status: 'ACTIVE',
+    pScore: 55,
+    domain: 'F',
+  },
+  {
+    eventId: generateEventId('F'),
+    id: 'event-25',
+    type: '환경 센서 이상-미세먼지',
+    title: '미세먼지 센서 데이터 미전송',
+    time: '09:30',
+    location: '안양시 동안구 평촌동 890-12',
+    description: '미세먼지 센서 데이터 미전송',
+    source: 'IoT',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 35,
+    domain: 'F',
+  },
+];
+
+// 도메인별 이벤트 필터링
+export const getEventsByDomain = (domain: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'ALL'): BaseEvent[] => {
+  if (domain === 'ALL') return allEvents;
+  return allEvents.filter((event) => event.domain === domain);
+};
+
+// 이벤트 ID로 이벤트 찾기
+export const getEventById = (eventId: string): BaseEvent | undefined => {
+  return allEvents.find((event) => event.eventId === eventId || event.id === eventId);
+};
+
+// 상태별 이벤트 필터링
+export const getEventsByStatus = (status: BaseEvent['status']): BaseEvent[] => {
+  return allEvents.filter((event) => event.status === status);
+};
+
+// 위험도별 이벤트 필터링
+export const getEventsByRisk = (risk: BaseEvent['risk']): BaseEvent[] => {
+  return allEvents.filter((event) => event.risk === risk);
+};
+
+// 도메인 코드 설명
+// 통일된 카테고리 라벨
+export const domainLabels: Record<'A' | 'B' | 'C' | 'D' | 'E' | 'F', string> = {
+  A: '112 치안 · 방범',
+  B: '119 재난 · 구조',
+  C: '사회적 약자 보호',
+  D: 'AI 이상행동',
+  E: '재난',
+  F: '도시 운영 · 환경',
+};
+
+// 이벤트의 카테고리 가져오기
+export const getEventCategory = (event: BaseEvent): string => {
+  return domainLabels[event.domain];
+};
+
+// 좌표 생성 (안양시 기준)
+const generateCoordinates = (index: number): [number, number] => {
+  const baseLat = 37.3925;
+  const baseLng = 126.9529;
+  const offset = index * 0.001;
+  return [baseLat + offset, baseLng + offset];
+};
+
+// 대시보드용 Event 타입으로 변환
+export const convertToDashboardEvent = (event: BaseEvent, index: number) => {
+  const typeMap: Record<string, string> = {
+    // A - 112 치안 · 방범
+    '폭행': '112-치안',
+    '상해': '112-치안',
+    '절도': '112-치안',
+    '강도': '112-치안',
+    '주취자 소란': '112-치안',
+    '실종': '112-미아',
+    '미아': '112-미아',
+    '위험행동': '112-치안',
+    '배회(치안 관점)': '112-치안',
+    '차량도주': '112-치안',
+    '용의차량 추적': '112-치안',
+    '기물파손': '112-치안',
+    '다툼': '112-치안',
+    '시비': '112-치안',
+    // B - 119 재난 · 구조
+    '화재': '119-화재',
+    '연기 감지': '119-화재',
+    '폭발': '119-화재',
+    '가스 누출': '119-화재',
+    '교통사고': '119-구조',
+    '쓰러짐(응급)': '119-구조',
+    '호흡곤란': '119-구조',
+    '의식저하': '119-구조',
+    '붕괴': 'NDMS',
+    '침수': 'NDMS',
+    // C - 사회적 약자 보호
+    '약자 긴급 호출': '약자',
+    '배회(장기)': 'AI-배회',
+    '보호구역 이탈': '112-미아',
+    '위험구역 접근': '약자',
+    '쓰러짐(고령자/약자)': '약자',
+    '보호자 연결 요청': '약자',
+    // D - AI 이상행동/상황
+    '싸움': '112-치안',
+    '격투': '112-치안',
+    '방화 의심': '119-화재',
+    '무단침입': '112-치안',
+    '월담': '112-치안',
+    '위험한 군중 밀집': '112-치안',
+    '도로 위험 객체': '소방서',
+    '역주행': '소방서',
+    // E - 재난(NDMS)
+    '산불': 'NDMS',
+    '호우': 'NDMS',
+    '지진': 'NDMS',
+    '대규모 교통 마비': 'NDMS',
+    '대피 요청': 'NDMS',
+    '대피소': 'NDMS',
+    '강풍': 'NDMS',
+    '낙하물 위험': 'NDMS',
+    // F - 도시 운영 · 환경
+    '환경 센서 이상': '소방서',
+    '도시 기반시설 장애': '소방서',
+    '조명 인프라 이상': '소방서',
+    'IoT 장비 장애': '소방서',
+    '공공시설 안전': '소방서',
+    '교통 운영 이벤트': '소방서',
+    '에너지 사용 이상': '소방서',
+  };
+  
+  // 유형 매칭 (includes 방식)
+  let matchedType = '112-치안';
+  for (const [key, value] of Object.entries(typeMap)) {
+    if (event.type.includes(key)) {
+      matchedType = value;
+      break;
+    }
+  }
+
+  const priorityMap: Record<string, 'High' | 'Medium' | 'Low'> = {
+    HIGH: 'High',
+    MEDIUM: 'Medium',
+    LOW: 'Low',
+  };
+
+  const statusMap: Record<string, 'NEW' | 'MONITORING' | 'RESOLVED' | 'EVIDENCE'> = {
+    URGENT: 'MONITORING',
+    ACTIVE: 'MONITORING',
+    NEW: 'NEW',
+    IN_PROGRESS: 'MONITORING',
+    CLOSED: 'RESOLVED',
+  };
+
+  return {
+    id: event.id,
+    eventId: event.eventId,
+    type: matchedType as any,
+    title: event.title,
+    priority: priorityMap[event.risk],
+    status: statusMap[event.status] || 'NEW',
+    timestamp: event.time,
+    location: {
+      name: event.location,
+      coordinates: generateCoordinates(index),
+    },
+    confidence: event.pScore,
+    description: event.description || event.title,
+  };
+};
+
+// 각 이벤트 타입별 AI Agent 답변 생성
+export const generateAIInsight = (event: BaseEvent): string => {
+  const { type, title, description, risk, pScore, location, domain, source } = event;
+  const riskScore = pScore || 0;
+
+  // 타입별 상세 인사이트 (includes 방식으로 유연하게 처리)
+  // A - 112 치안 · 방범
+  if (domain === 'A') {
+    if (type.includes('폭행') || type.includes('상해')) {
+      return `폭행 사건 발생. ${description || title}. ${location}에서 발생한 폭행 사건으로 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 피해자와 가해자 구분이 명확하며, 가해자는 현재 도주 중입니다. 즉시 경찰 출동이 필요하며, CCTV-7, CCTV-12, CCTV-15 집중 모니터링을 권장합니다.`;
+    } else if (type.includes('절도') || type.includes('강도')) {
+      return `절도 사건 발생. ${description || title}. ${location}에서 절도 의심 행위가 AI에 의해 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 현장 CCTV 분석 결과, 용의자 동선 반복 및 급가속 구간이 확인되었습니다. 즉시 경찰 출동 및 현장 보전이 필요합니다.`;
+    } else if (type.includes('차량도주') || type.includes('추적')) {
+      return `차량도주 사건 발생. ${description || title}. ${location}에서 차량도주가 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 도주 차량/인물과 추격자의 이동 경로가 CCTV로 추적 중입니다. 즉시 경찰 출동 및 도로 차단이 필요할 수 있습니다.`;
+    } else if (type.includes('실종') || type.includes('미아')) {
+      return `실종 사건 발생. ${description || title}. ${location}에서 실종 신고가 접수되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 마지막 목격 좌표 기준 반경 300m 내에서 배회 행동이 감지되었습니다. 즉시 수색대 출동이 필요합니다.`;
+    } else if (type.includes('위험행동') || type.includes('흉기')) {
+      return `위험행동 감지. ${description || title}. ${location}에서 흉기 소지 등 위험 행동이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. AI에 의해 긴 물체 소지 및 위협 행동이 포착되었습니다. 즉시 경찰 출동이 필요합니다.`;
+    } else if (type.includes('기물파손')) {
+      return `기물파손 사건 발생. ${description || title}. ${location}에서 기물파손이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 음주 난동 및 기물 파손이 다수 신고되었습니다. 즉시 경찰 출동 및 현장 진압이 필요합니다.`;
+    } else if (type.includes('다툼') || type.includes('시비')) {
+      return `다툼 사건 발생. ${description || title}. ${location}에서 다툼이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 시비로 인한 다툼이 확인되었습니다. 즉시 경찰 출동 및 현장 확인이 필요합니다.`;
+    } else if (type.includes('주취자') || type.includes('소란')) {
+      return `주취자 소란 발생. ${description || title}. ${location}에서 주취자 소란이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 음주 상태의 소란 행위가 확인되었습니다. 즉시 경찰 출동이 필요합니다.`;
+    }
+  }
+  
+  // B - 119 재난 · 구조
+  if (domain === 'B') {
+    if (type.includes('화재') || type.includes('연기')) {
+      return `화재 발생. ${description || title}. ${location}에서 화재가 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 강풍 영향으로 확산 위험이 높으며, 접근 가능한 도로가 제한적입니다. 주민 대피가 진행 중이며, 즉시 소방대 출동이 필요합니다. CCTV-03, CCTV-07이 주요 관제 지점입니다.`;
+    } else if (type.includes('교통사고')) {
+      return `교통사고 발생. ${description || title}. ${location}에서 다중 추돌 사고가 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 부상자 ${risk === 'HIGH' ? '다수' : '2명'} 발생, 즉시 소방대 및 구급대 출동이 필요합니다. 도로 통제 및 응급처치가 진행 중입니다.`;
+    } else if (type.includes('쓰러짐')) {
+      return `쓰러짐 응급 상황. ${description || title}. ${location}에서 쓰러짐이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 보행 중 갑자기 쓰러진 것으로 보이며, 즉시 구급대 출동이 필요합니다. 응급처치 및 병원 이송이 진행 중입니다.`;
+    } else if (type.includes('폭발') || type.includes('가스')) {
+      return `폭발/가스 누출 의심. ${description || title}. ${location}에서 가스 누출 의심 상황이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 소방대 출동 및 주변 대피가 필요합니다.`;
+    } else if (type.includes('호흡곤란') || type.includes('의식저하')) {
+      return `호흡곤란/의식저하 발생. ${description || title}. ${location}에서 호흡곤란 또는 의식저하가 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 구급대 출동이 필요합니다.`;
+    } else if (type.includes('붕괴') || type.includes('침수')) {
+      return `특수재난 발생. ${description || title}. ${location}에서 특수재난이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 소방대 및 구조대 출동이 필요합니다.`;
+    }
+  }
+  
+  // C - 사회적 약자 보호
+  if (domain === 'C') {
+    if (type.includes('배회')) {
+      return `배회 감지. ${description || title}. ${location}에서 ${source === 'AI' ? 'AI에 의해' : ''} 장기 배회 행동이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. ${description?.includes('시간') ? description : '장시간 동일 구역 배회'}가 확인되었습니다. 즉시 현장 확인 및 보호 조치가 필요합니다.`;
+    } else if (type.includes('이탈') || type.includes('보호구역')) {
+      return `보호구역 이탈 발생. ${description || title}. ${location}에서 보호구역 이탈이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 요양원/보호시설에서 이탈한 것으로 보이며, 현재 추적 중입니다. 즉시 수색대 출동 및 가족 연락이 필요합니다.`;
+    } else if (type.includes('긴급 호출') || type.includes('단말기')) {
+      return `약자 긴급 호출. ${description || title}. ${location}에서 약자 긴급 호출이 접수되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 단말기를 통한 긴급 호출로 즉시 구급대 출동이 필요합니다.`;
+    } else if (type.includes('쓰러짐')) {
+      return `약자 쓰러짐 발생. ${description || title}. ${location}에서 고령자/약자 쓰러짐이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 구급대 출동 및 응급처치가 필요합니다.`;
+    } else if (type.includes('위험구역') || type.includes('접근')) {
+      return `위험구역 접근. ${description || title}. ${location}에서 위험구역 접근이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 도로/수변 등 위험구역에 접근한 것으로 보입니다. 즉시 보호 조치가 필요합니다.`;
+    } else if (type.includes('보호자')) {
+      return `보호자 연결 요청. ${description || title}. ${location}에서 보호자 연결 요청이 접수되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 보호자 연락 및 현장 확인이 필요합니다.`;
+    }
+  }
+  
+  // D - AI 이상행동/상황
+  if (domain === 'D') {
+    if (type.includes('쓰러짐')) {
+      return `쓰러짐 감지. ${description || title}. ${location}에서 AI에 의해 쓰러짐 행동이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 보행 중 갑자기 쓰러진 것으로 보이며, 즉시 구급대 출동이 필요합니다. CCTV 분석 결과 응급 상황으로 판단됩니다.`;
+    } else if (type.includes('싸움') || type.includes('격투')) {
+      return `싸움/격투 감지. ${description || title}. ${location}에서 AI에 의해 싸움/격투 행위가 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 주먹으로 공격하는 행위가 포착되었으며, 즉시 경찰 출동이 필요합니다. CCTV 연속 추적 모드 활성화를 권장합니다.`;
+    } else if (type.includes('침입') || type.includes('월담')) {
+      return `무단침입 감지. ${description || title}. ${location}에서 AI에 의해 무단침입/월담이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 야간 상가 창문 부수고 침입 시도가 확인되었습니다. 즉시 경찰 출동 및 현장 보전이 필요합니다.`;
+    } else if (type.includes('배회')) {
+      return `배회 감지. ${description || title}. ${location}에서 AI에 의해 배회 행동이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 장시간 동일 구역 배회가 확인되었습니다. 즉시 현장 확인이 필요합니다.`;
+    } else if (type.includes('방화')) {
+      return `방화 의심 감지. ${description || title}. ${location}에서 AI에 의해 방화 의심 행위가 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 소방대 및 경찰 출동이 필요합니다.`;
+    } else if (type.includes('군중') || type.includes('밀집')) {
+      return `위험한 군중 밀집 감지. ${description || title}. ${location}에서 AI에 의해 위험한 군중 밀집이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 현장 확인 및 통제가 필요합니다.`;
+    } else if (type.includes('도로') || type.includes('방치')) {
+      return `도로 위험 객체 감지. ${description || title}. ${location}에서 AI에 의해 도로 위험 객체가 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 방치된 물품으로 인한 위험이 확인되었습니다. 즉시 제거가 필요합니다.`;
+    } else if (type.includes('역주행')) {
+      return `역주행 감지. ${description || title}. ${location}에서 AI에 의해 역주행이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 교통 통제 및 안전 조치가 필요합니다.`;
+    }
+  }
+  
+  // E - 재난(NDMS)
+  if (domain === 'E') {
+    if (type.includes('산불')) {
+      return `산불 경보. ${description || title}. ${location} 인근에서 산불 의심 상황이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 연기 발생 및 산불 가능성이 확인되었습니다. 즉시 소방대 및 산림청 출동이 필요하며, 주변 주민 대피가 필요할 수 있습니다.`;
+    } else if (type.includes('호우') || type.includes('침수')) {
+      return `호우(침수) 경보. ${description || title}. 안양시 전역에 집중 호우 경보가 발령되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 시간당 50mm 이상 강우가 예상되며, 침수 및 도로 통제가 필요할 수 있습니다. 즉시 대비 조치가 필요합니다.`;
+    } else if (type.includes('지진')) {
+      return `지진 경보. ${description || title}. ${location}에서 지진이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 안전 확인 및 대피 조치가 필요합니다.`;
+    } else if (type.includes('교통 마비')) {
+      return `대규모 교통 마비. ${description || title}. ${location}에서 대규모 교통 마비가 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 교통 통제 및 우회 경로 안내가 필요합니다.`;
+    } else if (type.includes('대피') || type.includes('대피소')) {
+      return `대피 요청. ${description || title}. ${location}에서 대피 요청이 접수되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 대피소 안내 및 대피 조치가 필요합니다.`;
+    } else if (type.includes('강풍') || type.includes('낙하물')) {
+      return `강풍·낙하물 위험. ${description || title}. ${location}에서 강풍주의보가 발령되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 낙하물 위험이 높아지고 있습니다. 즉시 안전 조치가 필요합니다.`;
+    }
+  }
+  
+  // F - 도시 운영 · 환경
+  if (domain === 'F') {
+    if (type.includes('센서') || type.includes('미세먼지') || type.includes('온습도') || type.includes('풍속') || type.includes('소음') || type.includes('대기질')) {
+      return `환경 센서 이상. ${description || title}. ${location}에서 환경 센서 이상이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 센서 데이터 이상으로 모니터링이 제한될 수 있습니다. 즉시 점검 및 복구가 필요합니다.`;
+    } else if (type.includes('상·하수도') || type.includes('전력') || type.includes('가스')) {
+      return `도시 기반시설 장애. ${description || title}. ${location}에서 도시 기반시설 장애가 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 점검 및 복구가 필요합니다.`;
+    } else if (type.includes('가로등') || type.includes('조도')) {
+      return `조명 인프라 이상. ${description || title}. ${location}에서 조명 인프라 이상이 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 가로등 또는 조도 센서 이상으로 야간 안전에 영향을 줄 수 있습니다. 즉시 점검 및 복구가 필요합니다.`;
+    } else if (type.includes('IoT') || type.includes('오프라인') || type.includes('미전송') || type.includes('불량')) {
+      return `IoT 장비 장애. ${description || title}. ${location}에서 IoT 장비 장애가 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. IoT 장비 오프라인 또는 데이터 미전송으로 모니터링이 제한될 수 있습니다. 즉시 점검 및 복구가 필요합니다.`;
+    } else if (type.includes('교량') || type.includes('터널') || type.includes('구조물')) {
+      return `공공시설 안전. ${description || title}. ${location}에서 공공시설 안전 이슈가 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 교량/터널/구조물 센서 이상이 확인되었습니다. 즉시 점검 및 안전 확인이 필요합니다.`;
+    } else if (type.includes('신호기') || type.includes('교통량') || type.includes('정체')) {
+      return `교통 운영 이벤트. ${description || title}. ${location}에서 교통 운영 이벤트가 발생했습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 교통 신호기 오류 또는 교통량 이상이 확인되었습니다. 즉시 점검 및 복구가 필요합니다.`;
+    } else if (type.includes('에너지')) {
+      return `에너지 사용 이상. ${description || title}. ${location}에서 에너지 사용 이상이 감지되었습니다. 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 즉시 점검 및 확인이 필요합니다.`;
+    }
+  }
+
+  // 기본 인사이트
+  return `${title} 이벤트 발생. ${description || ''} ${location}에서 발생한 이벤트로 위험도 ${risk} (P-Score: ${riskScore}%)입니다. 현재 상황을 분석 중이며, 필요시 즉시 대응이 필요합니다.`;
+};
+
+// 간단한 AI 인사이트 (EventDetail용)
+export const generateSimpleAIInsight = (event: BaseEvent): string => {
+  const insight = generateAIInsight(event);
+  // 첫 문장만 추출하거나 요약
+  const sentences = insight.split('. ');
+  if (sentences.length > 1) {
+    return sentences.slice(0, 2).join('. ') + '.';
+  }
+  return insight;
+};
+
+// AI 인사이트 주요 키워드 추출
+export const getAIInsightKeywords = (event: BaseEvent): string[] => {
+  const keywords: string[] = [];
+  const { type, domain, description, risk } = event;
+
+  // 도메인별 키워드
+  if (domain === 'A') {
+    if (type.includes('폭행') || type.includes('상해')) {
+      keywords.push('흉기소지', '도주중', 'CCTV추적');
+    } else if (type.includes('절도') || type.includes('강도')) {
+      keywords.push('AI감지', '현금절도', '동선반복');
+    } else if (type.includes('차량도주') || type.includes('추적')) {
+      keywords.push('도주차량', '추적중', '은행강도연관');
+    } else if (type.includes('실종') || type.includes('미아')) {
+      keywords.push('아동실종', '수색필요', '긴급');
+    } else if (type.includes('위험행동')) {
+      keywords.push('흉기소지', '위협행동', 'AI감지');
+    } else if (type.includes('기물파손')) {
+      keywords.push('난동', '기물파손', '음주');
+    } else if (type.includes('다툼') || type.includes('시비')) {
+      keywords.push('싸움', '시비', '현장확인');
+    }
+  } else if (domain === 'B') {
+    if (type.includes('화재') || type.includes('연기')) {
+      keywords.push('강풍영향', '산림인접', '야간');
+    } else if (type.includes('교통사고')) {
+      keywords.push('다중추돌', '부상자', '도로통제');
+    } else if (type.includes('쓰러짐')) {
+      keywords.push('응급상황', '구급대출동', '의식확인');
+    } else if (type.includes('폭발') || type.includes('가스')) {
+      keywords.push('가스누출', '폭발위험', '대피필요');
+    } else if (type.includes('호흡곤란') || type.includes('의식저하')) {
+      keywords.push('응급상황', '호흡곤란', '의식저하');
+    } else if (type.includes('붕괴') || type.includes('침수')) {
+      keywords.push('특수재난', '붕괴위험', '구조필요');
+    }
+  } else if (domain === 'C') {
+    if (type.includes('배회')) {
+      keywords.push('약자보호', '장기배회', '보호필요');
+    } else if (type.includes('이탈') || type.includes('보호구역')) {
+      keywords.push('보호구역이탈', '추적중', '수색필요');
+    } else if (type.includes('쓰러짐')) {
+      keywords.push('고령자', '응급처치', '구급대출동');
+    } else if (type.includes('긴급 호출') || type.includes('단말기')) {
+      keywords.push('약자긴급호출', '단말기', '즉시대응');
+    } else if (type.includes('위험구역') || type.includes('접근')) {
+      keywords.push('위험구역접근', '도로/수변', '보호필요');
+    } else if (type.includes('보호자')) {
+      keywords.push('보호자연결', '가족연락', '현장확인');
+    }
+  } else if (domain === 'D') {
+    keywords.push('AI감지', '이상행동', '실시간추적');
+    if (type.includes('싸움') || type.includes('격투')) {
+      keywords.push('폭력행위', 'CCTV포착');
+    } else if (type.includes('침입') || type.includes('월담')) {
+      keywords.push('무단침입', '월담');
+    } else if (type.includes('배회')) {
+      keywords.push('장기배회', '이상행동');
+    } else if (type.includes('방화')) {
+      keywords.push('방화의심', '화재위험');
+    } else if (type.includes('군중') || type.includes('밀집')) {
+      keywords.push('군중밀집', '위험상황');
+    } else if (type.includes('도로') || type.includes('방치')) {
+      keywords.push('도로위험객체', '방치물품');
+    } else if (type.includes('역주행')) {
+      keywords.push('역주행', '교통위험');
+    }
+  } else if (domain === 'E') {
+    keywords.push('재난경보', '기상영향', '대피필요');
+    if (type.includes('산불')) {
+      keywords.push('산불의심', '연기발생');
+    } else if (type.includes('호우') || type.includes('침수')) {
+      keywords.push('집중호우', '침수위험');
+    } else if (type.includes('지진')) {
+      keywords.push('지진감지', '안전확인');
+    } else if (type.includes('교통 마비')) {
+      keywords.push('교통마비', '우회경로');
+    } else if (type.includes('대피') || type.includes('대피소')) {
+      keywords.push('대피요청', '대피소안내');
+    } else if (type.includes('강풍') || type.includes('낙하물')) {
+      keywords.push('강풍주의보', '낙하물위험');
+    }
+  } else if (domain === 'F') {
+    keywords.push('IoT장애', '시설점검', '복구필요');
+    if (type.includes('센서') || type.includes('미세먼지') || type.includes('온습도') || type.includes('풍속') || type.includes('소음') || type.includes('대기질')) {
+      keywords.push('환경센서이상', '데이터미전송');
+    } else if (type.includes('상·하수도') || type.includes('전력') || type.includes('가스')) {
+      keywords.push('기반시설장애', '복구필요');
+    } else if (type.includes('가로등') || type.includes('조도')) {
+      keywords.push('조명장애', '전원차단');
+    } else if (type.includes('IoT') || type.includes('오프라인') || type.includes('미전송') || type.includes('불량')) {
+      keywords.push('IoT장비장애', '오프라인');
+    } else if (type.includes('교량') || type.includes('터널') || type.includes('구조물')) {
+      keywords.push('공공시설안전', '센서이상');
+    } else if (type.includes('신호기') || type.includes('교통량') || type.includes('정체')) {
+      keywords.push('교통신호', '시스템오류');
+    } else if (type.includes('에너지')) {
+      keywords.push('에너지이상', '사용량확인');
+    }
+  }
+
+  return keywords.slice(0, 3); // 최대 3개 키워드
+};
+
