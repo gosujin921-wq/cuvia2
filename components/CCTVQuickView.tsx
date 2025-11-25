@@ -18,7 +18,7 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
   if (!isVisible) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-40 bg-[#1a1a1a] border-t border-[#2a2a2a] px-4 py-3 z-50">
+    <div className="absolute bottom-0 left-0 right-0 h-40 bg-[#161719] border-t border-[#31353a] px-4 py-3 z-50">
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-2">
           <Icon icon="mdi:cctv" className="w-5 h-5 text-white" />
@@ -26,7 +26,7 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
         </div>
         <button
           onClick={onClose}
-          className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+          className="p-1 hover:bg-[#36383B] transition-colors"
           aria-label="닫기"
         >
           <Icon icon="mdi:chevron-down" className="w-5 h-5 text-gray-400" />
@@ -41,7 +41,7 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
           cctvList.map((cctv) => (
             <div
               key={cctv.id}
-              className="relative flex-shrink-0 w-48 h-28 bg-[#242424] rounded-lg overflow-hidden border border-[#2a2a2a] cursor-pointer hover:border-blue-500 transition-all hover:scale-105"
+              className="relative flex-shrink-0 w-48 h-28 bg-[#36383B] overflow-hidden border border-[#31353a] cursor-pointer hover:border-blue-500 transition-all hover:scale-105"
               style={{ borderWidth: '1px' }}
             >
               <div className="w-full h-full bg-gradient-to-br from-gray-800 via-gray-700 to-gray-900 flex items-center justify-center relative">

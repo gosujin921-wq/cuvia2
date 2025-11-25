@@ -1,27 +1,20 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import Header from '@/components/Header';
+import Link from 'next/link';
+import { Icon } from '@iconify/react';
 import EventSummary from '@/components/EventSummary';
 import EventList from '@/components/EventList';
 import MapView from '@/components/MapView';
-import AgentPanel from '@/components/AgentPanel';
 import EventDetail from '@/components/EventDetail';
 import CCTVQuickView from '@/components/CCTVQuickView';
-import { Event, AgentMessage, EventSummary as EventSummaryType } from '@/types';
+import RightPanel2 from '@/components/RightPanel2';
+import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent, getEventsByStatus, getEventsByRisk } from '@/lib/events-data';
 
 export default function Home() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
-  const [agentMessages, setAgentMessages] = useState<AgentMessage[]>([
-    {
-      id: '1',
-      timestamp: '00:00',
-      content: '현재 지역에 강풍주의보가 발령되었습니다.\n\n산림·비포장도로·야간 환경에서 발생하는 화재·약자·미아 사건의 위험도를 상향 적용하겠습니다.',
-      type: 'warning',
-    },
-  ]);
   const [showEventDetail, setShowEventDetail] = useState(false);
   const [showCCTVView, setShowCCTVView] = useState(false);
 
@@ -59,72 +52,85 @@ export default function Home() {
     setShowCCTVView(true);
   };
 
-  // CCTV 샘플 데이터
-  const cctvList = [
-    { id: '1', name: 'CCTV-001', location: 'N Jones Blvd 근처' },
-    { id: '2', name: 'CCTV-002', location: 'Rancho Dr 교차로' },
-    { id: '3', name: 'CCTV-003', location: 'Fremont St 북쪽' },
-    { id: '4', name: 'CCTV-004', location: 'Bonanza Rd 서쪽' },
+  const cctvThumbnails = [
+    '/cctv_img/001.jpg',
+    '/cctv_img/002.jpg',
+    '/cctv_img/003.jpg',
+    '/cctv_img/004.jpg',
+    '/cctv_img/005.jpg',
   ];
 
+  // CCTV 샘플 데이터 (deterministic thumbnails)
+  const baseCctvList = [
+    { id: '1', name: 'CCTV-001', location: '비산동 주민센터 앞' },
+    { id: '2', name: 'CCTV-002', location: '안양역 광장' },
+    { id: '3', name: 'CCTV-003', location: '평촌대로 사거리' },
+    { id: '4', name: 'CCTV-004', location: '관악산로 입구' },
+  ];
+
+  const cctvList = baseCctvList.map((item, index) => ({
+    ...item,
+    thumbnail: cctvThumbnails[index % cctvThumbnails.length],
+  }));
+
   const handleSummaryRequest = () => {
-    const newMessage: AgentMessage = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-      content: `산림 인접(40m), 조도 낮음, 강풍 경보 활성화, 주거지까지 120m 거리입니다.\n\n접근로 단일. 우선 대응을 권장합니다.`,
-      type: 'analysis',
-    };
-    setAgentMessages([...agentMessages, newMessage]);
+    // TODO: Agent에게 요약 요청 기능 구현
   };
 
   const handleLinkEvents = () => {
-    const newMessage: AgentMessage = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-      content: '연관 스레드를 구성했습니다.',
-      type: 'info',
-    };
-    setAgentMessages([...agentMessages, newMessage]);
+    // TODO: 연관 이벤트 묶기 기능 구현
   };
 
   const handleBroadcastDraft = () => {
-    if (!selectedEvent || selectedEvent.type !== '119-화재') return;
-    
-    const newMessage: AgentMessage = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-      content: `119·112 전파 초안을 생성했습니다.\n\n위치: ${selectedEvent.location.name}\n상황: ${selectedEvent.title}\n\n확인 후 전송하실 수 있습니다.`,
-      type: 'suggestion',
-    };
-    setAgentMessages([...agentMessages, newMessage]);
+    // TODO: 전파 초안 생성 기능 구현
   };
 
   const handleBroadcastNow = () => {
-    if (!selectedEvent || selectedEvent.type !== '119-화재') return;
-    
-    const newMessage: AgentMessage = {
-      id: Date.now().toString(),
-      timestamp: new Date().toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
-      content: `소방서에 전파를 전송했습니다.\n\n전송 대상: ${selectedEvent.nearbyResources?.fireStations?.map(s => s.name).join(', ') || '인근 소방서'}`,
-      type: 'info',
-    };
-    setAgentMessages([...agentMessages, newMessage]);
+    // TODO: 즉시 전파 기능 구현
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f0f] overflow-hidden">
-      <Header />
+    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
       <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <EventSummary summary={eventSummary} />
-          <div className="flex flex-1 overflow-hidden relative">
-            <EventList
-              events={events}
-              selectedEventId={selectedEventId || undefined}
-              onEventSelect={handleEventSelect}
-              onEventHover={handleEventHover}
-            />
-            <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
+        <div className="flex flex-1 overflow-hidden relative">
+          <div className="flex flex-col flex-shrink-0 w-80 border-r border-[#31353a]" style={{ borderWidth: '1px' }}>
+            <div className="px-6 py-4">
+              <div className="w-24 h-5 flex items-center justify-start">
+                <img 
+                  src="/logo.svg" 
+                  alt="CUVIA Logo" 
+                  className="h-5 w-auto object-contain"
+                />
+              </div>
+            </div>
+            <div className="px-4">
+              <div className="h-px bg-[#31353a]" />
+            </div>
+            <div className="px-4 py-3">
+              <EventSummary summary={eventSummary} />
+            </div>
+            <div className="px-4">
+              <div className="h-px bg-[#31353a]" />
+            </div>
+            <div className="flex-1 overflow-hidden px-4 py-3">
+              <EventList
+                events={events}
+                selectedEventId={selectedEventId || undefined}
+                onEventSelect={handleEventSelect}
+                onEventHover={handleEventHover}
+              />
+            </div>
+          </div>
+          <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
+            {/* Agent Hub 임시 버튼 */}
+            <Link
+              href="/agent-hub"
+              className="absolute top-4 left-4 z-40 flex items-center gap-2 px-4 py-2 border border-blue-500 bg-blue-600/20 text-white text-sm font-medium hover:bg-blue-500/30 transition-colors"
+              aria-label="Agent Hub"
+            >
+              <Icon icon="mdi:robot" className="w-4 h-4" />
+              <span>Agent Hub</span>
+            </Link>
               <MapView
                 events={events}
                 highlightedEventId={highlightedEventId}
@@ -137,29 +143,25 @@ export default function Home() {
                 onClose={() => setShowCCTVView(false)}
               />
             </div>
-            {/* 우측: AI Agent 패널 (기획서 기준) */}
-            {showEventDetail && selectedEvent ? (
-              <EventDetail
-                event={selectedEvent}
-                onClose={() => {
-                  setShowEventDetail(false);
-                  setSelectedEventId(null);
-                }}
-                onSummaryRequest={handleSummaryRequest}
-                onLinkEvents={handleLinkEvents}
-                onBroadcastDraft={handleBroadcastDraft}
-                onBroadcastNow={handleBroadcastNow}
-              />
-            ) : (
-              <AgentPanel
-                messages={agentMessages}
-                isCollapsed={true}
-                onToggle={() => {}}
-              />
-            )}
+            {/* 우측: RightPanel */}
+            <RightPanel2 />
           </div>
-        </div>
       </div>
+
+      {/* 이벤트 상세 모달 */}
+      {showEventDetail && selectedEvent && (
+        <EventDetail
+          event={selectedEvent}
+          onClose={() => {
+            setShowEventDetail(false);
+            setSelectedEventId(null);
+          }}
+          onSummaryRequest={handleSummaryRequest}
+          onLinkEvents={handleLinkEvents}
+          onBroadcastDraft={handleBroadcastDraft}
+          onBroadcastNow={handleBroadcastNow}
+        />
+      )}
     </div>
   );
 }

@@ -143,7 +143,7 @@ export default function AIAgentPage() {
                   </div>
                 )}
                 <div
-                  className={`max-w-[80%] rounded-full px-4 py-3 ${
+                  className={`max-w-[80%] px-4 py-3 ${
                     message.role === 'user'
                       ? 'bg-blue-600 text-white'
                       : 'bg-[#1a1a1a] border border-[#2a2a2a] text-white'
@@ -171,7 +171,7 @@ export default function AIAgentPage() {
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <Icon icon="mdi:robot" className="w-5 h-5 text-white" />
                 </div>
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-full px-4 py-3" style={{ borderWidth: '1px' }}>
+                <div className="bg-[#1a1a1a] border border-[#2a2a2a] px-4 py-3" style={{ borderWidth: '1px' }}>
                   <div className="flex gap-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" />
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }} />
@@ -194,7 +194,7 @@ export default function AIAgentPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleInputKeyPress}
               placeholder="메시지를 입력하세요... (Enter로 전송)"
-              className="w-full px-4 py-3 bg-[#0f0f0f] border border-[#2a2a2a] rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+              className="w-full px-4 py-3 bg-[#0f0f0f] border border-[#2a2a2a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
               style={{ borderWidth: '1px' }}
               disabled={isLoading}
               aria-label="질문 입력"
@@ -203,7 +203,7 @@ export default function AIAgentPage() {
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-[#2a2a2a] disabled:text-gray-500 text-white rounded-full transition-colors font-medium flex items-center gap-2"
+            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-[#2a2a2a] disabled:text-gray-500 text-white transition-colors font-medium flex items-center gap-2"
             aria-label="전송"
           >
             <Icon icon="mdi:send" className="w-5 h-5" />

@@ -50,28 +50,28 @@ const AgentPanel = ({
 
   return (
     <div
-      className={`w-12 bg-[#1a1a1a] border-l border-[#2a2a2a] flex flex-col h-full transition-all duration-300 ${
+      className={`w-12 bg-[#161719] border-l border-[#31353a] flex flex-col h-full transition-all duration-300 ${
         isMinimized ? '' : 'w-80'
       }`}
     >
       {isMinimized ? (
         <button
           onClick={handleToggle}
-          className="w-full h-16 flex items-center justify-center border-b border-[#2a2a2a] hover:bg-[#2a2a2a] transition-colors"
+          className="w-full h-16 flex items-center justify-center border-b border-[#31353a] hover:bg-[#36383B] transition-colors"
           aria-label="Agent 패널 열기"
         >
           <Icon icon="mdi:robot-outline" className="w-6 h-6 text-blue-400" />
         </button>
       ) : (
         <>
-          <div className="h-16 border-b border-[#2a2a2a] flex items-center justify-between px-4">
+          <div className="h-16 border-b border-[#31353a] flex items-center justify-between px-4">
             <div className="flex items-center gap-2">
               <Icon icon="mdi:robot" className="w-5 h-5 text-blue-400" />
               <span className="text-white font-semibold text-sm">AI Agent</span>
             </div>
             <button
               onClick={handleToggle}
-              className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+              className="p-1 hover:bg-[#36383B] transition-colors"
               aria-label="Agent 패널 접기"
             >
               <Icon icon="mdi:chevron-right" className="w-5 h-5 text-gray-400" />
@@ -88,7 +88,7 @@ const AgentPanel = ({
               messages.map((message) => (
                 <div
                   key={message.id}
-                  className={`p-3 rounded-full border ${getMessageColor(message.type)}`}
+                  className={`p-3 border ${getMessageColor(message.type)}`}
                   style={{ borderWidth: '1px' }}
                 >
                   <div className="flex items-start gap-2 mb-1">
@@ -112,8 +112,8 @@ const AgentPanel = ({
             )}
           </div>
 
-          <div className="border-t border-[#2a2a2a] p-4 space-y-2">
-            <button className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition-colors">
+          <div className="border-t border-[#31353a] p-4 space-y-2">
+            <button className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors">
               Agent에게 요약 요청
             </button>
             {messages.length > 0 && (
@@ -121,7 +121,7 @@ const AgentPanel = ({
                 onClick={() => {
                   // 메시지 초기화 기능 추가 가능
                 }}
-                className="w-full py-2 px-4 bg-[#2a2a2a] hover:bg-[#3a3a3a] text-gray-300 rounded-full text-sm font-medium transition-colors"
+                className="w-full py-2 px-4 bg-[#36383B] hover:bg-[#161719] text-gray-300 text-sm font-medium transition-colors"
               >
                 대화 초기화
               </button>

@@ -68,25 +68,36 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
   };
 
   return (
-    <div className="w-96 bg-[#1a1a1a] border-l border-[#2a2a2a] flex flex-col h-full">
-      <div className="h-16 border-b border-[#2a2a2a] flex items-center justify-between px-4">
-        <h2 className="text-white font-semibold">이벤트 상세</h2>
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
-            aria-label="닫기"
-          >
-            <Icon icon="mdi:close" className="w-5 h-5 text-gray-400" />
-          </button>
-        )}
-      </div>
+    <>
+      {/* 모달 오버레이 */}
+      <div 
+        className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
+        onClick={onClose}
+      >
+        {/* 모달 컨텐츠 */}
+        <div 
+          className="w-[90vw] max-w-2xl bg-[#36383B] border border-[#31353a] flex flex-col max-h-[90vh]"
+          style={{ borderWidth: '1px' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="h-16 border-b border-[#31353a] flex items-center justify-between px-6 flex-shrink-0">
+            <h2 className="text-white font-semibold">이벤트 상세</h2>
+            {onClose && (
+              <button
+                onClick={onClose}
+                className="p-1 hover:bg-[#161719] transition-colors"
+                aria-label="닫기"
+              >
+                <Icon icon="mdi:close" className="w-5 h-5 text-gray-400" />
+              </button>
+            )}
+          </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
         {/* 기본 정보 */}
         <div>
           <h3 className="text-white font-medium mb-2">기본 정보</h3>
-          <div className="bg-[#242424] rounded-lg p-3 space-y-2 border border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+          <div className="bg-[#36383B] rounded-lg p-3 space-y-2 border border-[#31353a]" style={{ borderWidth: '1px' }}>
             {event.eventId && (
               <div className="flex items-center justify-between">
                 <span className="text-gray-400 text-sm">사건번호</span>
@@ -108,7 +119,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
             </div>
             <div className="flex items-center justify-between">
               <span className="text-gray-400 text-sm">우선순위</span>
-              <span className={`text-xs px-2 py-1 rounded-full ${priorityBadge.color}`}>
+              <span className={`text-xs px-2 py-1 ${priorityBadge.color}`}>
                 {priorityBadge.label}
               </span>
             </div>
@@ -143,7 +154,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
               상세 분석
             </button>
           </div>
-          <div className="bg-blue-500/10 border border-blue-500/30 rounded-lg p-4" style={{ borderWidth: '1px' }}>
+          <div className="bg-blue-500/10 border border-blue-500/30 p-4" style={{ borderWidth: '1px' }}>
             <p className="text-white text-sm leading-relaxed">{aiInsight}</p>
           </div>
         </div>
@@ -152,7 +163,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {event.description && (
           <div>
             <h3 className="text-white font-medium mb-2">상황 설명</h3>
-            <div className="bg-[#242424] rounded-lg p-3 border border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+            <div className="bg-[#36383B] p-3 border border-[#31353a]" style={{ borderWidth: '1px' }}>
               <p className="text-white text-sm">{event.description}</p>
             </div>
           </div>
@@ -161,7 +172,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {/* 주변 CCTV */}
         <div>
           <h3 className="text-white font-medium mb-2">주변 CCTV</h3>
-          <div className="bg-[#242424] rounded-lg p-3">
+          <div className="bg-[#36383B] rounded-lg p-3">
             <p className="text-gray-400 text-sm">CCTV 정보를 불러오는 중...</p>
           </div>
         </div>
@@ -169,7 +180,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {/* 위험도 */}
         <div>
           <h3 className="text-white font-medium mb-2">위험도 분석</h3>
-          <div className="bg-[#242424] rounded-lg p-3">
+          <div className="bg-[#36383B] rounded-lg p-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-gray-400 text-sm">위험도 점수</span>
@@ -185,14 +196,14 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {event.relatedEvents && event.relatedEvents.length > 0 && (
           <div>
             <h3 className="text-white font-medium mb-2">연관 후보</h3>
-            <div className="bg-[#242424] rounded-lg p-3 border border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+            <div className="bg-[#36383B] p-3 border border-[#31353a]" style={{ borderWidth: '1px' }}>
               <p className="text-gray-400 text-sm mb-2">
                 {event.relatedEvents.length}개의 이벤트가 연관 후보로 제안되었습니다.
               </p>
               {onLinkEvents && (
                 <button
                   onClick={onLinkEvents}
-                  className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition-colors"
+                  className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
                 >
                   연관 묶기
                 </button>
@@ -204,12 +215,12 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {/* AI Insights */}
         <div>
           <h3 className="text-white font-medium mb-2">AI 인사이트</h3>
-          <div className="bg-[#242424] rounded-lg p-3">
+          <div className="bg-[#36383B] rounded-lg p-3">
             <p className="text-gray-400 text-sm mb-2">AI 분석 결과가 표시됩니다.</p>
             {onSummaryRequest && (
               <button
                 onClick={onSummaryRequest}
-                className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors mb-2"
+                  className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors mb-2"
               >
                 Agent에게 요약 요청
               </button>
@@ -221,7 +232,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
         {event.type === '119-화재' && event.nearbyResources?.fireStations && (
           <div>
             <h3 className="text-white font-medium mb-2">소방서 전파</h3>
-            <div className="bg-[#242424] rounded-lg p-3 space-y-2 border border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+            <div className="bg-[#36383B] rounded-lg p-3 space-y-2 border border-[#31353a]" style={{ borderWidth: '1px' }}>
               <div className="space-y-2 mb-3">
                 {event.nearbyResources.fireStations.map((station) => (
                   <div key={station.id} className="flex items-center justify-between text-sm">
@@ -235,7 +246,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
               {onBroadcastDraft && (
                 <button
                   onClick={onBroadcastDraft}
-                  className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white rounded-full text-sm font-medium transition-colors"
+                  className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors"
                 >
                   전파 초안 생성
                 </button>
@@ -251,8 +262,10 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
             </div>
           </div>
         )}
+          </div>
+        </div>
       </div>
-    </div>
+    </>
   );
 };
 

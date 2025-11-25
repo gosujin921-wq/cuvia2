@@ -26,7 +26,7 @@ const Header = ({
   time = '15:20',
 }: HeaderProps) => {
   return (
-    <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#2a2a2a] px-6">
+    <header className="flex h-16 items-center justify-between bg-[#161719] border-b border-[#31353a] px-6">
       <div className="flex items-center gap-3">
         <div className="flex items-center gap-2">
           <div className="w-24 h-5 flex items-center justify-center">
@@ -59,7 +59,7 @@ const Header = ({
 
         <div className="flex items-center gap-4">
           <button
-            className="relative p-2 text-white hover:bg-[#2a2a2a] rounded-full transition-colors"
+            className="relative p-2 text-white hover:bg-[#36383B] rounded-full transition-colors"
             aria-label="알림"
           >
             <Icon icon="mdi:bell-outline" className="w-6 h-6" />

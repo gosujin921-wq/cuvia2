@@ -153,14 +153,14 @@ export default function AgentHubPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleInputKeyPress}
               placeholder="Agent Hub에 질문하세요..."
-              className="w-full pl-12 pr-14 py-4 bg-[#1a1a1a] border border-[#2a2a2a] rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all"
+              className="w-full pl-12 pr-14 py-4 bg-[#1a1a1a] border border-[#2a2a2a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all"
               style={{ borderWidth: '1px' }}
               aria-label="질문 입력"
             />
             {input && (
               <button
                 onClick={() => setInput('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[#2a2a2a] rounded-full transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[#2a2a2a] transition-colors"
                 aria-label="입력 지우기"
               >
                 <Icon icon="mdi:close" className="w-5 h-5 text-gray-400" />
@@ -184,14 +184,14 @@ export default function AgentHubPage() {
                 aria-label={`${agent.title} Agent 열기`}
                 className={`
                   ${colors.bg} ${colors.border} ${colors.hover}
-                  border rounded-lg p-6 cursor-pointer transition-all duration-200
+                  border p-6 cursor-pointer transition-all duration-200
                   ${isSelected ? 'ring-2 ring-offset-2 ring-offset-[#0f0f0f] ring-blue-500' : ''}
                 `}
                 style={{ borderWidth: '1px' }}
               >
                 <div className="flex items-start gap-4">
                   <div className={`
-                    ${colors.icon} p-3 rounded-lg bg-[#1a1a1a] flex-shrink-0
+                    ${colors.icon} p-3 bg-[#1a1a1a] flex-shrink-0
                   `} style={{ borderWidth: '1px' }}>
                     <Icon icon={agent.icon} className="w-8 h-8" />
                   </div>

@@ -125,8 +125,8 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
   };
 
   return (
-    <div className="w-80 bg-[#1a1a1a] border-r border-[#2a2a2a] flex flex-col h-full overflow-y-auto">
-      <div className="p-4 border-b border-[#2a2a2a]">
+    <div className="w-full bg-[#161719] flex flex-col h-full overflow-y-auto">
+      <div className="p-4 border-b border-[#31353a]">
         <h2 className="text-white font-semibold text-sm">이벤트 리스트</h2>
       </div>
       <div className="flex-1 overflow-y-auto p-3 space-y-2">
@@ -143,23 +143,23 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                 onClick={() => onEventSelect?.(main.id)}
                 onMouseEnter={() => onEventHover?.(main.id)}
                 onMouseLeave={() => onEventHover?.(null)}
-                className={`w-full text-left border rounded-lg p-3 transition-all ${
+                className={`w-full text-left border p-3 transition-all ${
                   isSelected
                     ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
-                    : 'bg-[#1f1f1f] border-[#2a2a2a] hover:bg-[#2a2a2a]'
+                    : 'bg-[#36383B] border-[#31353a] hover:bg-[#161719]'
                 }`}
                 style={{ borderWidth: '1px' }}
               >
                 {/* 1. 시간 / 신고기관 / 순위(위험도) */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-400 text-xs">{main.timestamp}</span>
+                    <span className="text-gray-300 text-[0.7rem] font-medium">{main.timestamp}</span>
                     {main.eventId && (() => {
                       const baseEvent = getEventById(main.eventId);
                       const source = baseEvent?.source || '';
                       const isAI = source.includes('AI') || source === 'AI';
                       return (
-                        <span className="text-gray-400 text-xs">
+                        <span className="text-gray-300 text-[0.7rem] font-medium">
                           {isAI ? 'AI' : source}
                         </span>
                       );
@@ -204,7 +204,7 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                         }`}>
                           {baseEvent.type}
                         </span>
-                        <span className="text-blue-400 text-xs">{getEventCategory(baseEvent)}</span>
+                        <span className="text-blue-300 text-[0.75rem] font-medium">{getEventCategory(baseEvent)}</span>
                       </>
                     );
                   })()}
@@ -214,7 +214,7 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                 <div className="text-white text-sm font-semibold mb-2">{main.title}</div>
 
                 {/* 4. 장소 (정확한 주소) */}
-                <div className="text-gray-300 text-xs mb-2">{main.location.name}</div>
+                <div className="text-gray-200 text-xs mb-2">{main.location.name}</div>
 
                 {/* 5. AI 핵심 키워드 */}
                 {main.eventId && (() => {
@@ -229,7 +229,7 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                       {keywords.map((keyword, idx) => (
                         <span
                           key={idx}
-                          className="px-2 py-0.5 bg-[#1a1a1a] border border-[#2a2a2a] rounded text-xs text-gray-300"
+                          className="px-2 py-0.5 bg-[#252629] border border-[#50545a] text-[0.7rem] text-white tracking-tight"
                           style={{ borderWidth: '1px' }}
                         >
                           {keyword}
@@ -250,13 +250,13 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                       onClick={() => onEventSelect?.(evt.id)}
                       onMouseEnter={() => onEventHover?.(evt.id)}
                       onMouseLeave={() => onEventHover?.(null)}
-                      className="p-2 rounded-lg border border-[#2a2a2a] bg-[#1a1a1a] cursor-pointer hover:bg-[#242424] transition-colors"
+                      className="p-2 border border-[#31353a] bg-[#36383B] cursor-pointer hover:bg-[#161719] transition-colors"
                       style={{ borderWidth: '1px' }}
                     >
                       <div className="flex items-center gap-2">
                         <div className="w-1 h-1 bg-gray-400 rounded-full" />
-                        <span className="text-gray-400 text-xs">{evt.type}</span>
-                        <span className="text-gray-500 text-xs">(Evidence)</span>
+                        <span className="text-gray-200 text-[0.7rem]">{evt.type}</span>
+                        <span className="text-gray-300 text-[0.7rem]">(Evidence)</span>
                       </div>
                     </div>
                   ))}

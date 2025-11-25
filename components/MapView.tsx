@@ -59,10 +59,10 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId }: 
       {/* 지도 배경 이미지 */}
       <div className="absolute inset-0" style={{ zIndex: 1 }}>
         <img 
-          src="/map.png" 
+          src="/map_anyang.png" 
           alt="Map" 
           className="w-full h-full object-cover"
-          style={{ opacity: 0.8 }}
+          style={{ opacity: 0.85 }}
         />
       </div>
 
