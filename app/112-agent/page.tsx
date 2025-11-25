@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, Suspense } from 'react';
 import { Icon } from '@iconify/react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
@@ -141,7 +141,7 @@ const cctvInfo: Record<string, { id: string; name: string; location: string; sta
   },
 };
 
-export default function CrimeAgentPage() {
+const CrimeAgentPageContent = () => {
   const searchParams = useSearchParams();
   const events = useMemo(() => getCrimeEvents(), []);
   const [selectedEvent, setSelectedEvent] = useState<CrimeEvent | null>(events[0] || null);
@@ -1253,5 +1253,20 @@ ${recommendations || '즉시 현장 출동이 필요하며, CCTV 집중 모니�
         </div>
       )}
     </div>
+  );
+};
+
+export default function CrimeAgentPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center h-screen bg-[#0f0f0f]">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
+          <p className="text-gray-400 text-sm">로딩 중...</p>
+        </div>
+      </div>
+    }>
+      <CrimeAgentPageContent />
+    </Suspense>
   );
 }
