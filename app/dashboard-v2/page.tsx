@@ -8,7 +8,11 @@ import RightPanel2 from '@/components/RightPanel2';
 import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 
-export default function Home() {
+/**
+ * 관제 페이지
+ * 이벤트 모니터링 및 관제를 위한 메인 대시보드 페이지
+ */
+export default function ControlPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
 
@@ -107,3 +111,4 @@ export default function Home() {
     </div>
   );
 }
+

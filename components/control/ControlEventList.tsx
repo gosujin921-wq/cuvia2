@@ -13,7 +13,7 @@ interface EventListProps {
   onEventHover?: (eventId: string | null) => void;
 }
 
-const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: EventListProps) => {
+const ControlEventList = ({ events, selectedEventId, onEventSelect, onEventHover }: EventListProps) => {
   const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const eventItemRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -423,4 +423,4 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
   );
 };
 
-export default EventList;
+export default ControlEventList;

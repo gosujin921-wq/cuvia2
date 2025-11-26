@@ -496,6 +496,119 @@ export const allEvents: BaseEvent[] = [
     pScore: 35,
     domain: 'F',
   },
+  // 일반 우선순위 이벤트들
+  {
+    eventId: generateEventId('A'),
+    id: 'event-26',
+    type: '소음 신고',
+    title: '야간 소음 민원',
+    time: '22:15',
+    location: '안양시 동안구 비산동 345-67',
+    description: '야간 소음 민원 접수',
+    source: '안양112센터',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 30,
+    domain: 'A',
+  },
+  {
+    eventId: generateEventId('A'),
+    id: 'event-27',
+    type: '불만 접수',
+    title: '주차장 불법주차 신고',
+    time: '14:20',
+    location: '안양시 만안구 안양동 123-45',
+    description: '주차장 불법주차 신고',
+    source: '안양112센터',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 25,
+    domain: 'A',
+  },
+  {
+    eventId: generateEventId('B'),
+    id: 'event-28',
+    type: '교통사고(경상)',
+    title: '경미한 접촉 사고',
+    time: '13:45',
+    location: '안양시 동안구 평촌대로 567',
+    description: '경미한 접촉 사고',
+    source: '안양119센터',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 32,
+    domain: 'B',
+  },
+  {
+    eventId: generateEventId('C'),
+    id: 'event-29',
+    type: '배회(단기)',
+    title: '단기 배회 행동 감지',
+    time: '16:10',
+    location: '안양시 만안구 석수동 789-01',
+    description: '단기 배회 행동 감지',
+    source: 'AI',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 28,
+    domain: 'C',
+  },
+  {
+    eventId: generateEventId('D'),
+    id: 'event-30',
+    type: '이상행동(저위험)',
+    title: '정상 범위 내 이상 행동',
+    time: '15:30',
+    location: '안양시 동안구 비산동 456-78',
+    description: '정상 범위 내 이상 행동',
+    source: 'AI',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 22,
+    domain: 'D',
+  },
+  {
+    eventId: generateEventId('E'),
+    id: 'event-31',
+    type: '기상 정보',
+    title: '보통 강수량 예상',
+    time: '12:00',
+    location: '안양시 전체',
+    description: '보통 강수량 예상',
+    source: 'NDMS',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 20,
+    domain: 'E',
+  },
+  {
+    eventId: generateEventId('F'),
+    id: 'event-32',
+    type: '환경 센서 이상',
+    title: '온도 센서 일시적 오류',
+    time: '11:45',
+    location: '안양시 만안구 안양동 234-56',
+    description: '온도 센서 일시적 오류',
+    source: 'IoT',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 18,
+    domain: 'F',
+  },
+  {
+    eventId: generateEventId('F'),
+    id: 'event-33',
+    type: 'IoT 장비 장애',
+    title: 'IoT 센서 데이터 지연',
+    time: '10:30',
+    location: '안양시 동안구 평촌동 567-89',
+    description: 'IoT 센서 데이터 지연',
+    source: 'IoT',
+    risk: 'LOW',
+    status: 'NEW',
+    pScore: 15,
+    domain: 'F',
+  },
 ];
 
 // 도메인별 이벤트 필터링
@@ -640,12 +753,67 @@ export const convertToDashboardEvent = (event: BaseEvent, index: number) => {
   const resolutionCode = pickDeterministicValue(resolutionOptions, event.id, 'resolution');
   const resolutionDescription = buildResolutionDescription(resolutionCategory, resolutionCode);
 
+  // 특정 이벤트 우선순위 강제 설정
+  let finalPriority: '긴급' | '경계' | '주의' = priorityMap[event.risk];
+  
+  // "오토바이 도주, 은행 강도 연관 의심" 이벤트는 항상 긴급
+  if (event.title.includes('오토바이 도주') && event.title.includes('은행 강도 연관 의심')) {
+    finalPriority = '긴급';
+  }
+  // 우선순위별 개수 조정: 긴급 < 경계 < 주의 순서로
+  // 일부 이벤트의 우선순위를 재조정하여 개수 균형 맞추기
+  const eventPriorityOverrides: Record<string, '긴급' | '경계' | '주의'> = {
+    // 긴급 (5개) - 가장 적게
+    'event-1': '긴급', // 흉기 소지 남성 위협 행동
+    'event-3': '긴급', // 오토바이 도주, 은행 강도 연관 의심
+    'event-5': '긴급', // 8세 남아 실종
+    'event-6': '긴급', // 흉기 소지 위험 행동
+    'event-7': '긴급', // 주택 2층 연기 발생
+    
+    // 경계 (9개) - 중간
+    'event-2': '경계', // 상가 절도 의심
+    'event-8': '경계', // 산림 인접 연기 발생
+    'event-10': '경계', // 보행 중 갑자기 쓰러짐
+    'event-12': '경계', // 치매 노인 보호구역 이탈
+    'event-14': '경계', // 80대 여성 쓰러짐
+    'event-15': '경계', // 보행 중 갑자기 쓰러짐
+    'event-16': '경계', // 주먹 공격 행위 포착
+    'event-19': '경계', // 연기 발생, 산불 가능성
+    'event-21': '경계', // 강풍주의보, 낙하물 위험
+    
+    // 주의 (11개) - 가장 많음
+    'event-4': '주의', // 음주 난동 및 기물 파손
+    'event-9': '주의', // 차량 3대 추돌
+    'event-11': '주의', // 80대 남성 배회
+    'event-13': '주의', // 노인 낙상
+    'event-17': '주의', // 야간 상가 창문 부수고 침입 시도
+    'event-18': '주의', // 3시간 이상 동일 구역 배회
+    'event-20': '주의', // 시간당 50mm 이상 강우 예상
+    'event-22': '주의', // CCTV 센서 신호 이상
+    'event-23': '주의', // 가로등 5개 전원 차단
+    'event-24': '주의', // 교통 신호등 제어 시스템 오류
+    'event-25': '주의', // 미세먼지 센서 데이터 미전송
+    // 일반 (8개) - 낮은 우선순위
+    'event-26': '주의', // 야간 소음 민원
+    'event-27': '주의', // 주차장 불법주차 신고
+    'event-28': '주의', // 경미한 접촉 사고
+    'event-29': '주의', // 단기 배회 행동 감지
+    'event-30': '주의', // 정상 범위 내 이상 행동
+    'event-31': '주의', // 보통 강수량 예상
+    'event-32': '주의', // 온도 센서 일시적 오류
+    'event-33': '주의', // IoT 센서 데이터 지연
+  };
+  
+  if (eventPriorityOverrides[event.id]) {
+    finalPriority = eventPriorityOverrides[event.id];
+  }
+
   return {
     id: event.id,
     eventId: event.eventId,
     type: normalizedType,
     title: event.title,
-    priority: priorityMap[event.risk],
+    priority: finalPriority,
     status: statusMap[event.status] || 'NEW',
     timestamp: event.time,
     location: {

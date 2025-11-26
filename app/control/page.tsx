@@ -1,14 +1,18 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import EventSummary from '@/components/EventSummary';
-import EventList from '@/components/EventList';
+import ControlEventSummary from '@/components/control/ControlEventSummary';
+import ControlEventList from '@/components/control/ControlEventList';
 import MapView from '@/components/MapView';
-import RightPanel2 from '@/components/RightPanel2';
+import ControlRightPanel from '@/components/control/ControlRightPanel';
 import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 
-export default function Home() {
+/**
+ * 관제 페이지
+ * 이벤트 모니터링 및 관제를 위한 메인 대시보드 페이지
+ */
+export default function ControlPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
 
@@ -77,10 +81,10 @@ export default function Home() {
               </div>
             </div>
             <div className="py-3">
-              <EventSummary summary={eventSummary} />
+              <ControlEventSummary summary={eventSummary} />
             </div>
             <div className="flex-1 overflow-hidden">
-              <EventList
+              <ControlEventList
                 events={events}
                 selectedEventId={selectedEventId || undefined}
                 onEventSelect={handleEventSelect}
@@ -100,10 +104,11 @@ export default function Home() {
                 }}
               />
             </div>
-            {/* 우측: RightPanel */}
-            <RightPanel2 />
+            {/* 우측: ControlRightPanel */}
+            <ControlRightPanel />
           </div>
       </div>
     </div>
   );
 }
+

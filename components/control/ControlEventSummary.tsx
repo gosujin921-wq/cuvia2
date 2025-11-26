@@ -6,7 +6,7 @@ interface EventSummaryProps {
   summary: EventSummaryType;
 }
 
-const EventSummary = ({ summary }: EventSummaryProps) => {
+const ControlEventSummary = ({ summary }: EventSummaryProps) => {
   const inProgressRate = summary.total > 0 ? (summary.inProgress / summary.total) * 100 : 0;
   const closedRate = summary.total > 0 ? (summary.closed / summary.total) * 100 : 0;
   // 정확히 100%가 되도록 조정
@@ -54,5 +54,5 @@ const EventSummary = ({ summary }: EventSummaryProps) => {
   );
 };
 
-export default EventSummary;
+export default ControlEventSummary;
 
