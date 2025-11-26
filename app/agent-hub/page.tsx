@@ -65,10 +65,9 @@ export default function AgentHubPage() {
 
   const getColorClasses = () => {
     return {
-      bg: '',
-      border: 'border-blue-500/30',
+      bg: 'bg-[#36383B]',
       icon: 'text-blue-400',
-      hover: 'hover:border-blue-500/50',
+      hover: 'hover:bg-[#3f4144]',
     };
   };
 
@@ -141,10 +140,10 @@ export default function AgentHubPage() {
           </div>
         </div>
 
-        {/* 검색창 영역 (구글 스타일) */}
+        {/* 검색창 영역 (캡슐 디자인) */}
         <div className="w-full max-w-2xl mb-8">
           <div className="relative">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
               <Icon icon="mdi:magnify" className="w-5 h-5 text-gray-400" />
             </div>
             <input
@@ -153,14 +152,14 @@ export default function AgentHubPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleInputKeyPress}
               placeholder="Agent Hub에 질문하세요..."
-              className="w-full pl-12 pr-14 py-4 bg-[#1a1a1a] border border-[#31353a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all rounded-lg"
+              className="w-full pl-12 pr-14 py-4 bg-[#1a1a1a] border border-[#31353a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all rounded-full"
               style={{ borderWidth: '1px' }}
               aria-label="질문 입력"
             />
             {input && (
               <button
                 onClick={() => setInput('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[#31353a] transition-colors rounded"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[#31353a] transition-colors rounded-full"
                 aria-label="입력 지우기"
               >
                 <Icon icon="mdi:close" className="w-5 h-5 text-gray-400" />
@@ -169,7 +168,7 @@ export default function AgentHubPage() {
           </div>
         </div>
 
-        {/* Agent 카드 그리드 (처음 디자인 스타일) */}
+        {/* Agent 카드 그리드 (직사각형 디자인) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full max-w-7xl">
           {agents.map((agent) => {
             const colors = getColorClasses();
@@ -183,16 +182,15 @@ export default function AgentHubPage() {
                 tabIndex={0}
                 aria-label={`${agent.title} Agent 열기`}
                 className={`
-                  ${colors.bg} ${colors.border} ${colors.hover}
-                  border p-6 cursor-pointer transition-all duration-200 bg-[#1a1a1a] rounded-lg
+                  ${colors.bg} ${colors.hover}
+                  p-6 cursor-pointer transition-all duration-200 rounded-none
                   ${isSelected ? 'ring-2 ring-offset-2 ring-offset-[#161719] ring-blue-500' : ''}
                 `}
-                style={{ borderWidth: '1px', borderColor: '#31353a' }}
               >
                 <div className="flex items-start gap-4">
                   <div className={`
-                    ${colors.icon} p-3 bg-[#0f0f0f] flex-shrink-0 rounded-lg border border-[#31353a]
-                  `} style={{ borderWidth: '1px' }}>
+                    ${colors.icon} bg-[#161719] flex-shrink-0 rounded-lg flex items-center justify-center
+                  `} style={{ width: '56px', height: '56px' }}>
                     <Icon icon={agent.icon} className="w-8 h-8" />
                   </div>
                   <div className="flex-1 min-w-0">

@@ -491,7 +491,7 @@ const EventHistoryPageContent = () => {
         </div>
 
         {/* 우측: 필터/조건 패널 */}
-        <div className="w-80 flex-shrink-0 bg-[#1a1a1a] border-l border-[#2a2a2a] overflow-y-auto" style={{ borderWidth: '1px' }}>
+        <div className="w-80 flex-shrink-0 bg-[#1a1a1a] border-l border-[#2a2a2a] overflow-y-auto hidden" style={{ borderWidth: '1px' }}>
           <div className="p-4 border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
             <h2 className="text-white font-semibold text-sm mb-2">필터/조건</h2>
           </div>

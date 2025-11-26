@@ -502,17 +502,22 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             </div>
                             <div className="text-gray-400 text-xs mb-2">{cctv.location}</div>
                             <div 
-                              className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity`} 
+                              className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity relative overflow-hidden`} 
                               style={{ borderWidth: isTracking ? '2px' : '1px' }}
                               onClick={() => {
                                 setSelectedCCTV(cctvKey);
                                 setShowCCTVPopup(true);
                               }}
                             >
-                              <div className="text-center">
-                                <Icon icon="mdi:cctv" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                                <p className="text-gray-500 text-xs">연결 중...</p>
-                              </div>
+                              <img
+                                src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
+                                alt={`${cctv.id} 썸네일`}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = '/cctv_img/001.jpg';
+                                }}
+                              />
                             </div>
                           </div>
                         );
@@ -677,17 +682,22 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                               </div>
                               <div className="text-gray-400 text-xs mb-2">{cctv.location}</div>
                               <div 
-                                className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity`} 
+                                className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity relative overflow-hidden`} 
                                 style={{ borderWidth: isTracking ? '2px' : '1px' }}
                                 onClick={() => {
                                   setSelectedCCTV(cctvKey);
                                   setShowCCTVPopup(true);
                                 }}
                               >
-                                <div className="text-center">
-                                  <Icon icon="mdi:cctv" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                                  <p className="text-gray-500 text-xs">연결 중...</p>
-                                </div>
+                                <img
+                                  src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
+                                  alt={`${cctv.id} 썸네일`}
+                                  className="absolute inset-0 w-full h-full object-cover"
+                                  onError={(e) => {
+                                    const target = e.target as HTMLImageElement;
+                                    target.src = '/cctv_img/001.jpg';
+                                  }}
+                                />
                               </div>
                             </div>
                           );
@@ -981,7 +991,6 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           status: 'ready' as const,
                         };
                         setSavedClips((prev) => [...prev, clip]);
-                        alert(`${cctvId} 클립 저장 완료. 전파 준비됨.`);
                       }}
                       className="flex-1 px-4 py-2.5 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2"
                       style={{ borderWidth: '1px' }}

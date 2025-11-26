@@ -93,6 +93,7 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
   const [selectedRecipients, setSelectedRecipients] = useState<string[]>(['경찰', '소방']);
   const [attachments, setAttachments] = useState<Attachment[]>(defaultAttachments);
   const [draftStatus, setDraftStatus] = useState<'idle' | 'drafting'>('idle');
+  const [broadcastCount, setBroadcastCount] = useState(0);
   
   // 외부에서 클립 추가 함수 노출
   React.useEffect(() => {
@@ -169,6 +170,14 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
     console.info('Broadcast request:', { eventId, message, recipients: selectedRecipients, attachments });
     setDraftStatus('idle');
     handleClose();
+    // 전파 성공 알림 표시
+    setBroadcastCount((prev) => prev + 1);
+    
+    const { date, time } = getFormattedDateTime();
+    const recipientLabels = selectedRecipients.map(getRecipientLabel).join(', ');
+    const alertMessage = `전파가 성공적으로 전송되었습니다.\n\n전파 일자: ${date}\n전파 시각: ${time}\n해당 이벤트 전파 횟수: ${broadcastCount + 1}회\n전파 수신: ${recipientLabels}`;
+    
+    alert(alertMessage);
   };
 
   const handleSaveDraft = () => {
@@ -185,6 +194,33 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
 
   const removeAttachment = (attachmentId: string) => {
     setAttachments((prev) => prev.filter((attachment) => attachment.id !== attachmentId));
+  };
+
+  // 전파 대상 매핑
+  const getRecipientLabel = (recipient: string): string => {
+    const mapping: Record<string, string> = {
+      '경찰': '112 상황실',
+      '소방': '119 상황실',
+      '재난안전': '재난안전',
+      '지자체': '도시안전과',
+    };
+    return mapping[recipient] || recipient;
+  };
+
+  // 날짜/시간 포맷팅
+  const getFormattedDateTime = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    return {
+      date: `${year}.${month}.${day}`,
+      time: `${hours}:${minutes}:${seconds}`,
+    };
   };
 
   const priorityBadgeClass =
@@ -367,6 +403,7 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
           </div>
         </div>
       )}
+
     </>
   );
 };

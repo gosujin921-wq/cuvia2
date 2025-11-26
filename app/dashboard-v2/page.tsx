@@ -70,7 +70,7 @@ export default function ControlPage() {
     <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
       <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 overflow-hidden relative">
-          <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '358px' }}>
+          <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '370px' }}>
             <div className="py-4 px-3">
               <div className="w-24 h-5 flex items-center justify-start">
                 <img 
