@@ -87,7 +87,6 @@ const buildThumbnails = (identifier: string, count = 3) => {
 };
 
 const ControlRightPanel = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
   const [spotThumbnailIndices, setSpotThumbnailIndices] = useState<Record<string, number>>({});
   const [currentPage, setCurrentPage] = useState(0);
@@ -412,17 +411,6 @@ const ControlRightPanel = () => {
     lastUpdate: new Date().toISOString(),
   };
 
-  const collapsedIndicators = [
-    { label: '정상', value: cctvStatus.normalCount, dot: 'bg-green-400', color: 'text-green-400' },
-    { label: '지연', value: cctvStatus.delayCount, dot: 'bg-yellow-400', color: 'text-yellow-400' },
-    { label: '장애', value: cctvStatus.errorCount, dot: 'bg-red-400', color: 'text-red-400' },
-  ];
-
-  const collapsedSensors = [
-    { icon: 'mdi:thermometer', label: '온도', value: `${sensorData.temperature.value.toFixed(0)}°` },
-    { icon: 'mdi:water-percent', label: '습도', value: `${sensorData.humidity.value.toFixed(0)}%` },
-    { icon: 'mdi:weather-windy', label: '풍속', value: `${sensorData.windSpeed.value.toFixed(1)}m/s` },
-  ];
 
   // 3) 도시 기반시설 운영 상태 데이터
   const infrastructureStatus: InfrastructureStatus = {
@@ -508,88 +496,22 @@ const ControlRightPanel = () => {
   };
 
   useEffect(() => {
-    if (!isCollapsed) {
-      scrollContainerRef.current?.scrollTo({ top: 0 });
-    }
-  }, [isCollapsed]);
+    scrollContainerRef.current?.scrollTo({ top: 0 });
+  }, []);
 
   const handleFacilityClick = () => {
-    if (isCollapsed) {
-      setIsCollapsed(false);
-      setTimeout(() => {
-        infrastructureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 350);
-      return;
-    }
     infrastructureRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
     <div
-      className={`${isCollapsed ? 'w-20' : 'w-[30rem]'} bg-[#161719] border-l border-[#31353a] flex flex-col h-full overflow-hidden relative transition-all duration-300`}
+      className="w-[30rem] bg-[#161719] border-l border-[#31353a] flex flex-col h-full overflow-hidden relative"
       style={{ borderWidth: '1px' }}
     >
-      <button
-        onClick={() => setIsCollapsed((prev) => !prev)}
-        className="absolute top-1/2 -translate-y-1/2 -left-2 w-8 h-14 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-colors focus:outline-none"
-        aria-label={isCollapsed ? '우측 패널 펼치기' : '우측 패널 접기'}
+      <div
+        className="flex-1 overflow-y-auto p-3 pl-10 pr-9 space-y-8"
+        ref={scrollContainerRef}
       >
-        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-        <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-      </button>
-
-      {isCollapsed ? (
-        <div className="flex-1 flex flex-col items-center justify-between py-8 pl-4 pr-2 gap-6 text-[0.65rem] text-gray-300">
-          <div className="flex flex-col items-center gap-2 text-[10.4px]">
-            <span className="text-white font-semibold tracking-tight text-center leading-tight">
-              CCTV<br />상태
-            </span>
-            {collapsedIndicators.map((indicator) => (
-              <div key={indicator.label} className="flex flex-col items-center gap-1">
-                <span className={`w-2 h-2 rounded-full ${indicator.dot}`} />
-                <span className="text-white">{indicator.label}</span>
-                <span className={`${indicator.color} text-sm font-semibold`}>
-                  {indicator.value.toLocaleString()}
-                </span>
-              </div>
-            ))}
-          </div>
-          <div className="flex flex-col items-center gap-2 text-[10.4px]">
-            <span className="text-white font-semibold tracking-tight text-center leading-tight">
-              환경<br />지표
-            </span>
-            {[
-              { icon: 'mdi:blur', label: 'PM2.5', value: `${sensorData.pm25.value.toFixed(0)}㎍/m³` },
-              { icon: 'mdi:blur-linear', label: 'PM10', value: `${sensorData.pm10.value.toFixed(0)}㎍/m³` },
-              { icon: 'mdi:thermometer', label: '온도', value: `${sensorData.temperature.value.toFixed(0)}°` },
-              { icon: 'mdi:water-percent', label: '습도', value: `${sensorData.humidity.value.toFixed(0)}%` },
-              { icon: 'mdi:weather-rainy', label: '강수량', value: `${sensorData.rainfall.value.toFixed(1)}mm` },
-              { icon: 'mdi:weather-windy', label: '풍속', value: `${sensorData.windSpeed.value.toFixed(1)}m/s` },
-            ].map((sensor) => (
-              <div key={sensor.label} className="flex flex-col items-center gap-1 text-center">
-                <Icon icon={sensor.icon} className="w-4 h-4 text-gray-200" />
-                <span className="text-white">{sensor.label}</span>
-                <span className="text-blue-300 font-semibold">{sensor.value}</span>
-              </div>
-            ))}
-          </div>
-          <button
-            onClick={handleFacilityClick}
-            className="flex flex-col items-center gap-1 text-center text-[10.4px] focus:outline-none"
-          >
-            <Icon icon="mdi:alert" className="w-4 h-4 text-red-400" />
-            <span className="text-white">시설장애</span>
-            <span className="px-2 py-0.5 text-xs bg-red-500/20 text-red-300" style={{ borderRadius: '9999px' }}>
-              {infrastructureStatus.alert ? 1 : 0}
-            </span>
-          </button>
-        </div>
-      ) : (
-        <div
-          className="flex-1 overflow-y-auto p-3 pl-10 pr-9 space-y-8"
-          ref={scrollContainerRef}
-        >
         {/* 시간 및 날씨 */}
         <div className="flex items-center justify-between pb-3 border-b border-[#31353a]">
           <div className="text-white text-sm font-medium">
@@ -976,8 +898,7 @@ const ControlRightPanel = () => {
             </div>
           </div>
         </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 };

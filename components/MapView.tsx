@@ -936,7 +936,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
           <div className="ml-auto w-2 h-2 bg-red-500 rounded-full animate-pulse" />
         </div>
         <div className="px-4 py-3 space-y-2 text-white text-xs">
-          <div className="font-semibold text-sm mb-2">##강풍주의보 발령</div>
           <div>현재 풍속 12.3 m/s, 순간 최대 18.1 m/s</div>
           <div>간판·공사 구조물 낙하 위험 증가</div>
           <div>영상 흔들림으로 CCTV 13대 품질 저하 가능</div>

@@ -5,6 +5,7 @@ import ControlEventSummary from '@/components/control/ControlEventSummary';
 import ControlEventList from '@/components/control/ControlEventList';
 import MapView from '@/components/MapView';
 import ControlRightPanel from '@/components/control/ControlRightPanel';
+import CCTVQuickView from '@/components/CCTVQuickView';
 import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 
@@ -65,48 +66,155 @@ export default function ControlPage() {
     setHighlightedEventId(eventId);
   };
 
+  // 주요 감시 지역 CCTV 리스트 생성
+  const cctvList = useMemo(() => {
+    const cctvLocalImages = [
+      '/cctv_img/001.jpg',
+      '/cctv_img/002.jpg',
+      '/cctv_img/003.jpg',
+      '/cctv_img/004.jpg',
+      '/cctv_img/005.jpg',
+    ];
+
+    const buildThumbnails = (seed: string) => {
+      const seededRandom = (s: string) => {
+        let hash = 0;
+        for (let i = 0; i < s.length; i++) {
+          hash = ((hash << 5) - hash) + s.charCodeAt(i);
+          hash = hash & hash;
+        }
+        return Math.abs(hash) / 2147483647;
+      };
+      const baseIndex = Math.floor(seededRandom(seed) * cctvLocalImages.length);
+      return Array.from({ length: 5 }, (_, i) => cctvLocalImages[(baseIndex + i) % cctvLocalImages.length]);
+    };
+
+    const monitoringSpots = [
+      {
+        spotId: '1',
+        spotName: '중앙역 출입구 2번',
+        fps: 29,
+        status: 'delay',
+        autoSequence: true,
+        thumbnails: buildThumbnails('spot-1'),
+        environment: 'normal',
+      },
+      {
+        spotId: '2',
+        spotName: '경찰서 앞',
+        fps: 30,
+        status: 'normal',
+        autoSequence: true,
+        thumbnails: buildThumbnails('spot-2'),
+        environment: 'night',
+      },
+      {
+        spotId: '3',
+        spotName: '평촌대로 교차로',
+        fps: 28,
+        status: 'normal',
+        autoSequence: true,
+        thumbnails: buildThumbnails('spot-3'),
+        environment: 'fog',
+      },
+      {
+        spotId: '4',
+        spotName: '터널 입구',
+        fps: 30,
+        status: 'normal',
+        autoSequence: false,
+        thumbnails: buildThumbnails('spot-4'),
+        environment: 'normal',
+      },
+      {
+        spotId: '5',
+        spotName: '안양역 광장',
+        fps: 27,
+        status: 'delay',
+        autoSequence: true,
+        thumbnails: buildThumbnails('spot-5'),
+        environment: 'rain',
+      },
+      {
+        spotId: '6',
+        spotName: '중앙시장 입구',
+        fps: 30,
+        status: 'normal',
+        autoSequence: false,
+        thumbnails: buildThumbnails('spot-6'),
+        environment: 'normal',
+      },
+    ];
+
+    // 모든 monitoringSpots를 표시하고, 추가 CCTV도 생성하여 빈 곳 없이 채움
+    const baseList = monitoringSpots.map((spot) => ({
+      id: spot.spotId,
+      name: spot.spotName,
+      location: `SPOT-${spot.spotId.padStart(3, '0')}`,
+      thumbnail: spot.thumbnails[0],
+    }));
+
+    // 추가 CCTV 생성 (빈 곳 없이 채우기 위해)
+    const additionalCCTVs = Array.from({ length: 10 }, (_, i) => {
+      const spotId = String(7 + i);
+      return {
+        id: spotId,
+        name: `감시 지점 ${spotId}`,
+        location: `SPOT-${spotId.padStart(3, '0')}`,
+        thumbnail: buildThumbnails(`spot-${spotId}`)[0],
+      };
+    });
+
+    return [...baseList, ...additionalCCTVs];
+  }, []);
 
   return (
-    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 overflow-hidden relative">
-          <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '358px' }}>
-            <div className="py-4 px-3">
-              <div className="w-24 h-5 flex items-center justify-start">
-                <img 
-                  src="/logo.svg" 
-                  alt="CUVIA Logo" 
-                  className="h-5 w-auto object-contain"
+    <div className="w-screen h-screen" style={{ transform: 'scale(0.8)', transformOrigin: 'top left' }}>
+      <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative" style={{ width: '125%', height: '125%' }}>
+        <div className="flex flex-1 overflow-hidden">
+          <div className="flex flex-1 overflow-hidden relative">
+            <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '358px' }}>
+              <div className="py-4 px-3">
+                <div className="w-24 h-5 flex items-center justify-start">
+                  <img 
+                    src="/logo.svg" 
+                    alt="CUVIA Logo" 
+                    className="h-5 w-auto object-contain"
+                  />
+                </div>
+              </div>
+              <div className="py-3">
+                <ControlEventSummary summary={eventSummary} />
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ControlEventList
+                  events={events}
+                  selectedEventId={selectedEventId || undefined}
+                  onEventSelect={handleEventSelect}
+                  onEventHover={handleEventHover}
                 />
               </div>
             </div>
-            <div className="py-3">
-              <ControlEventSummary summary={eventSummary} />
+            <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
+                <MapView
+                  events={events}
+                  highlightedEventId={highlightedEventId}
+                  selectedEventId={selectedEventId}
+                  onEventClick={handleEventClick}
+                  onMapClick={() => {
+                    setSelectedEventId(null);
+                    setHighlightedEventId(null);
+                  }}
+                />
+                <CCTVQuickView 
+                  isVisible={true}
+                  cctvList={cctvList}
+                />
+              </div>
+              {/* 우측: ControlRightPanel */}
+              <ControlRightPanel />
             </div>
-            <div className="flex-1 overflow-hidden">
-              <ControlEventList
-                events={events}
-                selectedEventId={selectedEventId || undefined}
-                onEventSelect={handleEventSelect}
-                onEventHover={handleEventHover}
-              />
-            </div>
-          </div>
-          <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
-              <MapView
-                events={events}
-                highlightedEventId={highlightedEventId}
-                selectedEventId={selectedEventId}
-                onEventClick={handleEventClick}
-                onMapClick={() => {
-                  setSelectedEventId(null);
-                  setHighlightedEventId(null);
-                }}
-              />
-            </div>
-            {/* 우측: ControlRightPanel */}
-            <ControlRightPanel />
-          </div>
+        </div>
       </div>
     </div>
   );
