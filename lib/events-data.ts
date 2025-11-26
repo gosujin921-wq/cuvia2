@@ -616,10 +616,10 @@ export const convertToDashboardEvent = (event: BaseEvent, index: number) => {
     }
   }
 
-  const priorityMap: Record<string, 'High' | 'Medium' | 'Low'> = {
-    HIGH: 'High',
-    MEDIUM: 'Medium',
-    LOW: 'Low',
+  const priorityMap: Record<string, '긴급' | '경계' | '주의'> = {
+    HIGH: '긴급',
+    MEDIUM: '경계',
+    LOW: '주의',
   };
 
   const statusMap: Record<string, 'NEW' | 'MONITORING' | 'RESOLVED' | 'EVIDENCE'> = {
@@ -631,7 +631,10 @@ export const convertToDashboardEvent = (event: BaseEvent, index: number) => {
   };
 
   const normalizedType = matchedType as EventType;
-  const processingStage = pickDeterministicValue<ProcessingStage>(processingStages, event.id, 'stage');
+  let processingStage = pickDeterministicValue<ProcessingStage>(processingStages, event.id, 'stage');
+  if (event.eventId === 'A-20241124-003') {
+    processingStage = '착수';
+  }
   const resolutionCategory = resolutionCategoryMap[normalizedType] || '112';
   const resolutionOptions = resolutionCodeMap[resolutionCategory];
   const resolutionCode = pickDeterministicValue(resolutionOptions, event.id, 'resolution');
@@ -895,5 +898,21 @@ export const getAIInsightKeywords = (event: BaseEvent): string[] => {
   }
 
   return keywords.slice(0, 3); // 최대 3개 키워드
+};
+
+export const formatEventDateTime = (eventId: string, time?: string) => {
+  const segments = eventId?.split('-') ?? [];
+  const datePart = segments[1];
+  if (!datePart || datePart.length !== 8) {
+    return time || '';
+  }
+  const year = datePart.slice(0, 4);
+  const month = datePart.slice(4, 6);
+  const day = datePart.slice(6, 8);
+  const formattedDate = `${year}.${month}.${day}`;
+  if (!time) {
+    return formattedDate;
+  }
+  return `${formattedDate} ${time}`;
 };
 

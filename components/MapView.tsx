@@ -85,9 +85,9 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId }: 
     }
 
     const priorityWeight: Record<Event['priority'], number> = {
-      High: 0,
-      Medium: 1,
-      Low: 2,
+      긴급: 0,
+      경계: 1,
+      주의: 2,
     };
 
     const sortedEvents = [...events].sort((a, b) => {
@@ -187,9 +187,9 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId }: 
                 <div className="relative">
                   <div 
                     className={`rounded-full flex items-center justify-center shadow-2xl ${
-                      event.priority === 'High' 
+                      event.priority === '긴급' 
                         ? 'w-16 h-16 bg-red-600 border-4 border-red-400' 
-                        : event.priority === 'Medium'
+                        : event.priority === '경계'
                         ? 'w-12 h-12 bg-yellow-600 border-4 border-yellow-400'
                         : 'w-10 h-10 bg-blue-600 border-4 border-blue-400 opacity-80'
                     }`}
@@ -197,8 +197,8 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId }: 
                     <Icon
                       icon={getEventIcon(event.type)}
                       className="text-white"
-                      width={event.priority === 'High' ? '32px' : event.priority === 'Medium' ? '24px' : '20px'}
-                      height={event.priority === 'High' ? '32px' : event.priority === 'Medium' ? '24px' : '20px'}
+                      width={event.priority === '긴급' ? '32px' : event.priority === '경계' ? '24px' : '20px'}
+                      height={event.priority === '긴급' ? '32px' : event.priority === '경계' ? '24px' : '20px'}
                       style={{ 
                         filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))',
                       }}

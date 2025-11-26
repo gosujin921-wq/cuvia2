@@ -116,7 +116,7 @@ const StatisticsPageContent = () => {
     } else if (lowerQuery.includes('112') && lowerQuery.includes('위험')) {
       setInsight({
         title: '112 신고 위험도 분석',
-        value: '112 신고 중 High 184건, 전체의 12.4%',
+        value: '112 신고 중 긴급 184건, 전체의 12.4%',
         change: '12.4%',
         reason: '주요 원인: 배회 행동 감지 증가',
         location: '동안구·만안구',
@@ -126,7 +126,7 @@ const StatisticsPageContent = () => {
       setSelectedCategory('type');
       setFilters([
         { id: 'source', label: '출처', type: 'source', value: '112' },
-        { id: 'severity', label: '우선순위', type: 'severity', value: 'High' },
+        { id: 'severity', label: '우선순위', type: 'severity', value: '긴급' },
       ]);
     } else {
       // 기본 인사이트
@@ -166,9 +166,9 @@ const StatisticsPageContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f0f] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden">
       {/* 상단 헤더 */}
-      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#2a2a2a] px-6" style={{ borderWidth: '1px' }}>
+      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#31353a] px-6" style={{ borderWidth: '1px' }}>
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-24 h-5 flex items-center justify-center">
@@ -203,8 +203,8 @@ const StatisticsPageContent = () => {
 
       <div className="flex-1 overflow-hidden flex">
         {/* 좌측: 통계 카테고리 패널 */}
-        <div className="w-64 flex-shrink-0 bg-[#1a1a1a] border-r border-[#2a2a2a] overflow-y-auto" style={{ borderWidth: '1px' }}>
-          <div className="p-4 border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+        <div className="w-64 flex-shrink-0 bg-[#1a1a1a] border-r border-[#31353a] overflow-y-auto" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-b border-[#31353a]" style={{ borderWidth: '1px' }}>
             <div className="flex items-center gap-2 text-white font-semibold text-sm mb-2">
               <Icon icon="mdi:view-dashboard-outline" className="w-4 h-4 text-blue-400" />
               <span>주요 카테고리</span>
@@ -218,7 +218,7 @@ const StatisticsPageContent = () => {
                 className={`w-full text-left px-4 py-3 rounded-lg transition-all border ${
                   selectedCategory === category.id
                     ? 'bg-blue-500/20 border-blue-500/50 text-white'
-                    : 'border-transparent text-gray-400 hover:bg-[#2a2a2a] hover:text-white'
+                      : 'border-transparent text-gray-400 hover:bg-[#31353a] hover:text-white'
                 }`}
                 style={{ borderWidth: '1px' }}
               >
@@ -234,7 +234,7 @@ const StatisticsPageContent = () => {
         {/* 중앙: 메인 컨텐츠 영역 */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* 검색창 */}
-          <div className="p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-b border-[#31353a] bg-[#1a1a1a]" style={{ borderWidth: '1px' }}>
             <div className="max-w-2xl mx-auto">
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -246,7 +246,7 @@ const StatisticsPageContent = () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleInputKeyPress}
                   placeholder="통계를 조회하세요... (예: 요즘 화재가 늘었어?)"
-                  className="w-full pl-12 pr-14 py-3 bg-[#0f0f0f] border border-[#2a2a2a] rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all"
+                  className="w-full pl-12 pr-14 py-3 bg-[#0f0f0f] border border-[#31353a] rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all"
                   style={{ borderWidth: '1px' }}
                   disabled={isLoading}
                 />
@@ -307,7 +307,7 @@ const StatisticsPageContent = () => {
             {insight && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 {/* 전체 사건 추이 */}
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
+                <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
                   <h3 className="text-white font-semibold text-lg mb-6">전체 사건 추이</h3>
                   <div className="flex items-end justify-between gap-2 h-48">
                     {weeklyData.map((data, index) => (
@@ -329,7 +329,7 @@ const StatisticsPageContent = () => {
                 </div>
 
                 {/* 유형별 비율 */}
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
+                <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
                   <h3 className="text-white font-semibold text-lg mb-6">유형별 비율</h3>
                   <div className="space-y-4">
                     {categoryData.map((data, index) => {
@@ -432,9 +432,9 @@ const StatisticsPageContent = () => {
                 <label className="text-gray-400 text-sm mb-2 block">심각도</label>
                 <select className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-sm" style={{ borderWidth: '1px' }}>
                   <option>전체</option>
-                  <option>High</option>
-                  <option>Medium</option>
-                  <option>Low</option>
+                  <option>긴급</option>
+                  <option>경계</option>
+                  <option>주의</option>
                 </select>
               </div>
 

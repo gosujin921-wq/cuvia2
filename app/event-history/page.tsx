@@ -70,11 +70,11 @@ const EventHistoryPageContent = () => {
 
   // 가상 이력 데이터
   const eventHistory: EventHistory[] = [
-    { id: '1', date: '2024-01-15', type: '화재', title: '동안구 아파트 화재', location: '동안구', severity: 'High', source: '119' },
-    { id: '2', date: '2024-01-12', type: '미아', title: '아동 실종 신고', location: '만안구', severity: 'High', source: '112' },
-    { id: '3', date: '2024-01-10', type: '화재', title: '강풍 화재 사건', location: '동안구', severity: 'High', source: '119', details: '강풍 영향으로 확산' },
-    { id: '4', date: '2024-01-08', type: '약자', title: '약자 쓰러짐', location: '비산동', severity: 'Medium', source: 'AI' },
-    { id: '5', date: '2024-01-05', type: '배회', title: '배회 행동 감지', location: '동안구', severity: 'Medium', source: 'AI' },
+    { id: '1', date: '2024-01-15', type: '화재', title: '동안구 아파트 화재', location: '동안구', severity: '긴급', source: '119' },
+    { id: '2', date: '2024-01-12', type: '미아', title: '아동 실종 신고', location: '만안구', severity: '긴급', source: '112' },
+    { id: '3', date: '2024-01-10', type: '화재', title: '강풍 화재 사건', location: '동안구', severity: '긴급', source: '119', details: '강풍 영향으로 확산' },
+    { id: '4', date: '2024-01-08', type: '약자', title: '약자 쓰러짐', location: '비산동', severity: '경계', source: 'AI' },
+    { id: '5', date: '2024-01-05', type: '배회', title: '배회 행동 감지', location: '동안구', severity: '경계', source: 'AI' },
   ];
 
   // 타임라인 데이터
@@ -196,9 +196,9 @@ const EventHistoryPageContent = () => {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f0f] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden">
       {/* 상단 헤더 */}
-      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#2a2a2a] px-6" style={{ borderWidth: '1px' }}>
+      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#31353a] px-6" style={{ borderWidth: '1px' }}>
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-24 h-5 flex items-center justify-center">
@@ -233,8 +233,8 @@ const EventHistoryPageContent = () => {
 
       <div className="flex-1 overflow-hidden flex">
         {/* 좌측: 이력 카테고리 패널 */}
-        <div className="w-64 flex-shrink-0 bg-[#1a1a1a] border-r border-[#2a2a2a] overflow-y-auto" style={{ borderWidth: '1px' }}>
-          <div className="p-4 border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+        <div className="w-64 flex-shrink-0 bg-[#1a1a1a] border-r border-[#31353a] overflow-y-auto" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-b border-[#31353a]" style={{ borderWidth: '1px' }}>
             <h2 className="text-white font-semibold text-sm mb-2 flex items-center gap-2">
               <Icon icon="mdi:folder" className="w-5 h-5 text-blue-400" />
               이력 카테고리
@@ -264,7 +264,7 @@ const EventHistoryPageContent = () => {
         {/* 중앙: 메인 컨텐츠 영역 */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">
           {/* 검색창 */}
-          <div className="p-4 border-b border-[#2a2a2a] bg-[#1a1a1a]" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-b border-[#31353a] bg-[#1a1a1a]" style={{ borderWidth: '1px' }}>
             <div className="max-w-2xl mx-auto">
               <div className="relative">
                 <div className="absolute left-4 top-1/2 -translate-y-1/2">
@@ -276,7 +276,7 @@ const EventHistoryPageContent = () => {
                   onChange={(e) => setInput(e.target.value)}
                   onKeyPress={handleInputKeyPress}
                   placeholder="이력을 조회하세요... (예: 작년 동안구 화재 중 큰 거 뭐 있었지?)"
-                  className="w-full pl-12 pr-14 py-3 bg-[#0f0f0f] border border-[#2a2a2a] rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all"
+                  className="w-full pl-12 pr-14 py-3 bg-[#0f0f0f] border border-[#31353a] rounded-full text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all"
                   style={{ borderWidth: '1px' }}
                   disabled={isLoading}
                 />
@@ -334,12 +334,12 @@ const EventHistoryPageContent = () => {
             {/* 중앙: 이력 리스트 및 타임라인 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               {/* 이벤트 이력 리스트 */}
-              <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
+              <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
                 <h3 className="text-white font-semibold text-lg mb-4">사건 이력 리스트</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+                      <tr className="border-b border-[#31353a]" style={{ borderWidth: '1px' }}>
                         <th className="text-left py-2 text-gray-400 font-medium">날짜</th>
                         <th className="text-left py-2 text-gray-400 font-medium">유형</th>
                         <th className="text-left py-2 text-gray-400 font-medium">제목</th>
@@ -353,7 +353,7 @@ const EventHistoryPageContent = () => {
                         <tr
                           key={event.id}
                           onClick={() => handleEventSelect(event.id)}
-                          className={`border-b border-[#2a2a2a] cursor-pointer transition-colors ${
+                          className={`border-b border-[#31353a] cursor-pointer transition-colors ${
                             selectedEvent === event.id
                               ? 'bg-blue-500/20 hover:bg-blue-500/30'
                               : 'hover:bg-[#242424]'
@@ -366,8 +366,8 @@ const EventHistoryPageContent = () => {
                           <td className="py-3 text-gray-400">{event.location}</td>
                           <td className="py-3">
                             <span className={`px-2 py-1 rounded-full text-xs ${
-                              event.severity === 'High' ? 'bg-red-500/20 text-red-400' :
-                              event.severity === 'Medium' ? 'bg-yellow-500/20 text-yellow-400' :
+                              event.severity === '긴급' ? 'bg-red-500/20 text-red-400' :
+                              event.severity === '경계' ? 'bg-yellow-500/20 text-yellow-400' :
                               'bg-blue-500/20 text-blue-400'
                             }`}>
                               {event.severity}
@@ -383,7 +383,7 @@ const EventHistoryPageContent = () => {
 
               {/* 타임라인 뷰 */}
               {selectedEvent && (
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
+                <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
                   <h3 className="text-white font-semibold text-lg mb-4">사건 타임라인</h3>
                   <div className="space-y-4">
                     {timelineData.map((item, index) => (
@@ -440,7 +440,7 @@ const EventHistoryPageContent = () => {
             {selectedEvent && (
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* CCTV 이력 미리보기 */}
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
+                <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
                   <h3 className="text-white font-semibold text-lg mb-4">CCTV 이력</h3>
                   <div className="bg-[#242424] rounded-lg p-4 aspect-video flex items-center justify-center">
                     <div className="text-center">
@@ -460,7 +460,7 @@ const EventHistoryPageContent = () => {
                 </div>
 
                 {/* 문서/전파 기록 */}
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
+                <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-6" style={{ borderWidth: '1px' }}>
                   <h3 className="text-white font-semibold text-lg mb-4">전파·보고서 기록</h3>
                   <div className="space-y-3">
                     <div className="bg-[#242424] border border-[#2a2a2a] rounded-lg p-4 cursor-pointer hover:bg-[#2a2a2a] transition-colors" style={{ borderWidth: '1px' }}>
@@ -549,9 +549,9 @@ const EventHistoryPageContent = () => {
                 <label className="text-gray-400 text-sm mb-2 block">위험도</label>
                 <select className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-sm" style={{ borderWidth: '1px' }}>
                   <option>전체</option>
-                  <option>High</option>
-                  <option>Medium</option>
-                  <option>Low</option>
+                  <option>긴급</option>
+                  <option>경계</option>
+                  <option>주의</option>
                 </select>
               </div>
 

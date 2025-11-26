@@ -234,9 +234,9 @@ const IncidentResponsePageContent = () => {
   const totalRiskChange = environmentImpacts.reduce((sum, item) => sum + item.riskChange, 0);
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f0f] overflow-hidden">
+    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden">
       {/* 상단 헤더 */}
-      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#2a2a2a] px-6" style={{ borderWidth: '1px' }}>
+      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#31353a] px-6" style={{ borderWidth: '1px' }}>
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-24 h-5 flex items-center justify-center">
@@ -271,8 +271,8 @@ const IncidentResponsePageContent = () => {
 
       <div className="flex-1 overflow-hidden flex">
         {/* 좌측: 사건 분석 카테고리 패널 */}
-        <div className="w-64 flex-shrink-0 bg-[#1a1a1a] border-r border-[#2a2a2a] overflow-y-auto" style={{ borderWidth: '1px' }}>
-          <div className="p-4 border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+        <div className="w-64 flex-shrink-0 bg-[#1a1a1a] border-r border-[#31353a] overflow-y-auto" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-b border-[#31353a]" style={{ borderWidth: '1px' }}>
             <h2 className="text-white font-semibold text-sm mb-2 flex items-center gap-2">
               <Icon icon="mdi:folder" className="w-5 h-5 text-blue-400" />
               사건 분석 카테고리

@@ -436,8 +436,8 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
   }, [isPlaying, duration]);
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f0f] overflow-hidden">
-      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#2a2a2a] px-6" style={{ borderWidth: '1px' }}>
+    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden">
+      <header className="flex h-16 items-center justify-between bg-[#1a1a1a] border-b border-[#31353a] px-6" style={{ borderWidth: '1px' }}>
         <div className="flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2">
             <div className="w-24 h-5 flex items-center justify-center">
@@ -461,23 +461,23 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
 
       <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - 사건 목록 */}
-        <aside className="w-80 flex-shrink-0 bg-[#1a1a1a] border-r border-[#2a2a2a] flex flex-col" style={{ borderWidth: '1px' }}>
-          <div className="p-4 border-b border-[#2a2a2a] flex flex-col gap-3" style={{ borderWidth: '1px', height: '156px' }}>
+        <aside className="w-80 flex-shrink-0 bg-[#1a1a1a] border-r border-[#31353a] flex flex-col" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-b border-[#31353a] flex flex-col gap-3" style={{ borderWidth: '1px', height: '156px' }}>
             <div className="relative">
               <Icon icon="mdi:magnify" className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Q 사건 ID, 키워드 검색..."
-                className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#161719] border border-[#31353a] rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-blue-500"
                 style={{ borderWidth: '1px' }}
               />
             </div>
             <div className="flex gap-2">
-              <button className="flex-1 px-3 py-1.5 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-xs hover:bg-[#2a2a2a] transition-colors" style={{ borderWidth: '1px' }}>
+              <button className="flex-1 px-3 py-1.5 bg-[#161719] border border-[#31353a] rounded-lg text-white text-xs hover:bg-[#2a2a2a] transition-colors" style={{ borderWidth: '1px' }}>
                 사건유형
               </button>
-              <button className="flex-1 px-3 py-1.5 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-xs hover:bg-[#2a2a2a] transition-colors" style={{ borderWidth: '1px' }}>
+              <button className="flex-1 px-3 py-1.5 bg-[#161719] border border-[#31353a] rounded-lg text-white text-xs hover:bg-[#2a2a2a] transition-colors" style={{ borderWidth: '1px' }}>
                 위험도
               </button>
             </div>
@@ -487,7 +487,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                 className={`flex-1 px-3 py-1.5 rounded-lg text-xs transition-colors ${
                   selectedCategory === 'URGENT'
                     ? 'bg-red-500/20 border border-red-500/50 text-red-400'
-                    : 'bg-[#0f0f0f] border border-[#2a2a2a] text-gray-400 hover:bg-[#2a2a2a]'
+                    : 'bg-[#161719] border border-[#31353a] text-gray-400 hover:bg-[#2a2a2a]'
                 }`}
                 style={{ borderWidth: '1px' }}
               >
@@ -498,7 +498,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                 className={`flex-1 px-3 py-1.5 rounded-lg text-xs transition-colors ${
                   selectedCategory === 'ACTIVE'
                     ? 'bg-yellow-500/20 border border-yellow-500/50 text-yellow-400'
-                    : 'bg-[#0f0f0f] border border-[#2a2a2a] text-gray-400 hover:bg-[#2a2a2a]'
+                    : 'bg-[#161719] border border-[#31353a] text-gray-400 hover:bg-[#2a2a2a]'
                 }`}
                 style={{ borderWidth: '1px' }}
               >
@@ -509,7 +509,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                 className={`flex-1 px-3 py-1.5 rounded-lg text-xs transition-colors ${
                   selectedCategory === 'ALL'
                     ? 'bg-blue-500/20 border border-blue-500/50 text-blue-400'
-                    : 'bg-[#0f0f0f] border border-[#2a2a2a] text-gray-400 hover:bg-[#2a2a2a]'
+                    : 'bg-[#161719] border border-[#31353a] text-gray-400 hover:bg-[#2a2a2a]'
                 }`}
                 style={{ borderWidth: '1px' }}
               >
@@ -530,7 +530,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                   className={`w-full text-left border rounded-lg p-3 transition-all ${
                     selectedEvent?.id === event.id
                       ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
-                      : 'bg-[#1f1f1f] border-[#2a2a2a] hover:bg-[#2a2a2a]'
+                      : 'bg-[#1f1f1f] border-[#31353a] hover:bg-[#2a2a2a]'
                   }`}
                   style={{ borderWidth: '1px' }}
                 >
@@ -566,7 +566,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
             </div>
           </div>
 
-          <div className="p-4 border-t border-[#2a2a2a] bg-[#1a1a1a]" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-t border-[#31353a] bg-[#1a1a1a]" style={{ borderWidth: '1px' }}>
             <div className="flex items-center justify-between text-xs text-gray-400 mb-1">
               <span>오늘 처리 사건</span>
               <span className="text-white font-semibold">18건</span>
@@ -579,14 +579,14 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
         </aside>
 
         {/* Center Panel - 사건 상세 */}
-        <main className="flex-1 flex flex-col min-w-0 bg-[#0f0f0f]">
+        <main className="flex-1 flex flex-col min-w-0 bg-[#161719]">
           {selectedEvent ? (
             <>
               <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6">
                 {/* AI Chat Blocks */}
                 <div className="space-y-4">
                   {chatBlocks.map((block) => (
-                    <div key={block.title} className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                    <div key={block.title} className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
                       <div className="flex items-center gap-2 mb-2">
                         <Icon icon={block.icon} className="w-4 h-4 text-blue-300" />
                         <h4 className="text-white font-semibold text-sm">{block.title}</h4>
@@ -597,7 +597,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                 </div>
 
                 {/* CCTV 추천 */}
-                <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
                   <div className="flex items-center gap-2 mb-3">
                     <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-300" />
                     <h4 className="text-white font-semibold text-sm">CCTV 추천</h4>
@@ -610,7 +610,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                           setSelectedCCTV(cctv);
                           setShowCCTVPopup(true);
                         }}
-                        className="px-3 py-1.5 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-sm hover:border-blue-500/50 transition-colors"
+                        className="px-3 py-1.5 bg-[#161719] border border-[#31353a] rounded-lg text-white text-sm hover:border-blue-500/50 transition-colors"
                         style={{ borderWidth: '1px' }}
                       >
                         {cctv}
@@ -621,7 +621,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
 
                 {/* 저장된 클립 목록 */}
                 {savedClips.length > 0 && (
-                  <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                  <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
                     <div className="flex items-center justify-between mb-3">
                       <div className="flex items-center gap-2">
                         <Icon icon="mdi:video-box" className="w-4 h-4 text-green-300" />
@@ -635,7 +635,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                       {savedClips.map((clip) => (
                         <div
                           key={clip.id}
-                          className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg p-3 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+                          className="bg-[#161719] border border-[#31353a] rounded-lg p-3 hover:bg-[#1a1a1a] transition-colors cursor-pointer"
                           style={{ borderWidth: '1px' }}
                           onClick={() => {
                             setSelectedCCTV(Object.keys(cctvInfo).find((key) => cctvInfo[key].id === clip.cctvId) || null);
@@ -685,7 +685,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                             className={`max-w-[70%] px-4 py-2 rounded-2xl border text-sm ${
                               message.role === 'user'
                                 ? 'bg-blue-600 text-white border-blue-500'
-                                : 'bg-[#0f0f0f] text-gray-200 border-[#2a2a2a]'
+                                : 'bg-[#161719] text-gray-200 border-[#31353a]'
                             }`}
                             style={{ borderWidth: '1px' }}
                           >
@@ -704,7 +704,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                                   setSelectedCCTV(button);
                                   setShowCCTVPopup(true);
                                 }}
-                                className="px-3 py-1.5 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-sm hover:border-blue-500/50 transition-colors"
+                                className="px-3 py-1.5 bg-[#161719] border border-[#31353a] rounded-lg text-white text-sm hover:border-blue-500/50 transition-colors"
                                 style={{ borderWidth: '1px' }}
                               >
                                 {button}
@@ -728,7 +728,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
               </div>
 
               {/* 빠른 명령 + 자연어 입력 */}
-              <div className="border-t border-[#2a2a2a] bg-[#1a1a1a] p-4 sticky bottom-0 left-0 right-0" style={{ borderWidth: '1px' }}>
+              <div className="border-t border-[#31353a] bg-[#1a1a1a] p-4 sticky bottom-0 left-0 right-0" style={{ borderWidth: '1px' }}>
                 <div className="flex flex-wrap gap-2 mb-3">
                   {quickCommands.map((cmd) => (
                     <button
@@ -757,7 +757,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                       }
                     }}
                     placeholder="자연어로 질문하세요... (예: '출동 경로 추천해줘', '환경 영향 분석해줘')"
-                    className="flex-1 bg-[#0f0f0f] border border-[#2a2a2a] rounded-full px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
+                    className="flex-1 bg-[#161719] border border-[#31353a] rounded-full px-4 py-3 text-white text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500"
                     style={{ borderWidth: '1px' }}
                   />
                   <button
@@ -780,8 +780,8 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
         </main>
 
         {/* Right Panel - CCTV & 환경 분석 */}
-        <aside className="w-80 flex-shrink-0 bg-[#1a1a1a] border-l border-[#2a2a2a] flex flex-col overflow-y-auto" style={{ borderWidth: '1px' }}>
-          <div className="p-4 border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+        <aside className="w-80 flex-shrink-0 bg-[#1a1a1a] border-l border-[#31353a] flex flex-col overflow-y-auto" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-b border-[#31353a]" style={{ borderWidth: '1px' }}>
             <h3 className="text-white font-semibold text-sm">CCTV 모니터링</h3>
           </div>
           <div className="p-4 space-y-4">
@@ -792,7 +792,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                 <span className="px-2 py-0.5 bg-green-500/20 text-green-400 rounded text-xs">활성</span>
               </div>
               <div className="text-gray-400 text-xs mb-2">현장</div>
-              <div className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg aspect-video flex items-center justify-center" style={{ borderWidth: '1px' }}>
+              <div className="bg-[#161719] border border-[#31353a] rounded-lg aspect-video flex items-center justify-center" style={{ borderWidth: '1px' }}>
                 <div className="text-center">
                   <Icon icon="mdi:cctv" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
                   <p className="text-gray-500 text-xs">연결 중...</p>
@@ -807,7 +807,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                 <span className="px-2 py-0.5 bg-yellow-500/20 text-yellow-400 rounded text-xs">모니터링</span>
               </div>
               <div className="text-gray-400 text-xs mb-2">북쪽 100m</div>
-              <div className="bg-[#0f0f0f] border-2 border-yellow-500/50 rounded-lg aspect-video flex items-center justify-center" style={{ borderWidth: '2px' }}>
+              <div className="bg-[#161719] border-2 border-yellow-500/50 rounded-lg aspect-video flex items-center justify-center" style={{ borderWidth: '2px' }}>
                 <div className="text-center">
                   <Icon icon="mdi:cctv" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
                   <p className="text-gray-500 text-xs">연결 중...</p>
@@ -816,8 +816,8 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
             </div>
           </div>
 
-          <div className="p-4 border-t border-[#2a2a2a] space-y-4" style={{ borderWidth: '1px' }}>
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 space-y-3" style={{ borderWidth: '1px' }}>
+          <div className="p-4 border-t border-[#31353a] space-y-4" style={{ borderWidth: '1px' }}>
+            <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4 space-y-3" style={{ borderWidth: '1px' }}>
               <div className="flex items-center gap-2 text-sm text-white font-semibold">
                 <Icon icon="mdi:weather-windy" className="w-4 h-4 text-blue-300" />
                 환경 영향 분석
@@ -854,7 +854,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
               </ul>
             </div>
 
-            <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-lg p-4 space-y-4" style={{ borderWidth: '1px' }}>
+            <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4 space-y-4" style={{ borderWidth: '1px' }}>
               <div className="flex items-center gap-2 text-sm text-white font-semibold">
                 <Icon icon="mdi:clock-outline" className="w-4 h-4 text-green-300" />
                 대응 타임라인
@@ -895,11 +895,11 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
           }}
         >
           <div
-            className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col"
+            className="bg-[#161719] border border-[#31353a] rounded-lg w-full max-w-6xl max-h-[95vh] overflow-hidden flex flex-col"
             style={{ borderWidth: '1px' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-4 border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+            <div className="flex items-center justify-between p-4 border-b border-[#31353a]" style={{ borderWidth: '1px' }}>
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2">
                   <button
@@ -947,29 +947,29 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                 </div>
               </div>
 
-              <div className="w-80 bg-[#1a1a1a] border-l border-[#2a2a2a] flex flex-col" style={{ borderWidth: '1px' }}>
-                <div className="p-4 border-b border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+              <div className="w-80 bg-[#1a1a1a] border-l border-[#31353a] flex flex-col" style={{ borderWidth: '1px' }}>
+                <div className="p-4 border-b border-[#31353a]" style={{ borderWidth: '1px' }}>
                   <h4 className="text-white font-semibold text-sm mb-4">CCTV 빠른 보기</h4>
                   
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => setCurrentTime(Math.max(0, currentTime - 10))}
-                        className="p-2 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white hover:bg-[#2a2a2a] transition-colors"
+                        className="p-2 bg-[#161719] border border-[#31353a] rounded-lg text-white hover:bg-[#2a2a2a] transition-colors"
                         style={{ borderWidth: '1px' }}
                       >
                         <Icon icon="mdi:skip-backward" className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => setIsPlaying(!isPlaying)}
-                        className="flex-1 p-2 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white hover:bg-[#2a2a2a] transition-colors flex items-center justify-center"
+                        className="flex-1 p-2 bg-[#161719] border border-[#31353a] rounded-lg text-white hover:bg-[#2a2a2a] transition-colors flex items-center justify-center"
                         style={{ borderWidth: '1px' }}
                       >
                         <Icon icon={isPlaying ? 'mdi:pause' : 'mdi:play'} className="w-6 h-6" />
                       </button>
                       <button
                         onClick={() => setCurrentTime(Math.min(duration, currentTime + 10))}
-                        className="p-2 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white hover:bg-[#2a2a2a] transition-colors"
+                        className="p-2 bg-[#161719] border border-[#31353a] rounded-lg text-white hover:bg-[#2a2a2a] transition-colors"
                         style={{ borderWidth: '1px' }}
                       >
                         <Icon icon="mdi:skip-forward" className="w-5 h-5" />
@@ -977,7 +977,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                     </div>
 
                     <div className="space-y-1">
-                      <div className="relative h-2 bg-[#0f0f0f] rounded-full overflow-hidden">
+                      <div className="relative h-2 bg-[#161719] rounded-full overflow-hidden">
                         <div
                           className="absolute left-0 top-0 h-full bg-blue-500"
                           style={{ width: `${(currentTime / duration) * 100}%` }}
@@ -999,7 +999,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                   <h4 className="text-white font-semibold text-sm mb-3">감지 이벤트</h4>
                   <div className="space-y-2">
                     <button
-                      className="w-full px-4 py-2.5 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-sm hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2.5 bg-[#161719] border border-[#31353a] rounded-lg text-white text-sm hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2"
                       style={{ borderWidth: '1px' }}
                     >
                       <Icon icon="mdi:target" className="w-4 h-4" />
@@ -1019,7 +1019,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                         setSavedClips((prev) => [...prev, clip]);
                         alert(`${cctvInfo[selectedCCTV].id} 클립 저장 완료. 전파 준비됨.`);
                       }}
-                      className="w-full px-4 py-2.5 bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg text-white text-sm hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2"
+                      className="w-full px-4 py-2.5 bg-[#161719] border border-[#31353a] rounded-lg text-white text-sm hover:bg-[#2a2a2a] transition-colors flex items-center justify-center gap-2"
                       style={{ borderWidth: '1px' }}
                     >
                       <Icon icon="mdi:content-save" className="w-4 h-4" />
@@ -1029,7 +1029,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                   </div>
 
                   {savedClips.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-[#2a2a2a]" style={{ borderWidth: '1px' }}>
+                    <div className="mt-4 pt-4 border-t border-[#31353a]" style={{ borderWidth: '1px' }}>
                       <h4 className="text-white font-semibold text-sm mb-3">저장된 클립 ({savedClips.length})</h4>
                       <div className="space-y-2 max-h-48 overflow-y-auto">
                         {savedClips
@@ -1037,7 +1037,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
                           .map((clip) => (
                             <div
                               key={clip.id}
-                              className="bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg p-3"
+                              className="bg-[#161719] border border-[#31353a] rounded-lg p-3"
                               style={{ borderWidth: '1px' }}
                             >
                               <div className="flex items-center justify-between mb-1">
@@ -1069,7 +1069,7 @@ ${recommendations || '즉시 소방대 출동이 필요하며, CCTV 집중 모�
 export default function CityOperationsAgentPage() {
   return (
     <Suspense fallback={
-      <div className="flex items-center justify-center h-screen bg-[#0f0f0f]">
+      <div className="flex items-center justify-center h-screen bg-[#161719]">
         <div className="text-center">
           <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-3"></div>
           <p className="text-gray-400 text-sm">로딩 중...</p>

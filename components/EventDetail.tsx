@@ -21,12 +21,12 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
 
   const getPriorityBadge = (priority: string) => {
     switch (priority) {
-      case 'High':
-        return { label: 'High', color: 'bg-red-600 text-white' };
-      case 'Medium':
-        return { label: 'Medium', color: 'bg-yellow-600 text-white' };
-      case 'Low':
-        return { label: 'Low', color: 'bg-blue-600 text-white' };
+      case '긴급':
+        return { label: '긴급', color: 'bg-red-600 text-white' };
+      case '경계':
+        return { label: '경계', color: 'bg-yellow-600 text-white' };
+      case '주의':
+        return { label: '주의', color: 'bg-blue-600 text-white' };
       default:
         return { label: priority, color: 'bg-gray-600 text-white' };
     }
@@ -214,7 +214,7 @@ const EventDetail = ({ event, onClose, onSummaryRequest, onLinkEvents, onBroadca
               <div className="flex items-center justify-between">
                 <span className="text-gray-400 text-sm">위험도 점수</span>
                 <span className="text-red-400 font-semibold">
-                  {event.priority === 'High' ? '92점' : event.priority === 'Medium' ? '76점' : '45점'}
+                  {event.priority === '긴급' ? '92점' : event.priority === '경계' ? '76점' : '45점'}
                 </span>
               </div>
             </div>

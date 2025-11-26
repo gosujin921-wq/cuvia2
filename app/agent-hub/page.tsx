@@ -111,7 +111,7 @@ export default function AgentHubPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[#0f0f0f] overflow-hidden relative">
+    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
       {/* 상단 헤더 (최소화) */}
       <header className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-3">
         <Link href="/" className="flex items-center gap-2">
@@ -153,14 +153,14 @@ export default function AgentHubPage() {
               onChange={(e) => setInput(e.target.value)}
               onKeyPress={handleInputKeyPress}
               placeholder="Agent Hub에 질문하세요..."
-              className="w-full pl-12 pr-14 py-4 bg-[#1a1a1a] border border-[#2a2a2a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all"
+              className="w-full pl-12 pr-14 py-4 bg-[#1a1a1a] border border-[#31353a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:shadow-lg focus:shadow-blue-500/20 transition-all rounded-lg"
               style={{ borderWidth: '1px' }}
               aria-label="질문 입력"
             />
             {input && (
               <button
                 onClick={() => setInput('')}
-                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[#2a2a2a] transition-colors"
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 hover:bg-[#31353a] transition-colors rounded"
                 aria-label="입력 지우기"
               >
                 <Icon icon="mdi:close" className="w-5 h-5 text-gray-400" />
@@ -184,14 +184,14 @@ export default function AgentHubPage() {
                 aria-label={`${agent.title} Agent 열기`}
                 className={`
                   ${colors.bg} ${colors.border} ${colors.hover}
-                  border p-6 cursor-pointer transition-all duration-200
-                  ${isSelected ? 'ring-2 ring-offset-2 ring-offset-[#0f0f0f] ring-blue-500' : ''}
+                  border p-6 cursor-pointer transition-all duration-200 bg-[#1a1a1a] rounded-lg
+                  ${isSelected ? 'ring-2 ring-offset-2 ring-offset-[#161719] ring-blue-500' : ''}
                 `}
-                style={{ borderWidth: '1px' }}
+                style={{ borderWidth: '1px', borderColor: '#31353a' }}
               >
                 <div className="flex items-start gap-4">
                   <div className={`
-                    ${colors.icon} p-3 bg-[#1a1a1a] flex-shrink-0
+                    ${colors.icon} p-3 bg-[#0f0f0f] flex-shrink-0 rounded-lg border border-[#31353a]
                   `} style={{ borderWidth: '1px' }}>
                     <Icon icon={agent.icon} className="w-8 h-8" />
                   </div>

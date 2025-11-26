@@ -1,10 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Icon } from '@iconify/react';
 import { Event } from '@/types';
-import { getEventById, getEventCategory, getAIInsightKeywords } from '@/lib/events-data';
+import { getEventById, getEventCategory, getAIInsightKeywords, formatEventDateTime } from '@/lib/events-data';
 
 interface EventListProps {
   events: Event[];
@@ -16,14 +16,14 @@ interface EventListProps {
 const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: EventListProps) => {
   const router = useRouter();
   const agentPathByDomain: Record<string, string> = {
-    A: '/112-agent',
-    B: '/119-agent',
-    C: '/vulnerable-agent',
-    D: '/ai-behavior-agent',
-    E: '/disaster-agent',
-    F: '/city-operations-agent',
+    A: '/agent-112',
+    B: '/agent-119',
+    C: '/agent-vulnerable',
+    D: '/agent-ai-behavior',
+    E: '/agent-disaster',
+    F: '/agent-city',
   };
-  const [priorityFilter, setPriorityFilter] = useState<'ALL' | 'High' | 'Medium' | 'Low' | 'GENERAL'>('ALL');
+  const [priorityFilter, setPriorityFilter] = useState<'ALL' | '긴급' | '경계' | '주의' | 'GENERAL'>('ALL');
   // 이벤트 정렬: 특정 이벤트 최우선 > 우선순위 > 경보 수준 > 최신순
   const sortedEvents = [...events].sort((a, b) => {
     // Evidence는 가장 아래로
@@ -39,7 +39,7 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
     if (!aIsTopPriority && bIsTopPriority) return 1;
     
     // 우선순위 순서
-    const priorityOrder = { High: 3, Medium: 2, Low: 1 };
+    const priorityOrder = { 긴급: 3, 경계: 2, 주의: 1 };
     const priorityDiff = priorityOrder[b.priority] - priorityOrder[a.priority];
     if (priorityDiff !== 0) return priorityDiff;
     
@@ -102,11 +102,11 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {
-      case 'High':
+      case '긴급':
         return 'border-red-500 bg-red-500/10';
-      case 'Medium':
+      case '경계':
         return 'border-yellow-500 bg-yellow-500/10';
-      case 'Low':
+      case '주의':
         return 'border-blue-500 bg-blue-500/10';
       default:
         return 'border-gray-500 bg-gray-500/10';
@@ -152,9 +152,9 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
 
   const tabs = [
     { label: '전체', value: 'ALL' as const },
-    { label: 'High', value: 'High' as const },
-    { label: 'Medium', value: 'Medium' as const },
-    { label: 'Low', value: 'Low' as const },
+    { label: '긴급', value: '긴급' as const },
+    { label: '경계', value: '경계' as const },
+    { label: '주의', value: '주의' as const },
     { label: '일반', value: 'GENERAL' as const },
   ];
 
@@ -165,19 +165,18 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
           {tabs.map((tab, index) => {
             const isActive = priorityFilter === tab.value;
             const getPriorityDot = () => {
-              if (tab.value === 'High') {
+              if (tab.value === '긴급') {
                 return <span className="w-2 h-2 rounded-full border-2 border-red-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
-              } else if (tab.value === 'Medium') {
+              } else if (tab.value === '경계') {
                 return <span className="w-2 h-2 rounded-full border-2 border-yellow-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
-              } else if (tab.value === 'Low') {
+              } else if (tab.value === '주의') {
                 return <span className="w-2 h-2 rounded-full border-2 border-blue-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
               }
               return null;
             };
             return (
-              <>
+              <React.Fragment key={tab.value}>
                 <button
-                  key={tab.value}
                   onClick={() => setPriorityFilter(tab.value)}
                   className={`pb-2 text-xs font-semibold tracking-tight transition-colors flex items-center ${
                     isActive
@@ -188,10 +187,10 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                   {getPriorityDot()}
                   {tab.label}
                 </button>
-                {tab.value === 'Low' && (
-                  <span key={`divider-${index}`} className="w-1 h-1 rounded-full bg-gray-500 self-center" style={{ marginBottom: '10px' }} />
+                {tab.value === '주의' && (
+                  <span className="w-1 h-1 rounded-full bg-gray-500 self-center" style={{ marginBottom: '10px' }} />
                 )}
-              </>
+              </React.Fragment>
             );
           })}
         </div>
@@ -214,14 +213,8 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
               <div
                 onClick={() => {
                   if (main.eventId) {
-                    const baseEvent = getEventById(main.eventId);
-                    if (baseEvent) {
-                      const route = agentPathByDomain[baseEvent.domain];
-                      if (route) {
-                        router.push(`${route}?eventId=${main.eventId}`);
-                        return;
-                      }
-                    }
+                    router.push(`/event/${main.eventId}`);
+                    return;
                   }
                   onEventSelect?.(main.id);
                 }}
@@ -237,11 +230,14 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                 {/* 1. 시간 / 신고기관 / 우선순위 뷸렛 */}
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-300 text-[0.7rem] font-medium">{main.timestamp}</span>
+                    <span className="text-gray-300 text-[0.7rem] font-medium">
+                      {formatEventDateTime(main.eventId ?? '', main.timestamp)}
+                    </span>
                     {main.eventId && (() => {
                       const baseEvent = getEventById(main.eventId);
                       const source = baseEvent?.source || '';
                       const isAI = source.includes('AI') || source === 'AI';
+                      if (!source) return null;
                       return (
                         <span className="text-gray-300 text-[0.7rem] font-medium">
                           {isAI ? 'AI' : source}
@@ -249,13 +245,13 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                       );
                     })()}
                   </div>
-                  {main.priority === 'High' && (
+                  {main.priority === '긴급' && (
                     <span className="w-2 h-2 rounded-full border-2 border-red-400 inline-block" style={{ borderWidth: '3px' }} />
                   )}
-                  {main.priority === 'Medium' && (
+                  {main.priority === '경계' && (
                     <span className="w-2 h-2 rounded-full border-2 border-yellow-400 inline-block" style={{ borderWidth: '3px' }} />
                   )}
-                  {main.priority === 'Low' && (
+                  {main.priority === '주의' && (
                     <span className="w-2 h-2 rounded-full border-2 border-blue-400 inline-block" style={{ borderWidth: '3px' }} />
                   )}
                 </div>
@@ -324,11 +320,10 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                 })()}
 
                 {/* 이벤트 처리 현황 */}
-                <div className="flex items-center gap-2 mb-2">
-                  <span className="text-gray-400 text-[0.65rem]">이벤트 상태</span>
-                  <span className="text-[0.7rem] text-white tracking-tight">
-                    {main.processingStage}
-                  </span>
+                <div className="flex items-center gap-2 mb-2 text-[0.7rem] text-gray-300">
+                  <span>이벤트 상태</span>
+                  <span className="text-gray-500">|</span>
+                  <span className="text-white">{main.processingStage}</span>
                 </div>
 
               </div>
@@ -363,4 +358,3 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
 };
 
 export default EventList;
-
