@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { Icon } from '@iconify/react';
 import ControlEventSummary from '@/components/control/ControlEventSummary';
 import ControlEventList from '@/components/control/ControlEventList';
 import MapView from '@/components/MapView';
@@ -16,6 +17,7 @@ import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 export default function ControlPage() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
+  const [showGeneralEvents, setShowGeneralEvents] = useState(false);
 
   // 공통 데이터 사용
   const events: Event[] = useMemo(() => {
@@ -173,14 +175,27 @@ export default function ControlPage() {
       <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative" style={{ width: '125%', height: '125%' }}>
         <div className="flex flex-1 overflow-hidden">
           <div className="flex flex-1 overflow-hidden relative">
-            <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '358px' }}>
+            <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: showGeneralEvents ? '1000px' : '900px' }}>
               <div className="py-4 px-3">
-                <div className="w-24 h-5 flex items-center justify-start">
-                  <img 
-                    src="/logo.svg" 
-                    alt="CUVIA Logo" 
-                    className="h-5 w-auto object-contain"
-                  />
+                <div className="flex items-center justify-between">
+                  <div className="w-24 h-5 flex items-center justify-start">
+                    <img 
+                      src="/logo.svg" 
+                      alt="CUVIA Logo" 
+                      className="h-5 w-auto object-contain"
+                    />
+                  </div>
+                  <button
+                    onClick={() => setShowGeneralEvents(prev => !prev)}
+                    className="bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg transition-colors flex items-center justify-center"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                    }}
+                    aria-label="일반 이벤트 보기"
+                  >
+                    <Icon icon="mdi:view-grid" className="w-4 h-4" />
+                  </button>
                 </div>
               </div>
               <div className="py-3">
@@ -192,6 +207,7 @@ export default function ControlPage() {
                   selectedEventId={selectedEventId || undefined}
                   onEventSelect={handleEventSelect}
                   onEventHover={handleEventHover}
+                  showGeneralEvents={showGeneralEvents}
                 />
               </div>
             </div>
@@ -201,10 +217,12 @@ export default function ControlPage() {
                   highlightedEventId={highlightedEventId}
                   selectedEventId={selectedEventId}
                   onEventClick={handleEventClick}
+                  onEventHover={handleEventHover}
                   onMapClick={() => {
                     setSelectedEventId(null);
                     setHighlightedEventId(null);
                   }}
+                  onToggleGeneralEvents={() => setShowGeneralEvents(prev => !prev)}
                 />
                 <CCTVQuickView 
                   isVisible={true}

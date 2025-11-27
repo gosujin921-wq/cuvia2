@@ -51,7 +51,7 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
   if (!isVisible) return null;
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-[#161719] border-t border-[#31353a] px-4 py-3" style={{ zIndex: 300, height: '305px' }}>
+    <div className="absolute bottom-0 left-0 right-0 bg-[#161719] border-t border-[#31353a] px-4 py-3" style={{ zIndex: 300, height: '450px' }}>
       <div className="flex items-center mb-2">
         <div className="flex items-center gap-2">
           <Icon icon="mdi:cctv" className="w-5 h-5 text-white" />
@@ -68,7 +68,7 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
             CCTV 정보가 없습니다.
           </div>
         ) : (
-          <div className="inline-grid grid-rows-2 grid-flow-col gap-3" style={{ gridAutoColumns: '12rem' }}>
+          <div className="inline-grid grid-rows-3 grid-flow-col gap-3" style={{ gridAutoColumns: '12rem' }}>
             {[...cctvList, ...cctvList, ...cctvList].map((cctv, index) => (
               <div
                 key={`${cctv.id}-${index}`}

@@ -41,13 +41,21 @@ export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
 }) => {
   return (
     <aside className="flex flex-col flex-shrink-0 w-[370px] pl-4 pr-5">
-      <div className="py-4 px-3">
+      <div className="py-4 px-3 flex items-center justify-between">
         <Link href="/" className="w-24 h-5 flex items-center justify-start">
           <img 
             src="/logo.svg" 
             alt="CUVIA Logo" 
             className="h-5 w-auto object-contain"
           />
+        </Link>
+        <Link
+          href="/"
+          className="flex items-center gap-2 hover:bg-[#36383B] rounded transition-colors"
+          aria-label="대시보드로 이동"
+        >
+          <Icon icon="mdi:arrow-left" className="w-5 h-5 text-gray-400 hover:text-white" />
+          <span className="text-sm text-gray-400 hover:text-white">dashboard</span>
         </Link>
       </div>
       <div className="flex-1 overflow-hidden">

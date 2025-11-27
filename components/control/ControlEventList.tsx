@@ -11,9 +11,10 @@ interface EventListProps {
   selectedEventId?: string;
   onEventSelect?: (eventId: string) => void;
   onEventHover?: (eventId: string | null) => void;
+  showGeneralEvents?: boolean;
 }
 
-const ControlEventList = ({ events, selectedEventId, onEventSelect, onEventHover }: EventListProps) => {
+const ControlEventList = ({ events, selectedEventId, onEventSelect, onEventHover, showGeneralEvents = false }: EventListProps) => {
   const router = useRouter();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const eventItemRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -212,212 +213,554 @@ const ControlEventList = ({ events, selectedEventId, onEventSelect, onEventHover
   }, [selectedEventId, onEventHover]);
 
   return (
-    <div className="w-full bg-[#161719] flex flex-col h-full overflow-y-auto">
-      <div className="border-t border-b border-[#31353a]">
-        <div className="flex items-center justify-center gap-2" style={{ paddingTop: '14px' }}>
-          {tabs.map((tab, index) => {
-            const isActive = priorityFilter === tab.value;
-            const getPriorityDot = () => {
-              if (tab.value === '긴급') {
-                return <span className="w-2 h-2 rounded-full border-2 border-red-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
-              } else if (tab.value === '경계') {
-                return <span className="w-2 h-2 rounded-full border-2 border-yellow-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
-              } else if (tab.value === '주의') {
-                return <span className="w-2 h-2 rounded-full border-2 border-blue-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
-              } else if (tab.value === 'GENERAL') {
-                return <span className="w-2 h-2 rounded-full border-2 border-gray-400 inline-block mr-1.5" style={{ borderWidth: '3px' }} />;
-              }
-              return null;
-            };
-            return (
-              <React.Fragment key={tab.value}>
-                <button
-                  onClick={() => setPriorityFilter(tab.value)}
-                  className={`pb-2 text-xs font-semibold tracking-tight transition-colors flex items-center ${
-                    isActive
-                      ? 'text-white border-b-2 border-blue-400'
-                      : 'text-gray-400 border-b-2 border-transparent hover:text-white'
-                  }`}
-                >
-                  {getPriorityDot()}
-                  {tab.label}
-                  {tab.count !== null && (
-                    <span className="ml-1 text-gray-400">
-                      ({formatCount(tab.count)})
-                    </span>
-                  )}
-                </button>
-                {(tab.value === 'ALL' || tab.value === '주의') && (
-                  <span className="w-1 h-1 rounded-full bg-gray-500 self-center" style={{ marginBottom: '10px' }} />
-                )}
-              </React.Fragment>
-            );
-          })}
-        </div>
-      </div>
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto space-y-2">
-        {filteredGroups.length === 0 ? (
-          <div className="text-gray-500 text-xs px-3 py-6 border-b border-[#2f3136]">
-            표시할 이벤트가 없습니다.
-          </div>
-        ) : (
-        filteredGroups.map((group) => {
-          const { main, evidence } = group;
-          const isSelected = selectedEventId === main.id;
-          const statusBadge = getStatusBadge(main.status);
-          const priorityColor = getPriorityColor(main.priority);
-
-          return (
-            <div key={main.id} className="space-y-1">
-              {/* 메인 이벤트 */}
-              <div
-                ref={(el) => {
-                  eventItemRefs.current[main.id] = el;
-                }}
-                onClick={() => {
-                  if (main.eventId) {
-                    router.push(`/event/${main.eventId}`);
-                    return;
-                  }
-                  onEventSelect?.(main.id);
-                }}
-                onMouseEnter={() => onEventHover?.(main.id)}
-                onMouseLeave={() => onEventHover?.(null)}
-                className={`w-full text-left border-b pt-3 pb-3 pr-3 transition-all duration-200 ${
-                  isSelected
-                    ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
-                    : 'bg-transparent border-[#2f3136] shadow-[0_4px_14px_-8px_rgba(0,0,0,0.8)] hover:bg-[#24272d] hover:border-[#4f7cff] hover:shadow-[0_6px_18px_-6px_rgba(79,124,255,0.35)]'
-                }`}
-                style={{ paddingLeft: '14px' }}
-              >
-                {/* 1. 시간 / 신고기관 / 우선순위 뷸렛 */}
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-gray-300 text-[0.7rem] font-medium">
-                      {formatEventDateTime(main.eventId ?? '', main.timestamp)}
-                    </span>
-                    {main.eventId && (() => {
-                      const baseEvent = getEventById(main.eventId);
-                      const source = baseEvent?.source || '';
-                      const isAI = source.includes('AI') || source === 'AI';
-                      if (!source) return null;
-                      return (
-                        <span className="text-gray-300 text-[0.7rem] font-medium">
-                          {isAI ? 'AI' : source}
-                        </span>
-                      );
-                    })()}
-                  </div>
-                  {main.priority === '긴급' && (
-                    <span className="w-2 h-2 rounded-full border-2 border-red-400 inline-block" style={{ borderWidth: '3px' }} />
-                  )}
-                  {main.priority === '경계' && (
-                    <span className="w-2 h-2 rounded-full border-2 border-yellow-400 inline-block" style={{ borderWidth: '3px' }} />
-                  )}
-                  {main.priority === '주의' && generalEventIds.has(main.id) && (
-                    <span className="w-2 h-2 rounded-full border-2 border-gray-400 inline-block" style={{ borderWidth: '3px' }} />
-                  )}
-                  {main.priority === '주의' && !generalEventIds.has(main.id) && (
-                    <span className="w-2 h-2 rounded-full border-2 border-blue-400 inline-block" style={{ borderWidth: '3px' }} />
-                  )}
-                </div>
-
-                {/* 2. 유형 / 카테고리 */}
-                <div className="flex items-center gap-2 mb-2">
-                  {main.eventId && (() => {
-                    const baseEvent = getEventById(main.eventId);
-                    if (!baseEvent) return null;
-                    return (
-                      <>
-                        <span className={`px-2 py-0.5 rounded text-xs ${
-                          baseEvent.domain === 'A'
-                            ? baseEvent.type.includes('폭행') || baseEvent.type.includes('상해')
-                              ? 'bg-red-500/20 text-red-400'
-                              : baseEvent.type.includes('절도') || baseEvent.type.includes('강도')
-                                ? 'bg-yellow-500/20 text-yellow-400'
-                                : baseEvent.type.includes('차량도주') || baseEvent.type.includes('추적')
-                                  ? 'bg-orange-500/20 text-orange-400'
-                                  : 'bg-blue-500/20 text-blue-400'
-                            : baseEvent.domain === 'B'
-                              ? 'bg-red-500/20 text-red-400'
-                              : baseEvent.domain === 'C'
-                                ? 'bg-purple-500/20 text-purple-400'
-                                : baseEvent.domain === 'D'
-                                  ? 'bg-green-500/20 text-green-400'
-                                  : baseEvent.domain === 'E'
-                                    ? 'bg-orange-500/20 text-orange-400'
-                                    : 'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {baseEvent.type}
-                        </span>
-                        <span className="text-blue-300 text-[0.75rem] font-medium">{getEventCategory(baseEvent)}</span>
-                      </>
-                    );
-                  })()}
-                </div>
-
-                {/* 3. 제목 (AI가 축약한 핵심 문장) */}
-                <div className="text-white text-sm font-semibold mb-2">{main.title}</div>
-
-                {/* 4. 장소 (정확한 주소) */}
-                <div className="text-gray-200 text-xs mb-2">{main.location.name}</div>
-
-                {/* 5. AI 핵심 키워드 */}
-                {main.eventId && (() => {
-                  const baseEvent = getEventById(main.eventId);
-                  if (!baseEvent) return null;
-                  
-                  const keywords = getAIInsightKeywords(baseEvent);
-                  if (keywords.length === 0) return null;
-
-                  return (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {keywords.map((keyword, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-0.5 text-[0.65rem] text-white tracking-tight rounded-full"
-                          style={{ backgroundColor: '#36383B' }}
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                {/* 이벤트 처리 현황 */}
-                <div className="flex items-center gap-2 mb-2 text-[0.7rem] text-gray-300">
-                  <span>이벤트 상태</span>
-                  <span className="text-gray-500">|</span>
-                  <span className="text-white">{main.processingStage}</span>
-                </div>
-
-              </div>
-
-              {/* 증거 이벤트 (들여쓰기) */}
-              {evidence && evidence.length > 0 && (
-                <div className="ml-4 space-y-1">
-                  {evidence.map((evt, evtIndex) => (
+    <div className="w-full bg-[#161719] flex flex-col h-full overflow-hidden">
+      {/* 4컬럼 레이아웃 */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* 1컬럼: 긴급 */}
+        <div className="flex-1 overflow-y-auto border-r border-[#31353a]">
+          <div ref={scrollContainerRef} className="space-y-2 px-2 py-2">
+            {groupedEvents
+              .filter(({ main }) => main.priority === '긴급')
+              .map((group) => {
+                const { main, evidence } = group;
+                const isSelected = selectedEventId === main.id;
+                return (
+                  <div key={main.id} className="space-y-1">
                     <div
-                      key={`${main.id}-evidence-${evt.id}-${evtIndex}`}
-                      onClick={() => onEventSelect?.(evt.id)}
-                      onMouseEnter={() => onEventHover?.(evt.id)}
+                      ref={(el) => {
+                        eventItemRefs.current[main.id] = el;
+                      }}
+                      onClick={() => {
+                        if (main.eventId) {
+                          router.push(`/event/${main.eventId}`);
+                          return;
+                        }
+                        onEventSelect?.(main.id);
+                      }}
+                      onMouseEnter={() => onEventHover?.(main.id)}
                       onMouseLeave={() => onEventHover?.(null)}
-                      className="p-2 border border-[#31353a] bg-[#36383B] cursor-pointer hover:bg-[#161719] transition-colors"
-                      style={{ borderWidth: '1px' }}
+                      className={`w-full text-left border-b pt-3 pb-3 pr-3 transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
+                          : 'bg-transparent border-[#2f3136] shadow-[0_4px_14px_-8px_rgba(0,0,0,0.8)] hover:bg-[#24272d] hover:border-[#4f7cff] hover:shadow-[0_6px_18px_-6px_rgba(79,124,255,0.35)]'
+                      }`}
+                      style={{ paddingLeft: '14px' }}
                     >
-                      <div className="flex items-center gap-2">
-                        <div className="w-1 h-1 bg-gray-400 rounded-full" />
-                        <span className="text-gray-200 text-[0.7rem]">{evt.type}</span>
-                        <span className="text-gray-300 text-[0.7rem]">(Evidence)</span>
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-300 text-[0.7rem] font-medium">
+                            {formatEventDateTime(main.eventId ?? '', main.timestamp)}
+                          </span>
+                          {main.eventId && (() => {
+                            const baseEvent = getEventById(main.eventId);
+                            const source = baseEvent?.source || '';
+                            const isAI = source.includes('AI') || source === 'AI';
+                            if (!source) return null;
+                            return (
+                              <span className="text-gray-300 text-[0.7rem] font-medium">
+                                {isAI ? 'AI' : source}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        {main.priority === '긴급' && (
+                          <span className="w-2 h-2 rounded-full border-2 border-red-400 inline-block" style={{ borderWidth: '3px' }} />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        {main.eventId && (() => {
+                          const baseEvent = getEventById(main.eventId);
+                          if (!baseEvent) return null;
+                          return (
+                            <>
+                              <span className={`px-2 py-0.5 rounded text-xs ${
+                                baseEvent.domain === 'A'
+                                  ? baseEvent.type.includes('폭행') || baseEvent.type.includes('상해')
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : baseEvent.type.includes('절도') || baseEvent.type.includes('강도')
+                                      ? 'bg-yellow-500/20 text-yellow-400'
+                                      : baseEvent.type.includes('차량도주') || baseEvent.type.includes('추적')
+                                        ? 'bg-orange-500/20 text-orange-400'
+                                        : 'bg-blue-500/20 text-blue-400'
+                                  : baseEvent.domain === 'B'
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : baseEvent.domain === 'C'
+                                      ? 'bg-purple-500/20 text-purple-400'
+                                      : baseEvent.domain === 'D'
+                                        ? 'bg-green-500/20 text-green-400'
+                                        : baseEvent.domain === 'E'
+                                          ? 'bg-orange-500/20 text-orange-400'
+                                          : 'bg-gray-500/20 text-gray-400'
+                              }`}>
+                                {baseEvent.type}
+                              </span>
+                              <span className="text-blue-300 text-[0.75rem] font-medium">{getEventCategory(baseEvent)}</span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <div className="text-white text-sm font-semibold mb-2">{main.title}</div>
+                      <div className="text-gray-200 text-xs mb-2">{main.location.name}</div>
+                      {main.eventId && (() => {
+                        const baseEvent = getEventById(main.eventId);
+                        if (!baseEvent) return null;
+                        const keywords = getAIInsightKeywords(baseEvent);
+                        if (keywords.length === 0) return null;
+                        return (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {keywords.map((keyword, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-0.5 text-[0.65rem] text-white tracking-tight rounded-full"
+                                style={{ backgroundColor: '#36383B' }}
+                              >
+                                {keyword}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                      <div className="flex items-center gap-2 mb-2 text-[0.7rem] text-gray-300">
+                        <span>이벤트 상태</span>
+                        <span className="text-gray-500">|</span>
+                        <span className="text-white">{main.processingStage}</span>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
+                    {evidence && evidence.length > 0 && (
+                      <div className="ml-4 space-y-1">
+                        {evidence.map((evt, evtIndex) => (
+                          <div
+                            key={`${main.id}-evidence-${evt.id}-${evtIndex}`}
+                            onClick={() => onEventSelect?.(evt.id)}
+                            onMouseEnter={() => onEventHover?.(evt.id)}
+                            onMouseLeave={() => onEventHover?.(null)}
+                            className="p-2 border border-[#31353a] bg-[#36383B] cursor-pointer hover:bg-[#161719] transition-colors"
+                            style={{ borderWidth: '1px' }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                              <span className="text-gray-200 text-[0.7rem]">{evt.type}</span>
+                              <span className="text-gray-300 text-[0.7rem]">(Evidence)</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        
+        {/* 2컬럼: 경계 */}
+        <div className="flex-1 overflow-y-auto border-r border-[#31353a]">
+          <div className="space-y-2 px-2 py-2">
+            {groupedEvents
+              .filter(({ main }) => main.priority === '경계')
+              .map((group) => {
+                const { main, evidence } = group;
+                const isSelected = selectedEventId === main.id;
+                return (
+                  <div key={main.id} className="space-y-1">
+                    <div
+                      ref={(el) => {
+                        eventItemRefs.current[main.id] = el;
+                      }}
+                      onClick={() => {
+                        if (main.eventId) {
+                          router.push(`/event/${main.eventId}`);
+                          return;
+                        }
+                        onEventSelect?.(main.id);
+                      }}
+                      onMouseEnter={() => onEventHover?.(main.id)}
+                      onMouseLeave={() => onEventHover?.(null)}
+                      className={`w-full text-left border-b pt-3 pb-3 pr-3 transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
+                          : 'bg-transparent border-[#2f3136] shadow-[0_4px_14px_-8px_rgba(0,0,0,0.8)] hover:bg-[#24272d] hover:border-[#4f7cff] hover:shadow-[0_6px_18px_-6px_rgba(79,124,255,0.35)]'
+                      }`}
+                      style={{ paddingLeft: '14px' }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-300 text-[0.7rem] font-medium">
+                            {formatEventDateTime(main.eventId ?? '', main.timestamp)}
+                          </span>
+                          {main.eventId && (() => {
+                            const baseEvent = getEventById(main.eventId);
+                            const source = baseEvent?.source || '';
+                            const isAI = source.includes('AI') || source === 'AI';
+                            if (!source) return null;
+                            return (
+                              <span className="text-gray-300 text-[0.7rem] font-medium">
+                                {isAI ? 'AI' : source}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        {main.priority === '경계' && (
+                          <span className="w-2 h-2 rounded-full border-2 border-yellow-400 inline-block" style={{ borderWidth: '3px' }} />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        {main.eventId && (() => {
+                          const baseEvent = getEventById(main.eventId);
+                          if (!baseEvent) return null;
+                          return (
+                            <>
+                              <span className={`px-2 py-0.5 rounded text-xs ${
+                                baseEvent.domain === 'A'
+                                  ? baseEvent.type.includes('폭행') || baseEvent.type.includes('상해')
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : baseEvent.type.includes('절도') || baseEvent.type.includes('강도')
+                                      ? 'bg-yellow-500/20 text-yellow-400'
+                                      : baseEvent.type.includes('차량도주') || baseEvent.type.includes('추적')
+                                        ? 'bg-orange-500/20 text-orange-400'
+                                        : 'bg-blue-500/20 text-blue-400'
+                                  : baseEvent.domain === 'B'
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : baseEvent.domain === 'C'
+                                      ? 'bg-purple-500/20 text-purple-400'
+                                      : baseEvent.domain === 'D'
+                                        ? 'bg-green-500/20 text-green-400'
+                                        : baseEvent.domain === 'E'
+                                          ? 'bg-orange-500/20 text-orange-400'
+                                          : 'bg-gray-500/20 text-gray-400'
+                              }`}>
+                                {baseEvent.type}
+                              </span>
+                              <span className="text-blue-300 text-[0.75rem] font-medium">{getEventCategory(baseEvent)}</span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <div className="text-white text-sm font-semibold mb-2">{main.title}</div>
+                      <div className="text-gray-200 text-xs mb-2">{main.location.name}</div>
+                      {main.eventId && (() => {
+                        const baseEvent = getEventById(main.eventId);
+                        if (!baseEvent) return null;
+                        const keywords = getAIInsightKeywords(baseEvent);
+                        if (keywords.length === 0) return null;
+                        return (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {keywords.map((keyword, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-0.5 text-[0.65rem] text-white tracking-tight rounded-full"
+                                style={{ backgroundColor: '#36383B' }}
+                              >
+                                {keyword}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                      <div className="flex items-center gap-2 mb-2 text-[0.7rem] text-gray-300">
+                        <span>이벤트 상태</span>
+                        <span className="text-gray-500">|</span>
+                        <span className="text-white">{main.processingStage}</span>
+                      </div>
+                    </div>
+                    {evidence && evidence.length > 0 && (
+                      <div className="ml-4 space-y-1">
+                        {evidence.map((evt, evtIndex) => (
+                          <div
+                            key={`${main.id}-evidence-${evt.id}-${evtIndex}`}
+                            onClick={() => onEventSelect?.(evt.id)}
+                            onMouseEnter={() => onEventHover?.(evt.id)}
+                            onMouseLeave={() => onEventHover?.(null)}
+                            className="p-2 border border-[#31353a] bg-[#36383B] cursor-pointer hover:bg-[#161719] transition-colors"
+                            style={{ borderWidth: '1px' }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                              <span className="text-gray-200 text-[0.7rem]">{evt.type}</span>
+                              <span className="text-gray-300 text-[0.7rem]">(Evidence)</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        
+        {/* 3컬럼: 주의 */}
+        <div className="flex-1 overflow-y-auto border-r border-[#31353a]">
+          <div className="space-y-2 px-2 py-2">
+            {groupedEvents
+              .filter(({ main }) => main.priority === '주의' && !generalEventIds.has(main.id))
+              .map((group) => {
+                const { main, evidence } = group;
+                const isSelected = selectedEventId === main.id;
+                return (
+                  <div key={main.id} className="space-y-1">
+                    <div
+                      ref={(el) => {
+                        eventItemRefs.current[main.id] = el;
+                      }}
+                      onClick={() => {
+                        if (main.eventId) {
+                          router.push(`/event/${main.eventId}`);
+                          return;
+                        }
+                        onEventSelect?.(main.id);
+                      }}
+                      onMouseEnter={() => onEventHover?.(main.id)}
+                      onMouseLeave={() => onEventHover?.(null)}
+                      className={`w-full text-left border-b pt-3 pb-3 pr-3 transition-all duration-200 ${
+                        isSelected
+                          ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
+                          : 'bg-transparent border-[#2f3136] shadow-[0_4px_14px_-8px_rgba(0,0,0,0.8)] hover:bg-[#24272d] hover:border-[#4f7cff] hover:shadow-[0_6px_18px_-6px_rgba(79,124,255,0.35)]'
+                      }`}
+                      style={{ paddingLeft: '14px' }}
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-gray-300 text-[0.7rem] font-medium">
+                            {formatEventDateTime(main.eventId ?? '', main.timestamp)}
+                          </span>
+                          {main.eventId && (() => {
+                            const baseEvent = getEventById(main.eventId);
+                            const source = baseEvent?.source || '';
+                            const isAI = source.includes('AI') || source === 'AI';
+                            if (!source) return null;
+                            return (
+                              <span className="text-gray-300 text-[0.7rem] font-medium">
+                                {isAI ? 'AI' : source}
+                              </span>
+                            );
+                          })()}
+                        </div>
+                        {main.priority === '주의' && !generalEventIds.has(main.id) && (
+                          <span className="w-2 h-2 rounded-full border-2 border-blue-400 inline-block" style={{ borderWidth: '3px' }} />
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mb-2">
+                        {main.eventId && (() => {
+                          const baseEvent = getEventById(main.eventId);
+                          if (!baseEvent) return null;
+                          return (
+                            <>
+                              <span className={`px-2 py-0.5 rounded text-xs ${
+                                baseEvent.domain === 'A'
+                                  ? baseEvent.type.includes('폭행') || baseEvent.type.includes('상해')
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : baseEvent.type.includes('절도') || baseEvent.type.includes('강도')
+                                      ? 'bg-yellow-500/20 text-yellow-400'
+                                      : baseEvent.type.includes('차량도주') || baseEvent.type.includes('추적')
+                                        ? 'bg-orange-500/20 text-orange-400'
+                                        : 'bg-blue-500/20 text-blue-400'
+                                  : baseEvent.domain === 'B'
+                                    ? 'bg-red-500/20 text-red-400'
+                                    : baseEvent.domain === 'C'
+                                      ? 'bg-purple-500/20 text-purple-400'
+                                      : baseEvent.domain === 'D'
+                                        ? 'bg-green-500/20 text-green-400'
+                                        : baseEvent.domain === 'E'
+                                          ? 'bg-orange-500/20 text-orange-400'
+                                          : 'bg-gray-500/20 text-gray-400'
+                              }`}>
+                                {baseEvent.type}
+                              </span>
+                              <span className="text-blue-300 text-[0.75rem] font-medium">{getEventCategory(baseEvent)}</span>
+                            </>
+                          );
+                        })()}
+                      </div>
+                      <div className="text-white text-sm font-semibold mb-2">{main.title}</div>
+                      <div className="text-gray-200 text-xs mb-2">{main.location.name}</div>
+                      {main.eventId && (() => {
+                        const baseEvent = getEventById(main.eventId);
+                        if (!baseEvent) return null;
+                        const keywords = getAIInsightKeywords(baseEvent);
+                        if (keywords.length === 0) return null;
+                        return (
+                          <div className="flex flex-wrap gap-1.5 mb-2">
+                            {keywords.map((keyword, idx) => (
+                              <span
+                                key={idx}
+                                className="px-3 py-0.5 text-[0.65rem] text-white tracking-tight rounded-full"
+                                style={{ backgroundColor: '#36383B' }}
+                              >
+                                {keyword}
+                              </span>
+                            ))}
+                          </div>
+                        );
+                      })()}
+                      <div className="flex items-center gap-2 mb-2 text-[0.7rem] text-gray-300">
+                        <span>이벤트 상태</span>
+                        <span className="text-gray-500">|</span>
+                        <span className="text-white">{main.processingStage}</span>
+                      </div>
+                    </div>
+                    {evidence && evidence.length > 0 && (
+                      <div className="ml-4 space-y-1">
+                        {evidence.map((evt, evtIndex) => (
+                          <div
+                            key={`${main.id}-evidence-${evt.id}-${evtIndex}`}
+                            onClick={() => onEventSelect?.(evt.id)}
+                            onMouseEnter={() => onEventHover?.(evt.id)}
+                            onMouseLeave={() => onEventHover?.(null)}
+                            className="p-2 border border-[#31353a] bg-[#36383B] cursor-pointer hover:bg-[#161719] transition-colors"
+                            style={{ borderWidth: '1px' }}
+                          >
+                            <div className="flex items-center gap-2">
+                              <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                              <span className="text-gray-200 text-[0.7rem]">{evt.type}</span>
+                              <span className="text-gray-300 text-[0.7rem]">(Evidence)</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        
+        {/* 4컬럼: 일반 (showGeneralEvents가 true일 때만 표시) */}
+        {showGeneralEvents && (
+          <div className="flex-1 overflow-y-auto">
+            <div className="space-y-2 px-2 py-2">
+              {groupedEvents
+                .filter(({ main }) => generalEventIds.has(main.id))
+                .map((group) => {
+                  const { main, evidence } = group;
+                  const isSelected = selectedEventId === main.id;
+                  return (
+                    <div key={main.id} className="space-y-1">
+                      <div
+                        ref={(el) => {
+                          eventItemRefs.current[main.id] = el;
+                        }}
+                        onClick={() => {
+                          if (main.eventId) {
+                            router.push(`/event/${main.eventId}`);
+                            return;
+                          }
+                          onEventSelect?.(main.id);
+                        }}
+                        onMouseEnter={() => onEventHover?.(main.id)}
+                        onMouseLeave={() => onEventHover?.(null)}
+                        className={`w-full text-left border-b pt-3 pb-3 pr-3 transition-all duration-200 ${
+                          isSelected
+                            ? 'bg-red-500/10 border-red-500/50 ring-2 ring-red-500/30'
+                            : 'bg-transparent border-[#2f3136] shadow-[0_4px_14px_-8px_rgba(0,0,0,0.8)] hover:bg-[#24272d] hover:border-[#4f7cff] hover:shadow-[0_6px_18px_-6px_rgba(79,124,255,0.35)]'
+                        }`}
+                        style={{ paddingLeft: '14px' }}
+                      >
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-300 text-[0.7rem] font-medium">
+                              {formatEventDateTime(main.eventId ?? '', main.timestamp)}
+                            </span>
+                            {main.eventId && (() => {
+                              const baseEvent = getEventById(main.eventId);
+                              const source = baseEvent?.source || '';
+                              const isAI = source.includes('AI') || source === 'AI';
+                              if (!source) return null;
+                              return (
+                                <span className="text-gray-300 text-[0.7rem] font-medium">
+                                  {isAI ? 'AI' : source}
+                                </span>
+                              );
+                            })()}
+                          </div>
+                          {main.priority === '주의' && generalEventIds.has(main.id) && (
+                            <span className="w-2 h-2 rounded-full border-2 border-gray-400 inline-block" style={{ borderWidth: '3px' }} />
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2 mb-2">
+                          {main.eventId && (() => {
+                            const baseEvent = getEventById(main.eventId);
+                            if (!baseEvent) return null;
+                            return (
+                              <>
+                                <span className={`px-2 py-0.5 rounded text-xs ${
+                                  baseEvent.domain === 'A'
+                                    ? baseEvent.type.includes('폭행') || baseEvent.type.includes('상해')
+                                      ? 'bg-red-500/20 text-red-400'
+                                      : baseEvent.type.includes('절도') || baseEvent.type.includes('강도')
+                                        ? 'bg-yellow-500/20 text-yellow-400'
+                                        : baseEvent.type.includes('차량도주') || baseEvent.type.includes('추적')
+                                          ? 'bg-orange-500/20 text-orange-400'
+                                          : 'bg-blue-500/20 text-blue-400'
+                                    : baseEvent.domain === 'B'
+                                      ? 'bg-red-500/20 text-red-400'
+                                      : baseEvent.domain === 'C'
+                                        ? 'bg-purple-500/20 text-purple-400'
+                                        : baseEvent.domain === 'D'
+                                          ? 'bg-green-500/20 text-green-400'
+                                          : baseEvent.domain === 'E'
+                                            ? 'bg-orange-500/20 text-orange-400'
+                                            : 'bg-gray-500/20 text-gray-400'
+                                }`}>
+                                  {baseEvent.type}
+                                </span>
+                                <span className="text-blue-300 text-[0.75rem] font-medium">{getEventCategory(baseEvent)}</span>
+                              </>
+                            );
+                          })()}
+                        </div>
+                        <div className="text-white text-sm font-semibold mb-2">{main.title}</div>
+                        <div className="text-gray-200 text-xs mb-2">{main.location.name}</div>
+                        {main.eventId && (() => {
+                          const baseEvent = getEventById(main.eventId);
+                          if (!baseEvent) return null;
+                          const keywords = getAIInsightKeywords(baseEvent);
+                          if (keywords.length === 0) return null;
+                          return (
+                            <div className="flex flex-wrap gap-1.5 mb-2">
+                              {keywords.map((keyword, idx) => (
+                                <span
+                                  key={idx}
+                                  className="px-3 py-0.5 text-[0.65rem] text-white tracking-tight rounded-full"
+                                  style={{ backgroundColor: '#36383B' }}
+                                >
+                                  {keyword}
+                                </span>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                        <div className="flex items-center gap-2 mb-2 text-[0.7rem] text-gray-300">
+                          <span>이벤트 상태</span>
+                          <span className="text-gray-500">|</span>
+                          <span className="text-white">{main.processingStage}</span>
+                        </div>
+                      </div>
+                      {evidence && evidence.length > 0 && (
+                        <div className="ml-4 space-y-1">
+                          {evidence.map((evt, evtIndex) => (
+                            <div
+                              key={`${main.id}-evidence-${evt.id}-${evtIndex}`}
+                              onClick={() => onEventSelect?.(evt.id)}
+                              onMouseEnter={() => onEventHover?.(evt.id)}
+                              onMouseLeave={() => onEventHover?.(null)}
+                              className="p-2 border border-[#31353a] bg-[#36383B] cursor-pointer hover:bg-[#161719] transition-colors"
+                              style={{ borderWidth: '1px' }}
+                            >
+                              <div className="flex items-center gap-2">
+                                <div className="w-1 h-1 bg-gray-400 rounded-full" />
+                                <span className="text-gray-200 text-[0.7rem]">{evt.type}</span>
+                                <span className="text-gray-300 text-[0.7rem]">(Evidence)</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
             </div>
-          );
-        }))}
+          </div>
+        )}
       </div>
     </div>
   );

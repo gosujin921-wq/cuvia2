@@ -4,6 +4,7 @@ import { Event } from '@/types';
 import { Icon } from '@iconify/react';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getEventById, generateAIInsight } from '@/lib/events-data';
 
 interface MapViewProps {
@@ -12,9 +13,11 @@ interface MapViewProps {
   onEventClick?: (eventId: string) => void;
   selectedEventId?: string | null;
   onMapClick?: () => void;
+  onEventHover?: (eventId: string | null) => void;
+  onToggleGeneralEvents?: () => void;
 }
 
-const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, onMapClick }: MapViewProps) => {
+const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, onMapClick, onEventHover, onToggleGeneralEvents }: MapViewProps) => {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState('');
   const [selectedRouteType, setSelectedRouteType] = useState<'ai' | 'nearby' | null>(null);
@@ -543,7 +546,22 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                   <div className="flex items-start gap-2 mb-3">
                     <Icon icon="mdi:robot" className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
                     <div className="flex-1">
-                      <h3 className="text-white font-semibold text-sm mb-2">AI 인사이트</h3>
+                      <div className="flex items-center justify-between mb-2">
+                        <h3 className="text-white font-semibold text-sm">AI 인사이트</h3>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onMapClick?.();
+                          }}
+                          onMouseDown={(e) => {
+                            e.stopPropagation();
+                          }}
+                          className="p-1 hover:bg-blue-500/20 rounded transition-colors"
+                          aria-label="닫기"
+                        >
+                          <Icon icon="mdi:close" className="w-4 h-4 text-gray-400 hover:text-white" />
+                        </button>
+                      </div>
                       <div className="space-y-1.5 text-xs text-white leading-relaxed">
                         {aiInsightText.split('. ').filter(s => s.trim()).map((sentence, idx) => (
                           <div key={idx} className="text-white">
@@ -559,10 +577,25 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
             
             <div 
               data-no-drag
-              className="px-3 py-1.5 border-b border-[#2a2a2a]"
+              className="px-3 py-1.5 border-b border-[#2a2a2a] flex items-center justify-between"
             >
-              <div className="font-semibold whitespace-nowrap">{selectedEvent.location.name}</div>
-              <div className="text-gray-400 text-[10px]">{selectedEvent.type}</div>
+              <div>
+                <div className="font-semibold whitespace-nowrap">{selectedEvent.location.name}</div>
+                <div className="text-gray-400 text-[10px]">{selectedEvent.type}</div>
+              </div>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onMapClick?.();
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                className="p-1 hover:bg-[#36383B] rounded transition-colors ml-2"
+                aria-label="닫기"
+              >
+                <Icon icon="mdi:close" className="w-4 h-4 text-gray-400 hover:text-white" />
+              </button>
             </div>
             <div data-no-drag className="p-2 space-y-2">
               <div className="flex gap-2">
@@ -919,6 +952,32 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         </div>
       </div>
 
+      {/* Agent Hub 버튼 - 우측 하단 플로팅 버튼 */}
+      <div
+        className="absolute group"
+        style={{
+          bottom: '20px',
+          right: '20px',
+          zIndex: 200,
+        }}
+      >
+        <Link
+          href="/agent-hub"
+          className="w-16 h-16 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors shadow-lg"
+          style={{
+            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.25)',
+          }}
+          aria-label="Agent Hub"
+        >
+          <Icon icon="mdi:robot" className="w-6 h-6 text-white" />
+        </Link>
+        {/* 툴팁 */}
+        <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-[#1a1a1a] text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-[#31353a]">
+          Agent Hub 이동
+          <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-[#1a1a1a]"></div>
+        </div>
+      </div>
+
       {/* NDMS 경보 */}
       <div 
         className="absolute bg-[#1a1a1a]/80 border-2 border-red-500 rounded-lg shadow-lg"
@@ -943,6 +1002,7 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
           <div>바람 방향 남서풍 → 도심 지역 영향 확대</div>
         </div>
       </div>
+
     </div>
   );
 };

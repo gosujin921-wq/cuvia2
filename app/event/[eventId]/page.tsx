@@ -58,7 +58,7 @@ const EventDetailPageContent = () => {
   const [savedClips, setSavedClips] = useState<Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>>([]);
   const [showTrackingOverlay, setShowTrackingOverlay] = useState(false);
   const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
-  const [isRightPanelExpanded, setIsRightPanelExpanded] = useState(false); // 그리드 확장 상태
+  const [isRightPanelExpanded, setIsRightPanelExpanded] = useState(true); // 그리드 확장 상태 (디폴트: 2컬럼)
   const [monitoringCCTVs, setMonitoringCCTVs] = useState<string[]>(['CCTV-7 (현장)', 'CCTV-12 (북쪽 50m)', 'CCTV-15 (골목길)']); // 모니터링 중인 CCTV 리스트 (초기값: AI 추천 CCTV)
   const trackingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addClipsToBroadcastRef = useRef<((clips: Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>) => void) | null>(null);
@@ -419,7 +419,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         {/* Right Panel - CCTV & 인물 분석 (폴딩 패널) */}
         <aside
           className={`${
-            isRightPanelCollapsed ? 'w-20' : isRightPanelExpanded ? 'w-[37rem]' : 'w-[21rem]'
+            isRightPanelCollapsed ? 'w-20' : isRightPanelExpanded ? 'w-[52rem]' : 'w-[21rem]'
           } bg-[#161719] border-l border-[#31353a] flex flex-col h-full overflow-hidden relative transition-all duration-300`}
           style={{ borderWidth: '1px' }}
         >
@@ -462,127 +462,147 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             </div>
           ) : (
             isRightPanelExpanded ? (
-              /* 2컬럼일 때: 각 컬럼마다 스크롤 */
-              <div className="flex-1 flex gap-8 p-3 pl-10 pr-9 overflow-hidden">
-                {/* 블록 A: CCTV 모니터링 */}
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-y-auto space-y-4">
-                    {monitoringCCTVs.length === 0 ? (
-                      <div className="text-center py-8">
-                        <Icon icon="mdi:cctv-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                        <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
-                      </div>
-                    ) : (
-                      monitoringCCTVs.map((cctvKey) => {
-                        const cctv = cctvInfo[cctvKey];
-                        if (!cctv) return null;
-                        const isTracking = cctv.status === '추적중';
-                        return (
-                          <div key={cctvKey}>
-                            <div className="flex items-center justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className="text-white font-semibold text-sm">{cctv.id}</span>
-                                <span className={`px-2 py-0.5 text-xs ${
-                                  cctv.status === '활성' 
-                                    ? 'bg-green-500/20 text-green-400'
-                                    : cctv.status === '추적중'
-                                      ? 'bg-yellow-500/20 text-yellow-400'
-                                      : 'bg-gray-500/20 text-gray-400'
-                                }`}>
-                                  {cctv.status}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => handleRemoveFromMonitoring(cctvKey)}
-                                className="text-gray-400 hover:text-red-400 transition-colors"
-                                aria-label="모니터링에서 제거"
-                              >
-                                <Icon icon="mdi:close" className="w-4 h-4" />
-                              </button>
-                            </div>
-                            <div className="text-gray-400 text-xs mb-2">{cctv.location}</div>
-                            <div 
-                              className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity relative overflow-hidden`} 
-                              style={{ borderWidth: isTracking ? '2px' : '1px' }}
-                              onClick={() => {
-                                setSelectedCCTV(cctvKey);
-                                setShowCCTVPopup(true);
-                              }}
-                            >
-                              <img
-                                src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
-                                alt={`${cctv.id} 썸네일`}
-                                className="absolute inset-0 w-full h-full object-cover"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = '/cctv_img/001.jpg';
-                                }}
-                              />
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                  </div>
-                </div>
-
-                {/* 블록 B: 인물 분석 + 행동 요약 + 위치 및 동선 + 출동 경로 추천 */}
-                <div className="flex-1 flex flex-col overflow-hidden">
-                  <div className="flex-1 overflow-y-auto space-y-4">
-                    {/* 인물 분석 */}
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-sm text-white font-semibold">
-                          <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
-                          인물 분석
+              /* 2컬럼일 때: 1컬럼은 2row, 2컬럼은 위치 및 동선 */
+              <div className="flex-1 flex p-3 pl-10 pr-9 overflow-hidden">
+                {/* 1번째 컬럼: 2row 구조 (더 넓게) */}
+                <div className="flex-[2.5] flex flex-col overflow-hidden gap-4 pr-3">
+                  {/* 1row: CCTV 모니터링 (2x2 그리드) - 고정 높이 (150px 증가) */}
+                  <div className="flex flex-col overflow-hidden border-b border-[#31353a]" style={{ height: 'calc(50% + 75px)', borderWidth: '0 0 1px 0' }}>
+                    <div className="flex-1 overflow-y-auto pt-[50px]">
+                      {monitoringCCTVs.length === 0 ? (
+                        <div className="text-center py-8">
+                          <Icon icon="mdi:cctv-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                          <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
                         </div>
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
-                      </div>
-                      <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
-                        <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">성별/연령</p>
-                            <p>남성, 30대 초반 추정</p>
+                      ) : (
+                        <div className="grid grid-cols-2 gap-x-4 gap-y-6">
+                          {monitoringCCTVs.map((cctvKey) => {
+                            const cctv = cctvInfo[cctvKey];
+                            if (!cctv) return null;
+                            const isTracking = cctv.status === '추적중';
+                            return (
+                              <div key={cctvKey}>
+                                <div 
+                                  className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity relative overflow-hidden mb-2`} 
+                                  style={{ borderWidth: isTracking ? '2px' : '1px' }}
+                                  onClick={() => {
+                                    setSelectedCCTV(cctvKey);
+                                    setShowCCTVPopup(true);
+                                  }}
+                                >
+                                  <img
+                                    src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
+                                    alt={`${cctv.id} 썸네일`}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    onError={(e) => {
+                                      const target = e.target as HTMLImageElement;
+                                      target.src = '/cctv_img/001.jpg';
+                                    }}
+                                  />
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleRemoveFromMonitoring(cctvKey);
+                                    }}
+                                    className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/80 text-gray-400 hover:text-red-400 transition-colors rounded"
+                                    aria-label="모니터링에서 제거"
+                                  >
+                                    <Icon icon="mdi:close" className="w-4 h-4" />
+                                  </button>
+                                </div>
+                                <div className="flex items-center gap-2 mb-1">
+                                  <span className="text-white font-semibold text-sm">{cctv.id}</span>
+                                  <span className={`px-2 py-0.5 text-xs ${
+                                    cctv.status === '활성' 
+                                      ? 'bg-green-500/20 text-green-400'
+                                      : cctv.status === '추적중'
+                                        ? 'bg-yellow-500/20 text-yellow-400'
+                                        : 'bg-gray-500/20 text-gray-400'
+                                  }`}>
+                                    {cctv.status}
+                                  </span>
+                                </div>
+                                <div className="text-gray-400 text-xs">{cctv.location}</div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* 2row: 인물 분석 + 행동 요약 (가로 배치) - 고정 높이 */}
+                  <div className="flex gap-4 overflow-hidden" style={{ height: 'calc(50% - 75px)' }}>
+                    {/* 인물 분석 */}
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                      <div className="flex-1 overflow-y-auto">
+                        <div>
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2 text-sm text-white font-semibold">
+                              <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
+                              인물 분석
+                            </div>
+                            <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
                           </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">상의</p>
-                            <p>검은색 후드티</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">하의</p>
-                            <p>청바지</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">신발</p>
-                            <p>흰색 운동화</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">체격</p>
-                            <p>170cm 추정, 중간 체격</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">ReID 신뢰도</p>
-                            <p className="text-green-400 font-semibold">89%</p>
+                          <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
+                            <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
+                              <div>
+                                <p className="text-gray-500 text-xs mb-0.5">성별/연령</p>
+                                <p>남성, 30대 초반 추정</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs mb-0.5">상의</p>
+                                <p>검은색 후드티</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs mb-0.5">하의</p>
+                                <p>청바지</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs mb-0.5">신발</p>
+                                <p>흰색 운동화</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs mb-0.5">체격</p>
+                                <p>170cm 추정, 중간 체격</p>
+                              </div>
+                              <div>
+                                <p className="text-gray-500 text-xs mb-0.5">ReID 신뢰도</p>
+                                <p className="text-green-400 font-semibold">89%</p>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
 
                     {/* 행동 요약 */}
-                    <div>
-                      <div className="flex items-center gap-2 text-sm text-red-300 font-semibold mb-3">
-                        <Icon icon="mdi:alert" className="w-4 h-4" />
-                        행동 요약
-                      </div>
-                      <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
-                        <ul className="text-sm text-red-100 space-y-1">
-                          {behaviorHighlights.map((item) => (
-                            <li key={item}>• {item}</li>
-                          ))}
-                        </ul>
+                    <div className="flex-1 flex flex-col overflow-hidden">
+                      <div className="flex-1 overflow-y-auto">
+                        <div>
+                          <div className="flex items-center gap-2 text-sm text-red-300 font-semibold mb-3">
+                            <Icon icon="mdi:alert" className="w-4 h-4" />
+                            행동 요약
+                          </div>
+                          <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
+                            <ul className="text-sm text-red-100 space-y-1">
+                              {behaviorHighlights.map((item) => (
+                                <li key={item}>• {item}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
                     </div>
+                  </div>
+                </div>
 
+                {/* Divider */}
+                <div className="w-px bg-[#31353a] mx-3" style={{ borderWidth: '0' }}></div>
+
+                {/* 2번째 컬럼: 위치 및 동선 + 출동 경로 추천 (좁게) */}
+                <div className="flex-1 flex flex-col overflow-hidden pl-3">
+                  <div className="flex-1 overflow-y-auto space-y-4 pt-[20px]">
                     {/* 위치 및 동선 */}
                     <div>
                       <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">

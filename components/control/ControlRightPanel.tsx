@@ -642,7 +642,7 @@ const ControlRightPanel = () => {
                 다음
               </button>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3" style={{ transform: 'scale(1)', transformOrigin: 'top left' }}>
               {cctvStatus.monitoringSpots.slice(currentPage * 2, (currentPage + 1) * 2).map((spot) => {
                 const currentThumbnailIndex = spotThumbnailIndices[spot.spotId] || 0;
                 const currentThumbnails = spot.thumbnails || [];
