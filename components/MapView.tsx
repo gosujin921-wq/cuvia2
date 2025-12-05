@@ -66,8 +66,12 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
     switch (type) {
       case '119-화재':
         return 'mdi:fire';
+      case '119-구조':
+        return 'mdi:ambulance';
       case '112-미아':
         return 'mdi:account-child';
+      case '112-치안':
+        return 'mdi:shield-alert';
       case '약자':
         return 'mdi:account-alert';
       case 'AI-배회':
@@ -280,27 +284,17 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
     return { fireStations: nearbyFire, policeStations: nearbyPolice };
   }, [selectedEventId, events, fireStations, policeStations, positionsById]);
 
-  // 드래그 핸들러 (AI 인사이트 헤더 영역에서만 작동)
+  // 드래그 핸들러 (팝업 헤더에서 작동)
   const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // 버튼이나 클릭 가능한 요소를 클릭한 경우 드래그 시작하지 않음
+    // 버튼을 클릭한 경우 드래그 시작하지 않음
     const target = e.target as HTMLElement;
-    if (target.tagName === 'BUTTON' || target.closest('button') || target.closest('[data-no-drag]')) {
+    if (target.tagName === 'BUTTON' || target.closest('button')) {
       return;
     }
     
-    // AI 인사이트 헤더 영역에서만 드래그 시작
-    if (!target.closest('[data-drag-handle]')) {
-      return;
-    }
-    
-    if (!tooltipRef.current || !containerRef.current) return;
+    if (!tooltipRef.current) return;
     
     const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    const containerRect = containerRef.current.getBoundingClientRect();
-    
-    // 현재 툴팁의 컨테이너 기준 위치 계산
-    const currentX = tooltipRect.left - containerRect.left;
-    const currentY = tooltipRect.top - containerRect.top;
     
     // 마우스 클릭 위치와 툴팁 왼쪽 상단 모서리의 차이 계산
     setDragOffset({
@@ -316,17 +310,17 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
     if (!isDragging) return;
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!containerRef.current || !tooltipRef.current) return;
+      if (!tooltipRef.current) return;
       
-      const containerRect = containerRef.current.getBoundingClientRect();
       const tooltipRect = tooltipRef.current.getBoundingClientRect();
       
-      let newX = e.clientX - containerRect.left - dragOffset.x;
-      let newY = e.clientY - containerRect.top - dragOffset.y;
+      // 전체 화면 기준 위치 계산 (fixed positioning)
+      let newX = e.clientX - dragOffset.x;
+      let newY = e.clientY - dragOffset.y;
       
-      // MapView 영역 내에서만 이동하도록 제한
-      newX = Math.max(0, Math.min(newX, containerRect.width - tooltipRect.width));
-      newY = Math.max(0, Math.min(newY, containerRect.height - tooltipRect.height));
+      // 화면 경계 내에서만 이동하도록 제한
+      newX = Math.max(0, Math.min(newX, window.innerWidth - tooltipRect.width));
+      newY = Math.max(0, Math.min(newY, window.innerHeight - tooltipRect.height));
       
       // 드래그 중에는 실시간 위치만 업데이트
       setCurrentDragPosition({ x: newX, y: newY });
@@ -480,12 +474,12 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         const position = getEventPosition(selectedEvent);
         const savedPosition = tooltipPositions[selectedEventId];
         
-        // 핀 위치 계산 (퍼센트를 픽셀으로 변환)
+        // 핀 위치 계산 (전체 화면 기준 fixed positioning)
         const getTooltipInitialPosition = () => {
           if (!containerRef.current) return { x: 0, y: 0 };
           const containerRect = containerRef.current.getBoundingClientRect();
-          let pinX = (position.left / 100) * containerRect.width;
-          let pinY = (position.top / 100) * containerRect.height;
+          let pinX = containerRect.left + (position.left / 100) * containerRect.width;
+          let pinY = containerRect.top + (position.top / 100) * containerRect.height;
           
           // event-3(오토바이 도주)의 경우 transform 오프셋 적용
           if (selectedEvent.id === 'event-3') {
@@ -512,10 +506,10 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
           <div
             ref={tooltipRef}
             data-tooltip
-            className="absolute rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs shadow-xl"
+            className="fixed rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs shadow-xl"
             style={{ 
               minWidth: '320px', 
-              zIndex: 200,
+              zIndex: 1000,
               left: `${displayPosition.x}px`,
               top: `${displayPosition.y}px`,
               transform: 'none'
@@ -523,61 +517,11 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
             onClick={(e) => {
               e.stopPropagation();
             }}
-            onMouseDown={(e) => {
-              // 드래그 핸들 영역이 아닌 경우에만 이벤트 전파 차단
-              const target = e.target as HTMLElement;
-              if (!target.closest('[data-drag-handle]')) {
-                e.stopPropagation();
-              }
-            }}
           >
-            {/* AI 인사이트 */}
-            {(() => {
-              const baseEvent = selectedEvent.eventId ? getEventById(selectedEvent.eventId) : null;
-              const aiInsightText = baseEvent ? generateAIInsight(baseEvent) : null;
-              
-              return aiInsightText ? (
-                <div 
-                  data-drag-handle
-                  className="mb-3 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4 cursor-move select-none" 
-                  style={{ borderWidth: '1px' }}
-                  onMouseDown={handleMouseDown}
-                >
-                  <div className="flex items-start gap-2 mb-3">
-                    <Icon icon="mdi:robot" className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <h3 className="text-white font-semibold text-sm">AI 인사이트</h3>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onMapClick?.();
-                          }}
-                          onMouseDown={(e) => {
-                            e.stopPropagation();
-                          }}
-                          className="p-1 hover:bg-blue-500/20 rounded transition-colors"
-                          aria-label="닫기"
-                        >
-                          <Icon icon="mdi:close" className="w-4 h-4 text-gray-400 hover:text-white" />
-                        </button>
-                      </div>
-                      <div className="space-y-1.5 text-xs text-white leading-relaxed">
-                        {aiInsightText.split('. ').filter(s => s.trim()).map((sentence, idx) => (
-                          <div key={idx} className="text-white">
-                            {sentence.trim()}{sentence.trim().endsWith('.') ? '' : '.'}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ) : null;
-            })()}
-            
+            {/* 헤더: 위치 정보 + 닫기 버튼 (드래그 핸들) */}
             <div 
-              data-no-drag
-              className="px-3 py-1.5 border-b border-[#2a2a2a] flex items-center justify-between"
+              className="px-3 py-1.5 border-b border-[#2a2a2a] flex items-center justify-between cursor-move"
+              onMouseDown={handleMouseDown}
             >
               <div>
                 <div className="font-semibold whitespace-nowrap">{selectedEvent.location.name}</div>
@@ -597,15 +541,34 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                 <Icon icon="mdi:close" className="w-4 h-4 text-gray-400 hover:text-white" />
               </button>
             </div>
-            <div data-no-drag className="p-2 space-y-2">
+
+            {/* AI 인사이트 */}
+            {(() => {
+              const baseEvent = selectedEvent.eventId ? getEventById(selectedEvent.eventId) : null;
+              const aiInsightText = baseEvent ? generateAIInsight(baseEvent) : null;
+              
+              return aiInsightText ? (
+                <div className="m-3 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                  <div className="flex items-start gap-2 mb-2">
+                    <Icon icon="mdi:robot" className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <h3 className="text-white font-semibold text-sm">AI 인사이트</h3>
+                  </div>
+                  <div className="space-y-1.5 text-xs text-white leading-relaxed">
+                    {aiInsightText.split('. ').filter(s => s.trim()).map((sentence, idx) => (
+                      <div key={idx} className="text-white">
+                        {sentence.trim()}{sentence.trim().endsWith('.') ? '' : '.'}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null;
+            })()}
+            <div className="p-2 space-y-2">
               <div className="flex gap-2">
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedRouteType('ai');
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
                   }}
                   className={`flex-1 px-3 py-1.5 text-white text-xs font-medium rounded transition-colors ${
                     selectedRouteType === 'ai' 
@@ -619,9 +582,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                   onClick={(e) => {
                     e.stopPropagation();
                     setSelectedRouteType('nearby');
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
                   }}
                   className={`flex-1 px-3 py-1.5 text-white text-xs font-medium rounded transition-colors ${
                     selectedRouteType === 'nearby' 
@@ -654,9 +614,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                     const message = `[${selectedEvent.location.name}]\n\n${aiInsight}\n\n추천 경로: ${routeType}`;
                     
                     alert(message);
-                  }}
-                  onMouseDown={(e) => {
-                    e.stopPropagation();
                   }}
                   className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors"
                 >
