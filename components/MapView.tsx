@@ -360,6 +360,27 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
     }
   }, [selectedEventId]);
 
+  // 저장된 툴팁 위치가 MapView 영역을 벗어나지 않도록 검증 및 수정
+  useEffect(() => {
+    if (!selectedEventId || !containerRef.current || !tooltipRef.current) return;
+    
+    const containerRect = containerRef.current.getBoundingClientRect();
+    const tooltipRect = tooltipRef.current.getBoundingClientRect();
+    const maxY = containerRect.height - tooltipRect.height;
+    
+    const savedPos = tooltipPositions[selectedEventId];
+    if (savedPos && savedPos.y + tooltipRect.height > containerRect.height) {
+      // MapView 영역을 벗어나는 경우 위치 수정
+      setTooltipPositions(prev => ({
+        ...prev,
+        [selectedEventId]: {
+          ...savedPos,
+          y: Math.max(0, maxY)
+        }
+      }));
+    }
+  }, [selectedEventId, tooltipPositions]);
+
 
   return (
     <div 
@@ -497,9 +518,20 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
           }
           
           // 핀 아래 위치 (핀 크기 + 여백)
+          let tooltipY = pinY + 20; // 핀 아래 20px
+          
+          // 툴팁이 MapView 영역을 벗어나지 않도록 제한
+          // 툴팁 높이를 대략 200px로 가정
+          const estimatedTooltipHeight = 200;
+          const maxTooltipY = containerRect.height - estimatedTooltipHeight;
+          if (tooltipY + estimatedTooltipHeight > containerRect.height) {
+            // MapView 하단 위로 배치
+            tooltipY = Math.max(0, maxTooltipY);
+          }
+          
           return {
             x: pinX - 160, // 툴팁 너비의 절반 (320px / 2)
-            y: pinY + 20 // 핀 아래 20px
+            y: tooltipY
           };
         };
         
@@ -911,47 +943,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         })}
       </div>
 
-      {/* 플로팅 검색창 */}
-      <div 
-        className="absolute"
-        style={{
-          bottom: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          zIndex: 200,
-          width: '500px',
-        }}
-      >
-        <div
-          className="flex items-center gap-3 bg-white border rounded-full shadow-lg"
-          style={{
-            padding: '12px 16px',
-            borderColor: '#d1d5db',
-            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.25)',
-          }}
-        >
-          <div className="w-10 h-10 rounded-full border border-gray-200 bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-400 flex items-center justify-center animate-[pulse_4s_ease_infinite] shadow-md">
-            <Icon icon="mdi:sparkles" className="w-5 h-5 text-white drop-shadow-md" />
-          </div>
-          <input
-            type="text"
-            value={searchInput}
-            onChange={(e) => setSearchInput(e.target.value)}
-            onKeyDown={handleSearchKeyDown}
-            placeholder="통계를 조회하세요... (예: 요즘 화재가 늘었어?)"
-            className="flex-1 bg-transparent text-[#161719] placeholder-gray-500 focus:outline-none"
-          />
-          {searchInput && (
-            <button
-              onClick={() => setSearchInput('')}
-              className="p-2 hover:bg-[#f3f4f6] rounded-full transition-colors"
-            >
-              <Icon icon="mdi:close" className="w-5 h-5 text-gray-400" />
-            </button>
-          )}
-        </div>
-      </div>
-
       {/* Agent Hub 버튼 - 우측 하단 플로팅 버튼 */}
       <div
         className="absolute group"
@@ -975,31 +966,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-[#1a1a1a] text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-[#31353a]">
           Agent Hub 이동
           <div className="absolute left-full top-1/2 -translate-y-1/2 border-4 border-transparent border-l-[#1a1a1a]"></div>
-        </div>
-      </div>
-
-      {/* NDMS 경보 */}
-      <div 
-        className="absolute bg-[#1a1a1a]/80 border-2 border-red-500 rounded-lg shadow-lg"
-        style={{
-          top: '10px',
-          left: '10px',
-          zIndex: 200,
-          minWidth: '320px',
-          maxWidth: '400px',
-        }}
-      >
-        <div className="px-4 py-3 border-b border-red-500/30 flex items-center gap-2">
-          <Icon icon="mdi:alert" className="w-6 h-6 text-red-400" />
-          <span className="text-white text-sm font-semibold">강풍주의보</span>
-          <div className="ml-auto w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-        </div>
-        <div className="px-4 py-3 space-y-2 text-white text-xs">
-          <div>현재 풍속 12.3 m/s, 순간 최대 18.1 m/s</div>
-          <div>간판·공사 구조물 낙하 위험 증가</div>
-          <div>영상 흔들림으로 CCTV 13대 품질 저하 가능</div>
-          <div>쓰러짐·낙하물 관련 신고 증가 예상</div>
-          <div>바람 방향 남서풍 → 도심 지역 영향 확대</div>
         </div>
       </div>
 

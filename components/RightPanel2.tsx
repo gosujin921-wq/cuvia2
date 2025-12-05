@@ -548,7 +548,7 @@ const RightPanel2 = () => {
 
   return (
     <div
-      className={`${isCollapsed ? 'w-20' : 'w-[30rem]'} bg-[#161719] border-l border-[#31353a] flex flex-col h-full overflow-hidden relative transition-all duration-300`}
+      className={`${isCollapsed ? 'w-20' : 'w-[30rem]'} flex-shrink-0 bg-[#161719] border-l border-[#31353a] flex flex-col h-full overflow-hidden relative transition-all duration-300`}
       style={{ borderWidth: '1px' }}
     >
       <button

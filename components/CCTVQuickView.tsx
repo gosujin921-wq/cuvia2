@@ -1,4 +1,4 @@
-'use client';
+ 'use client';
 
 import { useState, useEffect, useRef } from 'react';
 import { Icon } from '@iconify/react';
@@ -12,9 +12,10 @@ interface CCTVQuickViewProps {
     thumbnail?: string;
   }>;
   onClose?: () => void;
+  embedded?: boolean; // true일 경우 absolute가 아닌 일반 레이아웃으로 표시
 }
 
-const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickViewProps) => {
+const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose, embedded = false }: CCTVQuickViewProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -23,23 +24,27 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
     const scrollContainer = scrollContainerRef.current;
     const cardWidth = 192 + 12; // w-48 (192px) + gap-3 (12px)
     const containerWidth = scrollContainer.offsetWidth;
-    const visibleCardsPerRow = Math.floor(containerWidth / cardWidth);
+    const visibleCardsPerRow = Math.max(1, Math.floor(containerWidth / cardWidth));
     
     let currentScrollIndex = 0;
-    const totalCards = cctvList.length * 3; // 3번 반복
-    const maxScrollIndex = totalCards - visibleCardsPerRow;
+    const totalCards = cctvList.length * 3; // 3번 반복하여 무한 스크롤 효과
+    const maxScrollIndex = Math.max(1, totalCards - visibleCardsPerRow);
 
     const interval = setInterval(() => {
-      if (scrollContainer) {
-        currentScrollIndex = (currentScrollIndex + 1) % maxScrollIndex;
-        
-        // 무한 스크롤: 끝에 도달하면 처음으로 부드럽게 이동
-        if (currentScrollIndex === 0 && scrollContainer.scrollLeft > totalCards * cardWidth / 3) {
-          scrollContainer.scrollLeft = 0;
-        }
-        
-        scrollContainer.scrollTo({
-          left: currentScrollIndex * cardWidth,
+      if (!scrollContainerRef.current) return;
+      
+      const container = scrollContainerRef.current;
+      currentScrollIndex = (currentScrollIndex + 1) % maxScrollIndex;
+      
+      const targetScroll = currentScrollIndex * cardWidth;
+      
+      // 무한 스크롤: 원본 리스트 길이를 넘어가면 처음으로 리셋
+      if (targetScroll >= cctvList.length * cardWidth) {
+        container.scrollLeft = 0;
+        currentScrollIndex = 0;
+      } else {
+        container.scrollTo({
+          left: targetScroll,
           behavior: 'smooth',
         });
       }
@@ -50,8 +55,16 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
 
   if (!isVisible) return null;
 
+  const containerClassName = embedded
+    ? "h-full bg-[#161719] border-t border-[#31353a] px-4 py-3"
+    : "absolute bottom-0 left-0 right-0 bg-[#161719] border-t border-[#31353a] px-4 py-3";
+  
+  const containerStyle = embedded
+    ? {}
+    : { zIndex: 300, height: '450px' };
+
   return (
-    <div className="absolute bottom-0 left-0 right-0 bg-[#161719] border-t border-[#31353a] px-4 py-3" style={{ zIndex: 300, height: '450px' }}>
+    <div className={containerClassName} style={containerStyle}>
       <div className="flex items-center mb-2">
         <div className="flex items-center gap-2">
           <Icon icon="mdi:cctv" className="w-5 h-5 text-white" />
@@ -68,7 +81,7 @@ const CCTVQuickView = ({ isVisible = false, cctvList = [], onClose }: CCTVQuickV
             CCTV 정보가 없습니다.
           </div>
         ) : (
-          <div className="inline-grid grid-rows-3 grid-flow-col gap-3" style={{ gridAutoColumns: '12rem' }}>
+          <div className="inline-grid grid-rows-2 grid-flow-col gap-3" style={{ gridAutoColumns: '12rem' }}>
             {[...cctvList, ...cctvList, ...cctvList].map((cctv, index) => (
               <div
                 key={`${cctv.id}-${index}`}
