@@ -1,7 +1,7 @@
 'use client';
 
 import { Icon } from '@iconify/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 
 // 데이터 타입 정의
 interface CctvConnectionStatus {
@@ -102,6 +102,9 @@ const RightPanel2 = () => {
   });
   const [clockTime, setClockTime] = useState<string>('');
   const [lastUpdateTime, setLastUpdateTime] = useState<string>('');
+  const [waterLeakageTime, setWaterLeakageTime] = useState<string>('');
+  const [powerSupplyTime, setPowerSupplyTime] = useState<string>('');
+  const [isMounted, setIsMounted] = useState(false);
   
   // 날씨 데이터 (샘플)
   const weatherData = {
@@ -111,6 +114,7 @@ const RightPanel2 = () => {
   };
   
   useEffect(() => {
+    setIsMounted(true);
     const formatTime = () =>
       new Date().toLocaleTimeString('ko-KR', {
         hour: '2-digit',
@@ -425,14 +429,42 @@ const RightPanel2 = () => {
   ];
 
   // 3) 도시 기반시설 운영 상태 데이터
-  const infrastructureStatus: InfrastructureStatus = {
-    waterLeakage: { status: 'error', lastUpdate: new Date().toISOString() },
-    powerSupply: { status: 'normal', lastUpdate: new Date().toISOString() },
-    streetLightRate: 92,
-    iotSensorRate: 95.5,
-    alert: true,
-    alertMessage: '상수도 누수 감지',
-  };
+  const infrastructureStatus: InfrastructureStatus = useMemo(() => {
+    const now = typeof window !== 'undefined' ? new Date().toISOString() : '';
+    return {
+      waterLeakage: { status: 'error', lastUpdate: now },
+      powerSupply: { status: 'normal', lastUpdate: now },
+      streetLightRate: 92,
+      iotSensorRate: 95.5,
+      alert: true,
+      alertMessage: '상수도 누수 감지',
+    };
+  }, []);
+
+  // 기반시설 업데이트 시간 포맷팅 (클라이언트에서만)
+  useEffect(() => {
+    if (!isMounted || typeof window === 'undefined') return;
+    
+    const formatInfrastructureTime = (isoString: string) => {
+      if (!isoString) return '--:--:--';
+      return new Date(isoString).toLocaleTimeString('ko-KR', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      });
+    };
+
+    const waterLeakageUpdate = infrastructureStatus.waterLeakage.lastUpdate;
+    const powerSupplyUpdate = infrastructureStatus.powerSupply.lastUpdate;
+
+    if (waterLeakageUpdate) {
+      setWaterLeakageTime(formatInfrastructureTime(waterLeakageUpdate));
+    }
+    if (powerSupplyUpdate) {
+      setPowerSupplyTime(formatInfrastructureTime(powerSupplyUpdate));
+    }
+  }, [isMounted, infrastructureStatus.waterLeakage.lastUpdate, infrastructureStatus.powerSupply.lastUpdate]);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -931,8 +963,8 @@ const RightPanel2 = () => {
                   {infrastructureStatus.waterLeakage.status === 'normal' ? '정상' : 
                    infrastructureStatus.waterLeakage.status === 'warning' ? '경고' : '장애'}
                 </span>
-                <span className="text-gray-300 text-xs">
-                  {new Date(infrastructureStatus.waterLeakage.lastUpdate).toLocaleTimeString('ko-KR')}
+                <span className="text-gray-300 text-xs" suppressHydrationWarning>
+                  {isMounted ? (waterLeakageTime || '--:--:--') : '--:--:--'}
                 </span>
               </div>
             </div>
@@ -957,8 +989,8 @@ const RightPanel2 = () => {
                   {infrastructureStatus.powerSupply.status === 'normal' ? '정상' : 
                    infrastructureStatus.powerSupply.status === 'warning' ? '경고' : '장애'}
                 </span>
-                <span className="text-gray-300 text-xs">
-                  {new Date(infrastructureStatus.powerSupply.lastUpdate).toLocaleTimeString('ko-KR')}
+                <span className="text-gray-300 text-xs" suppressHydrationWarning>
+                  {isMounted ? (powerSupplyTime || '--:--:--') : '--:--:--'}
                 </span>
               </div>
             </div>

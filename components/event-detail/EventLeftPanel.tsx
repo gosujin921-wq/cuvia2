@@ -41,7 +41,7 @@ export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
 }) => {
   return (
     <aside className="flex flex-col flex-shrink-0 w-[370px] pl-4 pr-5">
-      <div className="py-4 px-3 flex items-center justify-between">
+      <div className="py-4 px-3 flex items-center justify-between flex-shrink-0">
         <Link href="/" className="w-24 h-5 flex items-center justify-start">
           <img 
             src="/logo.svg" 
@@ -58,7 +58,7 @@ export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
           <span className="text-sm text-gray-400 hover:text-white">dashboard</span>
         </Link>
       </div>
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden min-h-0">
         <div className="w-full bg-[#161719] flex flex-col h-full overflow-y-auto">
           {/* 이벤트 헤더 정보 - 대시보드 이벤트 카드 스타일 */}
           <div className="px-3 pt-3 pb-4 border-b border-[#31353a]" style={{ paddingLeft: '14px' }}>
@@ -104,7 +104,7 @@ export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
           </div>
 
           {/* 스크롤 가능한 컨텐츠 영역 */}
-          <div className="flex-1 overflow-y-auto space-y-2">
+          <div className="space-y-2">
             {/* AI 인사이트 */}
             <div className="px-3 pt-4 pb-6">
               <div className="flex items-center gap-2 text-sm tracking-tight text-[#50A1FF] mb-2">

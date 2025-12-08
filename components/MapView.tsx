@@ -935,30 +935,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         </div>
       </div>
 
-      {/* NDMS 경보 */}
-      <div 
-        className="absolute bg-[#1a1a1a]/80 border-2 border-red-500 rounded-lg shadow-lg"
-        style={{
-          top: '10px',
-          left: '10px',
-          zIndex: 200,
-          minWidth: '320px',
-          maxWidth: '400px',
-        }}
-      >
-        <div className="px-4 py-3 border-b border-red-500/30 flex items-center gap-2">
-          <Icon icon="mdi:alert" className="w-6 h-6 text-red-400" />
-          <span className="text-white text-sm font-semibold">강풍주의보</span>
-          <div className="ml-auto w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-        </div>
-        <div className="px-4 py-3 space-y-2 text-white text-xs">
-          <div>현재 풍속 12.3 m/s, 순간 최대 18.1 m/s</div>
-          <div>간판·공사 구조물 낙하 위험 증가</div>
-          <div>영상 흔들림으로 CCTV 13대 품질 저하 가능</div>
-          <div>쓰러짐·낙하물 관련 신고 증가 예상</div>
-          <div>바람 방향 남서풍 → 도심 지역 영향 확대</div>
-        </div>
-      </div>
 
     </div>
   );

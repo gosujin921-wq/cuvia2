@@ -63,11 +63,27 @@ export default function Home() {
 
 
   return (
-    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
-      <div className="flex flex-1 overflow-hidden">
+    <div 
+      className="flex flex-col bg-[#161719] overflow-hidden relative"
+      style={{
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+      }}
+    >
+      <div 
+        className="flex flex-col flex-1"
+        style={{
+          width: '125%',
+          height: '125%',
+          transform: 'scale(0.8)',
+          transformOrigin: 'top left',
+        }}
+      >
+        <div className="flex flex-1 overflow-hidden">
         <div className="flex flex-1 overflow-hidden relative">
           <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '370px' }}>
-            <div className="py-4 px-3">
+            <div className="py-4 px-3 flex items-center justify-between flex-shrink-0">
               <div className="w-24 h-5 flex items-center justify-start">
                 <img 
                   src="/logo.svg" 
@@ -75,11 +91,12 @@ export default function Home() {
                   className="h-5 w-auto object-contain"
                 />
               </div>
+              <div className="w-24"></div>
             </div>
-            <div className="py-3">
+            <div className="py-3 flex-shrink-0">
               <EventSummary summary={eventSummary} />
             </div>
-            <div className="flex-1 overflow-hidden">
+            <div className="flex-1 overflow-hidden min-h-0">
               <EventList
                 events={events}
                 selectedEventId={selectedEventId || undefined}
@@ -103,6 +120,7 @@ export default function Home() {
             {/* 우측: RightPanel */}
             <RightPanel2 />
           </div>
+        </div>
       </div>
     </div>
   );

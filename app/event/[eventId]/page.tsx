@@ -57,8 +57,6 @@ const EventDetailPageContent = () => {
   const [duration, setDuration] = useState(332); // 5분 32초
   const [savedClips, setSavedClips] = useState<Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>>([]);
   const [showTrackingOverlay, setShowTrackingOverlay] = useState(false);
-  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
-  const [isRightPanelExpanded, setIsRightPanelExpanded] = useState(true); // 그리드 확장 상태 (디폴트: 2컬럼)
   const [monitoringCCTVs, setMonitoringCCTVs] = useState<string[]>(['CCTV-7 (현장)', 'CCTV-12 (북쪽 50m)', 'CCTV-15 (골목길)']); // 모니터링 중인 CCTV 리스트 (초기값: AI 추천 CCTV)
   const trackingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const addClipsToBroadcastRef = useRef<((clips: Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>) => void) | null>(null);
@@ -383,8 +381,24 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
   ];
 
   return (
-    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
-      <div className="flex-1 flex overflow-hidden">
+    <div 
+      className="flex flex-col bg-[#161719] overflow-hidden relative"
+      style={{
+        width: '100vw',
+        height: '100vh',
+        overflow: 'hidden',
+      }}
+    >
+      <div 
+        className="flex flex-col flex-1"
+        style={{
+          width: '125%',
+          height: '125%',
+          transform: 'scale(0.8)',
+          transformOrigin: 'top left',
+        }}
+      >
+        <div className="flex-1 flex overflow-hidden">
         {/* Left Panel - 대시보드 스타일 적용 */}
         <EventLeftPanel
           event={event}
@@ -402,446 +416,211 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
           onOpenModalRef={openBroadcastModalRef}
         />
 
-        {/* Center Panel - 사건 상세 */}
-        <EventCenterPanel
-          categoryLabel={categoryLabel}
-          chatMessages={chatMessages}
-          chatInput={chatInput}
-          setChatInput={setChatInput}
-          isResponding={isResponding}
-          savedClips={savedClips}
-          setSelectedCCTV={setSelectedCCTV}
-          setShowCCTVPopup={setShowCCTVPopup}
-          handleSendMessage={handleSendMessage}
-          handleDeleteClip={handleDeleteClip}
-        />
-
-        {/* Right Panel - CCTV & 인물 분석 (폴딩 패널) */}
-        <aside
-          className={`${
-            isRightPanelCollapsed ? 'w-20' : isRightPanelExpanded ? 'w-[52rem]' : 'w-[21rem]'
-          } bg-[#161719] border-l border-[#31353a] flex flex-col h-full overflow-hidden relative transition-all duration-300`}
-          style={{ borderWidth: '1px' }}
-        >
-          {/* 폴딩 토글 버튼 - 대시보드 우측 패널 스타일 차용 */}
-          <button
-            onClick={() => {
-              if (isRightPanelCollapsed) {
-                setIsRightPanelCollapsed(false);
-              } else {
-                setIsRightPanelExpanded((prev) => !prev);
-              }
-            }}
-            className="absolute top-1/2 -translate-y-1/2 -left-2 w-8 h-14 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-colors focus:outline-none"
-            aria-label={isRightPanelCollapsed ? '우측 패널 펼치기' : '그리드 전환'}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-            <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-          </button>
-
-          {isRightPanelCollapsed ? (
-            <div className="flex-1 flex flex-col items-center justify-between py-8 pl-4 pr-2 gap-6 text-[0.65rem] text-gray-300">
-              <div className="flex flex-col items-center gap-2 text-[10.4px]">
-                <div className="flex flex-col items-center gap-1">
-                  <span className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-white">활성</span>
-                  <span className="text-green-400 text-sm font-semibold">3</span>
+        {/* Center Panel - 2컬럼 레이아웃 */}
+        <main className="flex-1 bg-[#161719] flex flex-col h-full overflow-hidden border-l border-r border-[#31353a]" style={{ borderWidth: '1px' }}>
+          <div className="flex-1 overflow-hidden pl-7 pr-5">
+            <div className="grid grid-cols-2 gap-6 h-full">
+              {/* 1열: 위치 및 동선 */}
+              <div className="flex flex-col space-y-6 pt-4 overflow-y-auto h-full">
+                {/* 위치 및 동선 */}
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
+                    <Icon icon="mdi:map-marker" className="w-4 h-4 text-green-300" />
+                    위치 및 동선
+                  </div>
+                  <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-4" style={{ borderWidth: '1px' }}>
+                    <div
+                      className="relative h-48 border border-[#31353a] overflow-hidden bg-cover bg-center bg-no-repeat"
+                      style={{
+                        borderWidth: '1px',
+                        backgroundImage: 'url(/map_anyang.png)',
+                      }}
+                    >
+                      {/* 지도 이미지 위에 SVG 오버레이 */}
+                      <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+                        {/* 현재 위치 반경 표시 (가장 아래 레이어) */}
+                        <circle cx="170" cy="90" r="30" fill="rgba(241,196,15,0.2)" stroke="#f1c40f" strokeWidth="2" strokeDasharray="6 6" />
+                        {/* 동선 경로 */}
+                        <polyline 
+                          points="30,160 80,120 140,130 170,90" 
+                          fill="none" 
+                          stroke="#5390ff" 
+                          strokeWidth="3" 
+                          strokeDasharray="4 4"
+                          className="animate-dash"
+                        />
+                        {/* 시작 지점 핀 */}
+                        <circle cx="30" cy="160" r="8" fill="#ff4d4f" stroke="#fff" strokeWidth="2" />
+                        {/* 중간 지점 핀들 */}
+                        <circle cx="80" cy="120" r="8" fill="#5dade2" stroke="#fff" strokeWidth="2" />
+                        <circle cx="140" cy="130" r="8" fill="#f1c40f" stroke="#fff" strokeWidth="2" />
+                        {/* 현재 위치 핀 */}
+                        <circle cx="170" cy="90" r="8" fill="#f1c40f" stroke="#fff" strokeWidth="2" />
+                      </svg>
+                      {/* 현재 위치 애니메이션 핀 (SVG 위에 HTML 요소로) */}
+                      <div className="absolute" style={{ top: '45%', left: '85%', transform: 'translate(-50%, -50%)', zIndex: 10 }}>
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-6 w-6 bg-yellow-400 border-2 border-white"></span>
+                      </div>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      {movementTimeline.map((entry) => (
+                        <div key={entry.time} className="flex gap-3">
+                          <div className="text-xs text-gray-500 w-16">{entry.time}</div>
+                          <div>
+                            <p className={`font-semibold ${entry.color}`}>{entry.label}</p>
+                            <p className="text-gray-400 text-xs">{entry.desc}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex flex-col items-center gap-2 text-[10.4px]">
-                <span className="text-white font-semibold tracking-tight text-center leading-tight">
-                  인물<br />분석
-                </span>
-                <div className="flex flex-col items-center gap-1">
-                  <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
-                  <span className="text-white">추적중</span>
-                  <span className="text-red-400 text-sm font-semibold">89%</span>
+
+              {/* 2열: CCTV, 인물 분석, 행동 요약 */}
+              <div className="flex flex-col space-y-6 pt-4 overflow-y-auto h-full">
+                {/* CCTV 모니터링 */}
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
+                    <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-300" />
+                    주변 cctv
+                  </div>
+                  <div className="space-y-4">
+                    {monitoringCCTVs.length === 0 ? (
+                      <div className="text-center py-8">
+                        <Icon icon="mdi:cctv-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                        <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
+                      </div>
+                    ) : (
+                      monitoringCCTVs.map((cctvKey) => {
+                        const cctv = cctvInfo[cctvKey];
+                        if (!cctv) return null;
+                        const isTracking = cctv.status === '추적중';
+                        return (
+                          <div key={cctvKey}>
+                            <div className="flex items-center justify-between mb-2">
+                              <div className="flex items-center gap-2">
+                                <span className="text-white font-semibold text-sm">{cctv.id}</span>
+                                <span className={`px-2 py-0.5 text-xs ${
+                                  cctv.status === '활성' 
+                                    ? 'bg-green-500/20 text-green-400'
+                                    : cctv.status === '추적중'
+                                      ? 'bg-yellow-500/20 text-yellow-400'
+                                      : 'bg-gray-500/20 text-gray-400'
+                                }`}>
+                                  {cctv.status}
+                                </span>
+                              </div>
+                              <button
+                                onClick={() => handleRemoveFromMonitoring(cctvKey)}
+                                className="text-gray-400 hover:text-red-400 transition-colors"
+                                aria-label="모니터링에서 제거"
+                              >
+                                <Icon icon="mdi:close" className="w-4 h-4" />
+                              </button>
+                            </div>
+                            <div className="text-gray-400 text-xs mb-2">{cctv.location}</div>
+                            <div 
+                              className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity relative overflow-hidden`} 
+                              style={{ borderWidth: isTracking ? '2px' : '1px' }}
+                              onClick={() => {
+                                setSelectedCCTV(cctvKey);
+                                setShowCCTVPopup(true);
+                              }}
+                            >
+                              <img
+                                src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
+                                alt={`${cctv.id} 썸네일`}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
+                                  target.src = '/cctv_img/001.jpg';
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+
+                {/* 인물 분석 */}
+                <div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2 text-sm text-white font-semibold">
+                      <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
+                      인물 분석
+                    </div>
+                    <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
+                  </div>
+                  <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
+                    <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
+                      <div>
+                        <p className="text-gray-500 text-xs mb-0.5">성별/연령</p>
+                        <p>남성, 30대 초반 추정</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs mb-0.5">상의</p>
+                        <p>검은색 후드티</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs mb-0.5">하의</p>
+                        <p>청바지</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs mb-0.5">신발</p>
+                        <p>흰색 운동화</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs mb-0.5">체격</p>
+                        <p>170cm 추정, 중간 체격</p>
+                      </div>
+                      <div>
+                        <p className="text-gray-500 text-xs mb-0.5">ReID 신뢰도</p>
+                        <p className="text-green-400 font-semibold">89%</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 행동 요약 */}
+                <div>
+                  <div className="flex items-center gap-2 text-sm text-red-300 font-semibold mb-3">
+                    <Icon icon="mdi:alert" className="w-4 h-4" />
+                    행동 요약
+                  </div>
+                  <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
+                    <ul className="text-sm text-red-100 space-y-1">
+                      {behaviorHighlights.map((item) => (
+                        <li key={item}>• {item}</li>
+                      ))}
+                    </ul>
+                  </div>
                 </div>
               </div>
             </div>
-          ) : (
-            isRightPanelExpanded ? (
-              /* 2컬럼일 때: 1컬럼은 2row, 2컬럼은 위치 및 동선 */
-              <div className="flex-1 flex p-3 pl-10 pr-9 overflow-hidden">
-                {/* 1번째 컬럼: 2row 구조 (더 넓게) */}
-                <div className="flex-[2.5] flex flex-col overflow-hidden gap-4 pr-3">
-                  {/* 1row: CCTV 모니터링 (2x2 그리드) - 고정 높이 (150px 증가) */}
-                  <div className="flex flex-col overflow-hidden border-b border-[#31353a]" style={{ height: 'calc(50% + 75px)', borderWidth: '0 0 1px 0' }}>
-                    <div className="flex-1 overflow-y-auto pt-[50px]">
-                      {monitoringCCTVs.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Icon icon="mdi:cctv-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                          <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
-                        </div>
-                      ) : (
-                        <div className="grid grid-cols-2 gap-x-4 gap-y-6">
-                          {monitoringCCTVs.map((cctvKey) => {
-                            const cctv = cctvInfo[cctvKey];
-                            if (!cctv) return null;
-                            const isTracking = cctv.status === '추적중';
-                            return (
-                              <div key={cctvKey}>
-                                <div 
-                                  className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity relative overflow-hidden mb-2`} 
-                                  style={{ borderWidth: isTracking ? '2px' : '1px' }}
-                                  onClick={() => {
-                                    setSelectedCCTV(cctvKey);
-                                    setShowCCTVPopup(true);
-                                  }}
-                                >
-                                  <img
-                                    src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
-                                    alt={`${cctv.id} 썸네일`}
-                                    className="absolute inset-0 w-full h-full object-cover"
-                                    onError={(e) => {
-                                      const target = e.target as HTMLImageElement;
-                                      target.src = '/cctv_img/001.jpg';
-                                    }}
-                                  />
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleRemoveFromMonitoring(cctvKey);
-                                    }}
-                                    className="absolute top-2 right-2 p-1 bg-black/60 hover:bg-black/80 text-gray-400 hover:text-red-400 transition-colors rounded"
-                                    aria-label="모니터링에서 제거"
-                                  >
-                                    <Icon icon="mdi:close" className="w-4 h-4" />
-                                  </button>
-                                </div>
-                                <div className="flex items-center gap-2 mb-1">
-                                  <span className="text-white font-semibold text-sm">{cctv.id}</span>
-                                  <span className={`px-2 py-0.5 text-xs ${
-                                    cctv.status === '활성' 
-                                      ? 'bg-green-500/20 text-green-400'
-                                      : cctv.status === '추적중'
-                                        ? 'bg-yellow-500/20 text-yellow-400'
-                                        : 'bg-gray-500/20 text-gray-400'
-                                  }`}>
-                                    {cctv.status}
-                                  </span>
-                                </div>
-                                <div className="text-gray-400 text-xs">{cctv.location}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
-                  </div>
+          </div>
+        </main>
 
-                  {/* 2row: 인물 분석 + 행동 요약 (가로 배치) - 고정 높이 */}
-                  <div className="flex gap-4 overflow-hidden" style={{ height: 'calc(50% - 75px)' }}>
-                    {/* 인물 분석 */}
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                      <div className="flex-1 overflow-y-auto">
-                        <div>
-                          <div className="flex items-center justify-between mb-3">
-                            <div className="flex items-center gap-2 text-sm text-white font-semibold">
-                              <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
-                              인물 분석
-                            </div>
-                            <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
-                          </div>
-                          <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
-                            <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
-                              <div>
-                                <p className="text-gray-500 text-xs mb-0.5">성별/연령</p>
-                                <p>남성, 30대 초반 추정</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs mb-0.5">상의</p>
-                                <p>검은색 후드티</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs mb-0.5">하의</p>
-                                <p>청바지</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs mb-0.5">신발</p>
-                                <p>흰색 운동화</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs mb-0.5">체격</p>
-                                <p>170cm 추정, 중간 체격</p>
-                              </div>
-                              <div>
-                                <p className="text-gray-500 text-xs mb-0.5">ReID 신뢰도</p>
-                                <p className="text-green-400 font-semibold">89%</p>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 행동 요약 */}
-                    <div className="flex-1 flex flex-col overflow-hidden">
-                      <div className="flex-1 overflow-y-auto">
-                        <div>
-                          <div className="flex items-center gap-2 text-sm text-red-300 font-semibold mb-3">
-                            <Icon icon="mdi:alert" className="w-4 h-4" />
-                            행동 요약
-                          </div>
-                          <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
-                            <ul className="text-sm text-red-100 space-y-1">
-                              {behaviorHighlights.map((item) => (
-                                <li key={item}>• {item}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Divider */}
-                <div className="w-px bg-[#31353a] mx-3" style={{ borderWidth: '0' }}></div>
-
-                {/* 2번째 컬럼: 위치 및 동선 + 출동 경로 추천 (좁게) */}
-                <div className="flex-1 flex flex-col overflow-hidden pl-3">
-                  <div className="flex-1 overflow-y-auto space-y-4 pt-[20px]">
-                    {/* 위치 및 동선 */}
-                    <div>
-                      <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
-                        <Icon icon="mdi:map-marker" className="w-4 h-4 text-green-300" />
-                        위치 및 동선
-                      </div>
-                      <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-4" style={{ borderWidth: '1px' }}>
-                        <div
-                          className="relative h-48 border border-[#31353a] overflow-hidden"
-                          style={{
-                            borderWidth: '1px',
-                            backgroundImage:
-                              'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
-                            backgroundSize: '20px 20px',
-                          }}
-                        >
-                          <svg viewBox="0 0 200 200" className="absolute inset-0">
-                            <polyline points="30,160 80,120 140,130 170,90" fill="none" stroke="#5390ff" strokeWidth="2" strokeDasharray="4 4" />
-                            <circle cx="30" cy="160" r="6" fill="#ff4d4f" />
-                            <circle cx="80" cy="120" r="6" fill="#5dade2" />
-                            <circle cx="140" cy="130" r="6" fill="#f1c40f" />
-                            <circle cx="170" cy="90" r="6" fill="#f1c40f" />
-                            <circle cx="170" cy="90" r="30" fill="rgba(241,196,15,0.15)" stroke="#f1c40f" strokeDasharray="6 6" />
-                          </svg>
-                          <div className="absolute top-12 right-8 flex h-6 w-6">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-50"></span>
-                            <span className="relative inline-flex rounded-full h-6 w-6 bg-yellow-400"></span>
-                          </div>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          {movementTimeline.map((entry) => (
-                            <div key={entry.time} className="flex gap-3">
-                              <div className="text-xs text-gray-500 w-16">{entry.time}</div>
-                              <div>
-                                <p className={`font-semibold ${entry.color}`}>{entry.label}</p>
-                                <p className="text-gray-400 text-xs">{entry.desc}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 출동 경로 추천 */}
-                    <div>
-                      <div className="flex items-center gap-2 text-sm text-green-300 font-semibold mb-3">
-                        <Icon icon="mdi:route" className="w-4 h-4" />
-                        출동 경로 추천
-                      </div>
-                      <div className="bg-[#0f1f14] border border-green-500/40 p-4" style={{ borderWidth: '1px' }}>
-                        <p className="text-gray-200 text-sm">{routeRecommendation}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              /* 1컬럼일 때: 전체 패널 스크롤 */
-              <div className="flex-1 overflow-y-auto p-3 pl-10 pr-9 space-y-8">
-                {/* 두 블록을 그리드로 배치: 디폴트 1×2 (세로) */}
-                <div className="grid gap-8 grid-cols-1">
-                  {/* 블록 A: CCTV 모니터링 */}
-                  <div className="space-y-3">
-                    <div className="space-y-4">
-                      {monitoringCCTVs.length === 0 ? (
-                        <div className="text-center py-8">
-                          <Icon icon="mdi:cctv-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                          <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
-                        </div>
-                      ) : (
-                        monitoringCCTVs.map((cctvKey) => {
-                          const cctv = cctvInfo[cctvKey];
-                          if (!cctv) return null;
-                          const isTracking = cctv.status === '추적중';
-                          return (
-                            <div key={cctvKey}>
-                              <div className="flex items-center justify-between mb-2">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-white font-semibold text-sm">{cctv.id}</span>
-                                  <span className={`px-2 py-0.5 text-xs ${
-                                    cctv.status === '활성' 
-                                      ? 'bg-green-500/20 text-green-400'
-                                      : cctv.status === '추적중'
-                                        ? 'bg-yellow-500/20 text-yellow-400'
-                                        : 'bg-gray-500/20 text-gray-400'
-                                  }`}>
-                                    {cctv.status}
-                                  </span>
-                                </div>
-                                <button
-                                  onClick={() => handleRemoveFromMonitoring(cctvKey)}
-                                  className="text-gray-400 hover:text-red-400 transition-colors"
-                                  aria-label="모니터링에서 제거"
-                                >
-                                  <Icon icon="mdi:close" className="w-4 h-4" />
-                                </button>
-                              </div>
-                              <div className="text-gray-400 text-xs mb-2">{cctv.location}</div>
-                              <div 
-                                className={`bg-[#0f0f0f] ${isTracking ? 'border-2 border-yellow-500/50' : 'border border-[#31353a]'} aspect-video flex items-center justify-center cursor-pointer hover:opacity-80 transition-opacity relative overflow-hidden`} 
-                                style={{ borderWidth: isTracking ? '2px' : '1px' }}
-                                onClick={() => {
-                                  setSelectedCCTV(cctvKey);
-                                  setShowCCTVPopup(true);
-                                }}
-                              >
-                                <img
-                                  src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
-                                  alt={`${cctv.id} 썸네일`}
-                                  className="absolute inset-0 w-full h-full object-cover"
-                                  onError={(e) => {
-                                    const target = e.target as HTMLImageElement;
-                                    target.src = '/cctv_img/001.jpg';
-                                  }}
-                                />
-                              </div>
-                            </div>
-                          );
-                        })
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 블록 B: 인물 분석 + 행동 요약 + 위치 및 동선 + 출동 경로 추천 */}
-                  <div className="space-y-3">
-                    {/* 인물 분석 */}
-                    <div>
-                      <div className="flex items-center justify-between mb-3">
-                        <div className="flex items-center gap-2 text-sm text-white font-semibold">
-                          <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
-                          인물 분석
-                        </div>
-                        <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
-                      </div>
-                      <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
-                        <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">성별/연령</p>
-                            <p>남성, 30대 초반 추정</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">상의</p>
-                            <p>검은색 후드티</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">하의</p>
-                            <p>청바지</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">신발</p>
-                            <p>흰색 운동화</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">체격</p>
-                            <p>170cm 추정, 중간 체격</p>
-                          </div>
-                          <div>
-                            <p className="text-gray-500 text-xs mb-0.5">ReID 신뢰도</p>
-                            <p className="text-green-400 font-semibold">89%</p>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 행동 요약 */}
-                    <div>
-                      <div className="flex items-center gap-2 text-sm text-red-300 font-semibold mb-3">
-                        <Icon icon="mdi:alert" className="w-4 h-4" />
-                        행동 요약
-                      </div>
-                      <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
-                        <ul className="text-sm text-red-100 space-y-1">
-                          {behaviorHighlights.map((item) => (
-                            <li key={item}>• {item}</li>
-                          ))}
-                        </ul>
-                      </div>
-                    </div>
-
-                    {/* 위치 및 동선 */}
-                    <div>
-                      <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
-                        <Icon icon="mdi:map-marker" className="w-4 h-4 text-green-300" />
-                        위치 및 동선
-                      </div>
-                      <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-4" style={{ borderWidth: '1px' }}>
-                        <div
-                          className="relative h-48 border border-[#31353a] overflow-hidden"
-                          style={{
-                            borderWidth: '1px',
-                            backgroundImage:
-                              'linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)',
-                            backgroundSize: '20px 20px',
-                          }}
-                        >
-                          <svg viewBox="0 0 200 200" className="absolute inset-0">
-                            <polyline points="30,160 80,120 140,130 170,90" fill="none" stroke="#5390ff" strokeWidth="2" strokeDasharray="4 4" />
-                            <circle cx="30" cy="160" r="6" fill="#ff4d4f" />
-                            <circle cx="80" cy="120" r="6" fill="#5dade2" />
-                            <circle cx="140" cy="130" r="6" fill="#f1c40f" />
-                            <circle cx="170" cy="90" r="6" fill="#f1c40f" />
-                            <circle cx="170" cy="90" r="30" fill="rgba(241,196,15,0.15)" stroke="#f1c40f" strokeDasharray="6 6" />
-                          </svg>
-                          <div className="absolute top-12 right-8 flex h-6 w-6">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-50"></span>
-                            <span className="relative inline-flex rounded-full h-6 w-6 bg-yellow-400"></span>
-                          </div>
-                        </div>
-                        <div className="space-y-2 text-sm">
-                          {movementTimeline.map((entry) => (
-                            <div key={entry.time} className="flex gap-3">
-                              <div className="text-xs text-gray-500 w-16">{entry.time}</div>
-                              <div>
-                                <p className={`font-semibold ${entry.color}`}>{entry.label}</p>
-                                <p className="text-gray-400 text-xs">{entry.desc}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* 출동 경로 추천 */}
-                    <div>
-                      <div className="flex items-center gap-2 text-sm text-green-300 font-semibold mb-3">
-                        <Icon icon="mdi:route" className="w-4 h-4" />
-                        출동 경로 추천
-                      </div>
-                      <div className="bg-[#0f1f14] border border-green-500/40 p-4" style={{ borderWidth: '1px' }}>
-                        <p className="text-gray-200 text-sm">{routeRecommendation}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )
-          )}
+        {/* Right Panel - AI Agent (채팅) */}
+        <aside className="w-[30rem] bg-white border-l border-[#31353a] flex flex-col h-full overflow-y-auto pl-4 pr-5" style={{ borderWidth: '1px' }}>
+          <EventCenterPanel
+            categoryLabel={categoryLabel}
+            chatMessages={chatMessages}
+            chatInput={chatInput}
+            setChatInput={setChatInput}
+            isResponding={isResponding}
+            savedClips={savedClips}
+            setSelectedCCTV={setSelectedCCTV}
+            setShowCCTVPopup={setShowCCTVPopup}
+            handleSendMessage={handleSendMessage}
+            handleDeleteClip={handleDeleteClip}
+          />
         </aside>
 
+        </div>
       </div>
 
       {/* CCTV 팝업 - 미디어 플레이어 */}
