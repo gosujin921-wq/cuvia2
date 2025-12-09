@@ -502,7 +502,7 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
       {/* 지도 배경 이미지 - 가장 아래 */}
       <div className="absolute inset-0" style={{ zIndex: 1 }}>
         <img 
-          src="/kintex.png" 
+          src="/map_anyang.png" 
           alt="Map" 
           className="w-full h-full object-cover"
         />

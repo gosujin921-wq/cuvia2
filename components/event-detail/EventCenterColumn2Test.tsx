@@ -135,7 +135,7 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
                     className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-purple-500/50 transition-colors overflow-hidden group relative"
                     style={{ borderWidth: '1px' }}
                     onClick={() => {
-                      setSelectedDetectedCCTV(detected.id);
+                      setSelectedDetectedCCTV(detected.cctvId);
                       setShowDetectedCCTVPopup(true);
                     }}
                   >

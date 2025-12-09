@@ -779,6 +779,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 selectedMapCCTV={selectedMapCCTV}
                 setSelectedMapCCTV={setSelectedMapCCTV}
                 setShowMapCCTVPopup={setShowMapCCTVPopup}
+                setShowDetectedCCTVPopup={setShowDetectedCCTVPopup}
+                setSelectedDetectedCCTV={setSelectedDetectedCCTV}
                 movementTimeline={movementTimeline}
               />
 
@@ -1154,7 +1156,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
 
       {/* 포착된 CCTV 상세 모달 */}
       {showDetectedCCTVPopup && selectedDetectedCCTV && (() => {
-        const detected = detectedCCTVThumbnails.find(d => d.id === selectedDetectedCCTV);
+        const detected = detectedCCTVThumbnails.find(d => d.cctvId === selectedDetectedCCTV);
         if (!detected) return null;
         
         return (
@@ -1225,18 +1227,100 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   <div className="p-6 border-b border-[#31353a] flex-shrink-0">
                     <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
                     <div className="space-y-3">
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">관리번호</div>
-                        <div className="text-white font-semibold text-sm">{detected.cctvId}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">위치</div>
-                        <div className="text-gray-300 text-sm">{detected.location}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">CCTV 이름</div>
-                        <div className="text-gray-300 text-sm">{detected.cctvName}</div>
-                      </div>
+                      {(() => {
+                        const cctvKey = Object.keys(cctvInfo).find(key => cctvInfo[key].id === detected.cctvId);
+                        const cctv = cctvKey ? cctvInfo[cctvKey] : null;
+                        const fov = cctvFovMap[detected.cctvId] || '95°';
+                        
+                        // 방향 계산 (예시: location에서 추출)
+                        const getDirection = (location: string) => {
+                          if (location.includes('북동')) return '북동 45°';
+                          if (location.includes('북서')) return '북서 315°';
+                          if (location.includes('동남')) return '동남 135°';
+                          if (location.includes('서남')) return '서남 225°';
+                          if (location.includes('북')) return '북 0°';
+                          if (location.includes('동')) return '동 90°';
+                          if (location.includes('남')) return '남 180°';
+                          if (location.includes('서')) return '서 270°';
+                          return '알 수 없음';
+                        };
+                        
+                        // 군집 정보 (예시)
+                        const getCluster = (cctvId: string) => {
+                          for (const [locationId, group] of Object.entries(cctvLocationGroups)) {
+                            if (group.cctvs.includes(cctvId)) {
+                              const clusterMap: Record<string, string> = {
+                                'location-1': 'G-01 (남측 데크 라인)',
+                                'location-2': 'G-02 (중앙 데크 라인)',
+                                'location-3': 'G-03 (북측 데크 라인)',
+                                'location-4': 'G-04 (동측 데크 라인)',
+                                'location-5': 'G-03 (북측 데크 라인)',
+                              };
+                              return clusterMap[locationId] || 'G-00';
+                            }
+                          }
+                          return 'G-00';
+                        };
+                        
+                        // 최근 포착 정보 (movementTimeline에서)
+                        const getRecentCaptures = (cctvId: string) => {
+                          const captures = movementTimeline
+                            .filter(item => item.cctvId === cctvId)
+                            .map(item => {
+                              const time = item.time.split(':').slice(1).join(':');
+                              return `${time} ${item.title}`;
+                            });
+                          return captures.length > 0 ? captures.join(' / ') : '없음';
+                        };
+                        
+                        return (
+                          <>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">CCTV</div>
+                              <div className="text-white font-semibold text-sm">
+                                {detected.cctvId}  (PTZ / 화각 {fov})
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">지점</div>
+                              <div className="text-gray-300 text-sm">
+                                {cctv?.name || detected.cctvName}{cctv?.location ? `(${cctv.location})` : detected.location ? `(${detected.location})` : ''}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">방향</div>
+                              <div className="text-gray-300 text-sm">
+                                {cctv?.location ? getDirection(cctv.location) : detected.location ? getDirection(detected.location) : '알 수 없음'}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">군집</div>
+                              <div className="text-gray-300 text-sm">
+                                {getCluster(detected.cctvId)}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">상태</div>
+                              <div className="text-gray-300 text-sm flex items-center gap-1.5">
+                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                LIVE / 실시간 기록 중
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">AI분석</div>
+                              <div className="text-gray-300 text-sm">
+                                객체·행동 감지 활성
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">최근포착</div>
+                              <div className="text-gray-300 text-sm">
+                                {getRecentCaptures(detected.cctvId)}
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
 
@@ -1396,9 +1480,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               </div>
 
               {/* 메인 콘텐츠 영역 */}
-              <div className="flex-1 flex overflow-hidden min-h-0">
+              <div className="flex overflow-hidden">
                 {/* 왼쪽: CCTV 영상 */}
-                <div className="flex-1 bg-black flex flex-col">
+                <div className="flex-1 bg-black flex flex-col flex-shrink-0">
                   <div className="p-4 pb-3">
                     <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
                       <img
@@ -1446,23 +1530,105 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   <div className="p-6 border-b border-[#31353a] flex-shrink-0">
                     <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
                     <div className="space-y-3">
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">관리번호</div>
-                        <div className="text-white font-semibold text-sm">{selectedMapCCTV}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">위치</div>
-                        <div className="text-gray-300 text-sm">{cctvInfo[Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV) || '']?.location || '알 수 없음'}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-400 text-xs mb-1">CCTV 이름</div>
-                        <div className="text-gray-300 text-sm">{cctvInfo[Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV) || '']?.name || selectedMapCCTV}</div>
-                      </div>
+                      {(() => {
+                        const cctvKey = Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV);
+                        const cctv = cctvKey ? cctvInfo[cctvKey] : null;
+                        const fov = cctvFovMap[selectedMapCCTV] || '95°';
+                        
+                        // 방향 계산 (예시: location에서 추출)
+                        const getDirection = (location: string) => {
+                          if (location.includes('북동')) return '북동 45°';
+                          if (location.includes('북서')) return '북서 315°';
+                          if (location.includes('동남')) return '동남 135°';
+                          if (location.includes('서남')) return '서남 225°';
+                          if (location.includes('북')) return '북 0°';
+                          if (location.includes('동')) return '동 90°';
+                          if (location.includes('남')) return '남 180°';
+                          if (location.includes('서')) return '서 270°';
+                          return '알 수 없음';
+                        };
+                        
+                        // 군집 정보 (예시)
+                        const getCluster = (cctvId: string) => {
+                          for (const [locationId, group] of Object.entries(cctvLocationGroups)) {
+                            if (group.cctvs.includes(cctvId)) {
+                              const clusterMap: Record<string, string> = {
+                                'location-1': 'G-01 (남측 데크 라인)',
+                                'location-2': 'G-02 (중앙 데크 라인)',
+                                'location-3': 'G-03 (북측 데크 라인)',
+                                'location-4': 'G-04 (동측 데크 라인)',
+                                'location-5': 'G-03 (북측 데크 라인)',
+                              };
+                              return clusterMap[locationId] || 'G-00';
+                            }
+                          }
+                          return 'G-00';
+                        };
+                        
+                        // 최근 포착 정보 (movementTimeline에서)
+                        const getRecentCaptures = (cctvId: string) => {
+                          const captures = movementTimeline
+                            .filter(item => item.cctvId === cctvId)
+                            .map(item => {
+                              const time = item.time.split(':').slice(1).join(':');
+                              return `${time} ${item.title}`;
+                            });
+                          return captures.length > 0 ? captures.join(' / ') : '없음';
+                        };
+                        
+                        return (
+                          <>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">CCTV</div>
+                              <div className="text-white font-semibold text-sm">
+                                {selectedMapCCTV}  (PTZ / 화각 {fov})
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">지점</div>
+                              <div className="text-gray-300 text-sm">
+                                {cctv?.name || selectedMapCCTV}{cctv?.location ? `(${cctv.location})` : ''}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">방향</div>
+                              <div className="text-gray-300 text-sm">
+                                {cctv?.location ? getDirection(cctv.location) : '알 수 없음'}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">군집</div>
+                              <div className="text-gray-300 text-sm">
+                                {getCluster(selectedMapCCTV)}
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">상태</div>
+                              <div className="text-gray-300 text-sm flex items-center gap-1.5">
+                                <span className="w-2 h-2 bg-red-500 rounded-full"></span>
+                                LIVE / 실시간 기록 중
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">AI분석</div>
+                              <div className="text-gray-300 text-sm">
+                                객체·행동 감지 활성
+                              </div>
+                            </div>
+                            <div>
+                              <div className="text-gray-400 text-xs mb-1">최근포착</div>
+                              <div className="text-gray-300 text-sm">
+                                {getRecentCaptures(selectedMapCCTV)}
+                              </div>
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
                   </div>
 
                   {/* PTZ 제어 */}
-                  <div className="flex-1 p-6 overflow-y-auto">
+                  <div className="flex-1 p-6 overflow-hidden min-h-0 flex flex-col">
                     <div className="flex gap-4">
                       {/* Pan/Tilt + Zoom 세로 배치 */}
                       <div className="flex flex-col gap-4 flex-shrink-0">

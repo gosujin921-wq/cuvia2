@@ -14,6 +14,8 @@ interface EventCenterColumn1Props {
   selectedMapCCTV: string | null;
   setSelectedMapCCTV: (value: string | null) => void;
   setShowMapCCTVPopup: (value: boolean) => void;
+  setShowDetectedCCTVPopup: (value: boolean) => void;
+  setSelectedDetectedCCTV: (value: string | null) => void;
   movementTimeline: Array<{
     time: string;
     title: string;
@@ -35,6 +37,8 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   selectedMapCCTV,
   setSelectedMapCCTV,
   setShowMapCCTVPopup,
+  setShowDetectedCCTVPopup,
+  setSelectedDetectedCCTV,
   movementTimeline,
 }) => {
   const [zoomLevel, setZoomLevel] = React.useState(0); // 0: 축소(클러스터), 1: 확대(개별)
@@ -102,6 +106,19 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   const location4CCTVs = getCCTVsAtSameLocation('CCTV-3');
   const location5CCTVs = getCCTVsAtSameLocation('CCTV-16'); // 현재 위치
 
+  // CCTV 클릭 핸들러 - 색상에 따라 다른 팝업 열기
+  const handleCCTVClick = (cctvId: string, borderColor: string) => {
+    // red (추적중) → CCTV 팝업
+    if (borderColor === 'border-red-500') {
+      setSelectedMapCCTV(cctvId);
+      setShowMapCCTVPopup(true);
+    } else {
+      // yellow 또는 blue (과거 동선) → 포착된 CCTV 클립 팝업
+      setSelectedDetectedCCTV(cctvId);
+      setShowDetectedCCTVPopup(true);
+    }
+  };
+
   // CCTV 아이콘 렌더링 헬퍼 함수
   const renderCCTVIcons = (
     cctvIds: string[],
@@ -118,8 +135,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           className="absolute cursor-pointer" 
           style={{ left: `${basePosition.left}%`, top: `${basePosition.top}%`, transform: 'translate(-50%, -50%)', zIndex: 100 }}
           onClick={() => {
-            setSelectedMapCCTV(cctvIds[0]);
-            setShowMapCCTVPopup(true);
+            handleCCTVClick(cctvIds[0], borderColor);
           }}
         >
           <div className={`w-7 h-7 bg-[#1a1a1a] border-2 ${borderColor} rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform`}>
@@ -131,7 +147,11 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             />
             {/* 클러스터 뱃지 - 같은 위치에 여러 CCTV가 있을 때 */}
             {cctvIds.length > 1 && (
-              <div className="absolute -top-[18px] -right-[18px] w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-20">
+              <div className={`absolute -top-[18px] -right-[18px] w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 z-20 ${
+                borderColor === 'border-red-500' 
+                  ? 'bg-blue-500/90 border-blue-400' 
+                  : 'bg-purple-500/90 border-purple-400'
+              }`}>
                 {cctvIds.length}
               </div>
             )}
@@ -192,8 +212,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               zIndex: 100 
             }}
             onClick={() => {
-              setSelectedMapCCTV(cctvId);
-              setShowMapCCTVPopup(true);
+              handleCCTVClick(cctvId, borderColor);
             }}
           >
             <div className={`w-7 h-7 bg-[#1a1a1a] border-2 ${borderColor} rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform`}>
@@ -434,8 +453,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                 className="absolute cursor-pointer" 
                 style={{ zIndex: 130 }}
                 onClick={() => {
-                  setSelectedMapCCTV(location5CCTVs[0] || '현재 위치');
-                  setShowMapCCTVPopup(true);
+                  handleCCTVClick(location5CCTVs[0] || 'CCTV-16', 'border-red-500');
                 }}
               >
                 <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-red-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform">
@@ -481,8 +499,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                       zIndex: 130 
                     }}
                     onClick={() => {
-                      setSelectedMapCCTV(cctvId);
-                      setShowMapCCTVPopup(true);
+                      handleCCTVClick(cctvId, 'border-red-500');
                     }}
                   >
                     <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-red-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform">
