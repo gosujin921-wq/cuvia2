@@ -77,6 +77,21 @@ body {
   animation: dash 3s linear infinite;
 }
 
+/* 원 크기 펄스 애니메이션 */
+@keyframes circle-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+}
+
+.animate-circle-pulse {
+  animation: circle-pulse 2s ease-in-out infinite;
+}
+
+
 .flowing-opacity {
   overflow: hidden;
 }

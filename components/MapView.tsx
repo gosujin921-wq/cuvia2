@@ -25,9 +25,65 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
   const [currentDragPosition, setCurrentDragPosition] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [showCCTV, setShowCCTV] = useState(false);
-  const [showCCTVViewAngle, setShowCCTVViewAngle] = useState(false);
-  const [showCCTVName, setShowCCTVName] = useState(false);
+  // CCTV 토글 상태 (localStorage로 공유)
+  const [showCCTV, setShowCCTV] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cctv-show-cctv');
+      return saved === 'true';
+    }
+    return false;
+  });
+  const [showCCTVViewAngle, setShowCCTVViewAngle] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cctv-show-view-angle');
+      return saved === 'true';
+    }
+    return false;
+  });
+  const [showCCTVName, setShowCCTVName] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('cctv-show-name');
+      return saved === 'true';
+    }
+    return false;
+  });
+
+  // localStorage 동기화
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cctv-show-cctv', showCCTV.toString());
+    }
+  }, [showCCTV]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cctv-show-view-angle', showCCTVViewAngle.toString());
+    }
+  }, [showCCTVViewAngle]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('cctv-show-name', showCCTVName.toString());
+    }
+  }, [showCCTVName]);
+
+  // localStorage 변경 감지 (다른 탭/페이지에서 변경 시)
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'cctv-show-cctv') {
+        setShowCCTV(e.newValue === 'true');
+      } else if (e.key === 'cctv-show-view-angle') {
+        setShowCCTVViewAngle(e.newValue === 'true');
+      } else if (e.key === 'cctv-show-name') {
+        setShowCCTVName(e.newValue === 'true');
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
   const containerRef = useRef<HTMLDivElement>(null);
   const tooltipRef = useRef<HTMLDivElement>(null);
 

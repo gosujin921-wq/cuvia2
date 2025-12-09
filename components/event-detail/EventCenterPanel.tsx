@@ -40,8 +40,8 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
   }, [chatMessages, isResponding]);
 
   return (
-    <main className="flex-1 flex flex-col min-w-0 bg-white">
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pt-6 pb-6 space-y-6" style={{ paddingTop: '52px', paddingBottom: '20px' }}>
+    <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-3 pl-10 pr-9 space-y-8">
         {/* AI Chat Blocks */}
         <div className="space-y-4">
           {chatBlocks.map((block) => (
