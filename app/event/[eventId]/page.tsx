@@ -1168,8 +1168,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             }}
           >
             <div
-              className="bg-[#101013] border border-[#31353a] w-full max-w-6xl max-h-[90vh] flex flex-col shadow-lg"
-              style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }}
+              className="bg-[#101013] border border-[#31353a] w-full max-w-6xl flex flex-col shadow-lg"
+              style={{ transform: 'scale(0.8)', transformOrigin: 'center center', maxHeight: '120vh', height: 'auto' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 헤더 */}
@@ -1191,9 +1191,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               </div>
 
               {/* 메인 콘텐츠 영역 */}
-              <div className="flex-1 flex overflow-hidden min-h-0">
+              <div className="flex">
                 {/* 왼쪽: CCTV 영상 */}
-                <div className="flex-1 bg-black flex flex-col">
+                <div className="flex-1 bg-black flex flex-col flex-shrink-0">
                   <div className="p-4 pb-3">
                     <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
                       <img
@@ -1222,7 +1222,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 </div>
 
                 {/* 오른쪽: CCTV 정보 + 제어 */}
-                <div className="w-[400px] bg-[#0f0f0f] border-l border-[#31353a] flex flex-col overflow-hidden">
+                <div className="w-[400px] bg-[#0f0f0f] border-l border-[#31353a] flex flex-col flex-shrink-0" style={{ minHeight: 0 }}>
                   {/* CCTV 정보 */}
                   <div className="p-6 border-b border-[#31353a] flex-shrink-0">
                     <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
@@ -1455,8 +1455,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
           }}
         >
             <div
-              className="bg-[#101013] border border-[#31353a] w-full max-w-6xl max-h-[90vh] flex flex-col shadow-lg"
-              style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }}
+              className="bg-[#101013] border border-[#31353a] w-full max-w-6xl flex flex-col shadow-lg"
+              style={{ transform: 'scale(0.8)', transformOrigin: 'center center', maxHeight: '120vh', height: 'auto' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 팝업 헤더 */}
@@ -1480,7 +1480,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               </div>
 
               {/* 메인 콘텐츠 영역 */}
-              <div className="flex overflow-hidden">
+              <div className="flex">
                 {/* 왼쪽: CCTV 영상 */}
                 <div className="flex-1 bg-black flex flex-col flex-shrink-0">
                   <div className="p-4 pb-3">
@@ -1525,7 +1525,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 </div>
 
                 {/* 오른쪽: CCTV 정보 + PTZ 제어 */}
-                <div className="w-[400px] bg-[#0f0f0f] border-l border-[#31353a] flex flex-col overflow-hidden">
+                <div className="w-[400px] bg-[#0f0f0f] border-l border-[#31353a] flex flex-col flex-shrink-0" style={{ minHeight: 0 }}>
                   {/* CCTV 정보 */}
                   <div className="p-6 border-b border-[#31353a] flex-shrink-0">
                     <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
@@ -1628,7 +1628,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   </div>
 
                   {/* PTZ 제어 */}
-                  <div className="flex-1 p-6 overflow-hidden min-h-0 flex flex-col">
+                  <div className="p-6 flex flex-col flex-shrink-0">
                     <div className="flex gap-4">
                       {/* Pan/Tilt + Zoom 세로 배치 */}
                       <div className="flex flex-col gap-4 flex-shrink-0">
