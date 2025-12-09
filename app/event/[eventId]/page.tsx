@@ -54,6 +54,42 @@ const EventDetailPageContent = () => {
   const [selectedCCTV, setSelectedCCTV] = useState<string | null>(null);
   const [showDetectedCCTVPopup, setShowDetectedCCTVPopup] = useState(false);
   const [selectedDetectedCCTV, setSelectedDetectedCCTV] = useState<string | null>(null);
+  const [isClipPlaying, setIsClipPlaying] = useState(false);
+  const [clipCurrentTime, setClipCurrentTime] = useState(0);
+  const [clipDuration, setClipDuration] = useState(30);
+
+  // 시간 포맷 함수
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = Math.floor(seconds % 60);
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
+  // 클립 재생 초기화
+  useEffect(() => {
+    if (showDetectedCCTVPopup && selectedDetectedCCTV) {
+      setClipDuration(30); // 실제로는 비디오 메타데이터에서 가져와야 함
+      setClipCurrentTime(0);
+      setIsClipPlaying(false);
+    }
+  }, [showDetectedCCTVPopup, selectedDetectedCCTV]);
+
+  // 재생 중 시간 업데이트
+  useEffect(() => {
+    if (!isClipPlaying) return;
+
+    const interval = setInterval(() => {
+      setClipCurrentTime((prev) => {
+        if (prev >= clipDuration) {
+          setIsClipPlaying(false);
+          return clipDuration;
+        }
+        return prev + 0.1;
+      });
+    }, 100);
+
+    return () => clearInterval(interval);
+  }, [isClipPlaying, clipDuration]);
   const [showMapCCTVPopup, setShowMapCCTVPopup] = useState(false);
   const [selectedMapCCTV, setSelectedMapCCTV] = useState<string | null>(null);
   const [cctvClusterList, setCctvClusterList] = useState<string[]>([]);
@@ -79,7 +115,7 @@ const EventDetailPageContent = () => {
     },
     'location-5': {
       position: { left: 85, top: 45 },
-      cctvs: ['CCTV-16'], // 현재 위치 주변
+      cctvs: ['CCTV-16', 'CCTV-17', 'CCTV-18', 'CCTV-19', 'CCTV-20'], // 현재 위치 주변 (용의자 추적중) - 5개 클러스터
     },
   }), []);
 
@@ -1130,12 +1166,12 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             }}
           >
             <div
-              className="bg-[#101013] border border-[#31353a] w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col shadow-lg"
+              className="bg-[#101013] border border-[#31353a] w-full max-w-6xl max-h-[90vh] flex flex-col shadow-lg"
               style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 헤더 */}
-              <div className="flex items-center justify-between p-6 border-b border-[#31353a]" style={{ borderBottomWidth: '1px' }}>
+              <div className="flex items-center justify-between p-6 border-b border-[#31353a] flex-shrink-0">
                 <div className="flex items-center gap-2 text-base font-semibold text-white">
                   <Icon icon="mdi:video-stabilization" className="w-5 h-5 text-purple-400" />
                   포착된 CCTV 클립
@@ -1145,49 +1181,136 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     setShowDetectedCCTVPopup(false);
                     setSelectedDetectedCCTV(null);
                   }}
-                  className="text-gray-400 hover:text-white focus:outline-none"
+                  className="text-gray-400 hover:text-white focus:outline-none transition-colors"
                   aria-label="모달 닫기"
                 >
                   <Icon icon="mdi:close" className="w-5 h-5" />
                 </button>
               </div>
 
-              {/* 메인 콘텐츠 */}
-              <div className="p-6 space-y-6">
-                {/* CCTV 영상 */}
-                <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
-                  <img
-                    src={detected.thumbnail}
-                    alt={detected.cctvName}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
-                    }}
-                  />
-                  <div className="absolute top-4 left-4 px-3 py-1.5 bg-black/70 rounded text-white text-xs font-semibold">
-                    {detected.timestamp}
+              {/* 메인 콘텐츠 영역 */}
+              <div className="flex-1 flex overflow-hidden min-h-0">
+                {/* 왼쪽: CCTV 영상 */}
+                <div className="flex-1 bg-black flex flex-col">
+                  <div className="p-4 pb-3">
+                    <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
+                      <img
+                        src={detected.thumbnail}
+                        alt={detected.cctvName}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
+                        }}
+                      />
+                      <div className="absolute top-3 left-3 px-3 py-1.5 bg-black/70 rounded text-white text-xs font-semibold">
+                        {detected.timestamp}
+                      </div>
+                      <div className="absolute top-3 right-3 px-3 py-1.5 bg-purple-600/80 rounded text-white text-xs font-semibold">
+                        신뢰도 {detected.confidence}%
+                      </div>
+                    </div>
                   </div>
-                  <div className="absolute top-4 right-4 px-3 py-1.5 bg-purple-600/80 rounded text-white text-xs font-semibold">
-                    신뢰도 {detected.confidence}%
-                  </div>
-                </div>
-
-                {/* CCTV 정보 */}
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <div className="text-gray-400 text-sm mb-1">CCTV 이름</div>
-                    <div className="text-white font-semibold">{detected.cctvName}</div>
-                  </div>
-                  <div>
-                    <div className="text-gray-400 text-sm mb-1">장소</div>
-                    <div className="text-white font-semibold">{detected.location}</div>
+                  <div className="px-4 pb-4">
+                    <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
+                      <span>{detected.timestamp}</span>
+                      <span className="text-purple-400 font-semibold">클립</span>
+                    </div>
                   </div>
                 </div>
 
+                {/* 오른쪽: CCTV 정보 + 제어 */}
+                <div className="w-[400px] bg-[#0f0f0f] border-l border-[#31353a] flex flex-col overflow-hidden">
+                  {/* CCTV 정보 */}
+                  <div className="p-6 border-b border-[#31353a] flex-shrink-0">
+                    <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
+                    <div className="space-y-3">
+                      <div>
+                        <div className="text-gray-400 text-xs mb-1">관리번호</div>
+                        <div className="text-white font-semibold text-sm">{detected.cctvId}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400 text-xs mb-1">위치</div>
+                        <div className="text-gray-300 text-sm">{detected.location}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400 text-xs mb-1">CCTV 이름</div>
+                        <div className="text-gray-300 text-sm">{detected.cctvName}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 클립 제어 */}
+                  <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="flex gap-4">
+                      {/* 비디오 플레이어 컨트롤 - PTZ 버튼 위치와 동일한 스타일 */}
+                      <div className="flex flex-col gap-4 flex-1">
+                        {/* 재생 컨트롤 버튼 */}
+                        <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => {
+                                const newTime = Math.max(0, clipCurrentTime - 10);
+                                setClipCurrentTime(newTime);
+                              }}
+                              className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                              aria-label="10초 뒤로"
+                            >
+                              <Icon icon="mdi:rewind-10" className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => setIsClipPlaying(!isClipPlaying)}
+                              className="p-3 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                              aria-label={isClipPlaying ? "일시정지" : "재생"}
+                            >
+                              <Icon icon={isClipPlaying ? "mdi:pause" : "mdi:play"} className="w-6 h-6" />
+                            </button>
+                            <button
+                              onClick={() => {
+                                const newTime = Math.min(clipDuration, clipCurrentTime + 10);
+                                setClipCurrentTime(newTime);
+                              }}
+                              className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                              aria-label="10초 앞으로"
+                            >
+                              <Icon icon="mdi:fast-forward-10" className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </div>
+
+                        {/* 재생 타임라인 */}
+                        <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
+                          <div className="space-y-2">
+                            <div className="flex items-center justify-between text-xs text-gray-400">
+                              <span>{formatTime(clipCurrentTime)}</span>
+                              <span>{formatTime(clipDuration)}</span>
+                            </div>
+                            <div className="relative">
+                              <input
+                                type="range"
+                                min="0"
+                                max={clipDuration || 100}
+                                value={clipCurrentTime}
+                                onChange={(e) => setClipCurrentTime(Number(e.target.value))}
+                                className="w-full h-2 bg-[#0f0f0f] rounded-full appearance-none cursor-pointer slider"
+                                style={{
+                                  background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(clipCurrentTime / (clipDuration || 1)) * 100}%, #0f0f0f ${(clipCurrentTime / (clipDuration || 1)) * 100}%, #0f0f0f 100%)`
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 포착 이유 - 하단 */}
+              <div className="border-t border-[#31353a] p-6 flex-shrink-0 overflow-y-auto">
                 {/* AI 해석 */}
                 {detected.aiAnalysis && (
-                  <div className="bg-[#0f1723] border border-[#155DFC] p-4 rounded">
+                  <div className="bg-[#0f1723] border border-[#155DFC] p-4 rounded mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Icon icon="mdi:sparkles" className="w-4 h-4 text-[#50A1FF]" />
                       <span className="text-[#50A1FF] font-semibold text-sm">AI 해석</span>
@@ -1198,7 +1321,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
 
                 {/* 용의자 의심 이유 */}
                 {detected.suspectReason && (
-                  <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded" style={{ borderWidth: '1px' }}>
+                  <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Icon icon="mdi:alert-circle" className="w-4 h-4 text-yellow-400" />
                       <span className="text-yellow-400 font-semibold text-sm">용의자 의심 이유</span>
@@ -1209,7 +1332,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
 
                 {/* 상황 설명 */}
                 {detected.situation && (
-                  <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded" style={{ borderWidth: '1px' }}>
+                  <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded">
                     <div className="flex items-center gap-2 mb-2">
                       <Icon icon="mdi:information" className="w-4 h-4 text-blue-400" />
                       <span className="text-blue-400 font-semibold text-sm">상황 설명</span>
@@ -1217,20 +1340,19 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     <p className="text-gray-300 text-sm leading-relaxed">{detected.situation}</p>
                   </div>
                 )}
+              </div>
 
-                {/* 하단 버튼 */}
-                <div className="flex justify-end gap-2 pt-4 border-t border-[#31353a]" style={{ borderTopWidth: '1px' }}>
-                  <button
-                    onClick={() => {
-                      setShowDetectedCCTVPopup(false);
-                      setSelectedDetectedCCTV(null);
-                    }}
-                    className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white hover:border-white transition-colors"
-                    style={{ borderWidth: '1px' }}
-                  >
-                    닫기
-                  </button>
-                </div>
+              {/* 하단 닫기 버튼 */}
+              <div className="flex justify-end p-4 border-t border-[#31353a] flex-shrink-0">
+                <button
+                  onClick={() => {
+                    setShowDetectedCCTVPopup(false);
+                    setSelectedDetectedCCTV(null);
+                  }}
+                  className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white hover:border-white transition-colors"
+                >
+                  닫기
+                </button>
               </div>
             </div>
           </div>
@@ -1255,34 +1377,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             >
               {/* 팝업 헤더 */}
               <div className="flex items-center justify-between p-6 border-b border-[#31353a] flex-shrink-0">
-                <div className="flex items-center gap-3">
-                  {hasMultiple && (
-                    <button
-                      onClick={handlePrevCCTV}
-                      className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                      aria-label="이전 CCTV"
-                    >
-                      <Icon icon="mdi:chevron-left" className="w-5 h-5" />
-                    </button>
-                  )}
-                  <div className="flex items-center gap-2 text-base font-semibold text-white">
-                    <Icon icon="mdi:cctv" className="w-5 h-5 text-[#50A1FF]" />
-                    CCTV 팝업
-                    {hasMultiple && (
-                      <span className="text-sm text-gray-400 ml-2">
-                        ({currentIndex + 1}/{currentCluster.length})
-                      </span>
-                    )}
-                  </div>
-                  {hasMultiple && (
-                    <button
-                      onClick={handleNextCCTV}
-                      className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                      aria-label="다음 CCTV"
-                    >
-                      <Icon icon="mdi:chevron-right" className="w-5 h-5" />
-                    </button>
-                  )}
+                <div className="flex items-center gap-2 text-base font-semibold text-white">
+                  <Icon icon="mdi:cctv" className="w-5 h-5 text-[#50A1FF]" />
+                  CCTV 팝업
                 </div>
                 <button
                   onClick={() => {
@@ -1313,17 +1410,32 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           target.src = '/cctv_img/001.jpg';
                         }}
                       />
-                      {/* REC 오버레이 */}
+                      {/* LIVE 오버레이 */}
                       <div className="absolute top-3 left-3 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold flex items-center gap-1.5 rounded-full z-10">
                         <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
-                        REC
+                        <Icon icon="mdi:circle" className="w-2 h-2" />
+                        LIVE
                       </div>
+                      {/* AI 포착 이유 - 우측 하단 */}
+                      {(() => {
+                        const timelineEntry = movementTimeline.find(item => item.cctvId === selectedMapCCTV);
+                        if (timelineEntry?.title) {
+                          return (
+                            <div className="absolute bottom-3 right-3 px-3 py-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium rounded-lg z-10 border border-white/20">
+                              <div className="flex items-center gap-2">
+                                <Icon icon="mdi:robot" className="w-4 h-4 text-purple-400" />
+                                <span>{timelineEntry.title}</span>
+                              </div>
+                            </div>
+                          );
+                        }
+                        return null;
+                      })()}
                     </div>
                   </div>
                   <div className="px-4 pb-4">
                     <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
                       <span>{new Date().toISOString().slice(0, 19).replace('T', ' ')}</span>
-                      <span className="text-red-500 font-semibold">LIVE</span>
                     </div>
                   </div>
                 </div>
@@ -1461,7 +1573,28 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               {/* 썸네일 갤러리 */}
               {hasMultiple && (
                 <div className="border-t border-[#31353a] p-4 flex-shrink-0">
-                  <div className="text-gray-400 text-xs mb-3 font-medium">클러스터 CCTV</div>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="text-gray-400 text-xs font-medium">클러스터 CCTV</div>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={handlePrevCCTV}
+                        className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                        aria-label="이전 CCTV"
+                      >
+                        <Icon icon="mdi:chevron-left" className="w-5 h-5" />
+                      </button>
+                      <span className="text-sm text-gray-400">
+                        {currentIndex + 1}/{currentCluster.length}
+                      </span>
+                      <button
+                        onClick={handleNextCCTV}
+                        className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                        aria-label="다음 CCTV"
+                      >
+                        <Icon icon="mdi:chevron-right" className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </div>
                   <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
                     {currentCluster.map((cctvId: string, index: number) => {
                       const isActive = cctvId === selectedMapCCTV;

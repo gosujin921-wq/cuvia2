@@ -62,7 +62,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
     },
     'location-5': {
       position: { left: 85, top: 45 },
-      cctvs: ['CCTV-16'], // 현재 위치 주변 (용의자 추적중)
+      cctvs: ['CCTV-16', 'CCTV-17', 'CCTV-18', 'CCTV-19', 'CCTV-20'], // 현재 위치 주변 (용의자 추적중) - 5개 클러스터
     },
   };
 
@@ -131,7 +131,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             />
             {/* 클러스터 뱃지 - 같은 위치에 여러 CCTV가 있을 때 */}
             {cctvIds.length > 1 && (
-              <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-20">
+              <div className="absolute -top-[18px] -right-[18px] w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-20">
                 {cctvIds.length}
               </div>
             )}
@@ -447,7 +447,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   />
                   {/* 클러스터 뱃지 */}
                   {location5CCTVs.length > 1 && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-30">
+                    <div className="absolute -top-[18px] -right-[18px] w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-30">
                       {location5CCTVs.length}
                     </div>
                   )}
