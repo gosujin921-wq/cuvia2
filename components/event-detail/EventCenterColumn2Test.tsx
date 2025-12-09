@@ -11,6 +11,8 @@ interface EventCenterColumn2TestProps {
   handleRemoveFromMonitoring: (cctvKey: string) => void;
   setSelectedCCTV: (cctv: string | null) => void;
   setShowCCTVPopup: (show: boolean) => void;
+  setSelectedDetectedCCTV: (id: string | null) => void;
+  setShowDetectedCCTVPopup: (show: boolean) => void;
   detectedCCTVThumbnails: Array<{
     id: string;
     cctvId: string;
@@ -20,6 +22,9 @@ interface EventCenterColumn2TestProps {
     thumbnail: string;
     location: string;
     description: string;
+    aiAnalysis?: string;
+    suspectReason?: string;
+    situation?: string;
   }>;
   cctvInfo: Record<string, {
     id: string;
@@ -39,6 +44,8 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
   handleRemoveFromMonitoring,
   setSelectedCCTV,
   setShowCCTVPopup,
+  setSelectedDetectedCCTV,
+  setShowDetectedCCTVPopup,
   detectedCCTVThumbnails,
   cctvInfo,
   cctvThumbnailMap,
@@ -91,11 +98,11 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
       <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
         {activeTab === 'cctv' && (
           <div className="flex flex-col flex-1 min-h-0">
-          {/* 포착된 CCTV 썸네일 */}
+          {/* 포착된 CCTV 클립 */}
           <div className="flex flex-col flex-1 min-h-0 overflow-hidden" style={{ flexBasis: '50%', flexGrow: 1, flexShrink: 1 }}>
             <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
-              <Icon icon="mdi:image-multiple" className="w-4 h-4 text-purple-300" />
-              포착된 CCTV 썸네일
+              <Icon icon="mdi:video-stabilization" className="w-4 h-4 text-purple-300" />
+              포착된 CCTV 클립
             </div>
             <div className="overflow-y-auto flex-1">
               <div className={`grid gap-3`} style={{ 
@@ -114,21 +121,27 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
                 }).map((detected) => (
                   <div
                     key={detected.id}
-                    className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-purple-500/50 transition-colors overflow-hidden group"
+                    className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-purple-500/50 transition-colors overflow-hidden group relative"
                     style={{ borderWidth: '1px' }}
                     onClick={() => {
-                      setSelectedCCTV(detected.cctvName);
-                      setShowCCTVPopup(true);
+                      setSelectedDetectedCCTV(detected.id);
+                      setShowDetectedCCTVPopup(true);
                     }}
                   >
                     <div className="relative aspect-video bg-black">
-                      <img
+                      <video
                         src={detected.thumbnail}
-                        alt={detected.cctvName}
                         className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        muted
+                        loop
+                        playsInline
                         onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
+                          const target = e.target as HTMLVideoElement;
+                          // 동영상 로드 실패 시 썸네일 이미지로 대체
+                          const img = document.createElement('img');
+                          img.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
+                          img.className = 'w-full h-full object-cover';
+                          target.parentElement?.replaceChild(img, target);
                         }}
                       />
                       <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 rounded text-white text-[10px] font-semibold">
@@ -139,9 +152,13 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
                       </div>
                     </div>
                     <div className="p-1.5 space-y-0.5">
-                      <div className="text-white text-[10px] font-semibold truncate">{detected.cctvId}</div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white text-[10px] font-semibold truncate">{detected.cctvId}</span>
+                        <span className="px-1 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] flex-shrink-0">
+                          클립
+                        </span>
+                      </div>
                       <div className="text-gray-400 text-[10px] truncate">{detected.location}</div>
-                      <div className="text-gray-400 text-[10px] truncate">{detected.description}</div>
                     </div>
                   </div>
                 ))}

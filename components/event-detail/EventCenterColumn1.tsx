@@ -37,6 +37,46 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   setShowMapCCTVPopup,
   movementTimeline,
 }) => {
+  // CCTV 위치 정보 (맵 좌표 기준) - 같은 위치에 여러 CCTV가 있을 수 있음
+  const cctvLocationGroups: Record<string, { position: { left: number; top: number }; cctvs: string[] }> = {
+    'location-1': {
+      position: { left: 15, top: 80 },
+      cctvs: ['CCTV-7', 'CCTV-8', 'CCTV-9'], // 같은 위치에 여러 CCTV
+    },
+    'location-2': {
+      position: { left: 40, top: 60 },
+      cctvs: ['CCTV-12', 'CCTV-11'], // 같은 위치에 여러 CCTV
+    },
+    'location-3': {
+      position: { left: 70, top: 65 },
+      cctvs: ['CCTV-15'], // 단독 CCTV
+    },
+    'location-4': {
+      position: { left: 50, top: 40 },
+      cctvs: ['CCTV-3', 'CCTV-5', 'CCTV-13'], // 같은 위치에 여러 CCTV
+    },
+    'location-5': {
+      position: { left: 85, top: 45 },
+      cctvs: ['CCTV-16'], // 현재 위치 주변 (용의자 추적중)
+    },
+  };
+
+  // CCTV ID로 위치 그룹 찾기
+  const getLocationGroupForCCTV = (cctvId: string) => {
+    for (const [locationId, group] of Object.entries(cctvLocationGroups)) {
+      if (group.cctvs.includes(cctvId)) {
+        return group;
+      }
+    }
+    return null;
+  };
+
+  // CCTV ID로 위치 그룹의 CCTV 목록 가져오기
+  const getCCTVsAtSameLocation = (cctvId: string): string[] => {
+    const group = getLocationGroupForCCTV(cctvId);
+    return group ? group.cctvs : [cctvId];
+  };
+
   // 타임라인에서 CCTV별 title (감지 이유) 찾기
   const getTimelineTitle = (cctvId: string) => {
     const entry = movementTimeline.find((item) => {
@@ -49,6 +89,13 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
     });
     return entry?.title || '';
   };
+
+  // 각 위치의 CCTV 그룹 정보
+  const location1CCTVs = getCCTVsAtSameLocation('CCTV-7');
+  const location2CCTVs = getCCTVsAtSameLocation('CCTV-12');
+  const location3CCTVs = getCCTVsAtSameLocation('CCTV-15');
+  const location4CCTVs = getCCTVsAtSameLocation('CCTV-3');
+  const location5CCTVs = getCCTVsAtSameLocation('CCTV-16'); // 현재 위치
 
   return (
     <div className="flex flex-col pt-4 overflow-y-auto pr-4 flex-shrink-0" style={{ width: isRightPanelCollapsed ? '50%' : '55%', minHeight: 0, height: '100%' }}>
@@ -132,7 +179,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             className="animate-dash"
           />
         </svg>
-      
+
         {/* CCTV 아이콘들로 핀 대체 */}
         {/* 시작 지점 CCTV */}
         {showCCTV && (
@@ -151,41 +198,47 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                 width="16px" 
                 height="16px"
               />
+              {/* 클러스터 뱃지 - 같은 위치에 여러 CCTV가 있을 때 */}
+              {location1CCTVs.length > 1 && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-20">
+                  {location1CCTVs.length}
+                </div>
+              )}
             </div>
-            {showCCTVName && (
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-yellow-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
-                CCTV-7
+              {showCCTVName && (
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-yellow-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
+                  CCTV-7
+                </div>
+              )}
+              {/* 타임라인 타이틀 */}
+              <div className={`absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'} px-2 py-0.5 bg-[#1a1a1a] border border-yellow-500 rounded text-yellow-400 text-xs whitespace-nowrap shadow-lg z-10`}>
+                {getTimelineTitle('CCTV-7')}
               </div>
-            )}
-            {/* 타임라인 타이틀 */}
-            <div className={`absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'} px-2 py-0.5 bg-[#1a1a1a] border border-yellow-500 rounded text-yellow-400 text-xs whitespace-nowrap shadow-lg z-10`}>
-              {getTimelineTitle('CCTV-7')}
-            </div>
-            {/* 시야각 표시 */}
-            {showCCTVViewAngle && (
-              <div 
-                className="absolute"
-                style={{
-                  width: '120px',
-                  height: '120px',
-                  left: '50%',
-                  top: '50%',
-                  transform: 'translate(-50%, -50%) rotate(45deg)',
-                  transformOrigin: 'center center',
-                  pointerEvents: 'none',
-                  zIndex: 90,
-                }}
-              >
-                <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
-                  <path
-                    d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-                    fill="rgba(59, 130, 246, 0.2)"
-                    stroke="rgba(59, 130, 246, 0.6)"
-                    strokeWidth="2"
-                  />
-                </svg>
-              </div>
-            )}
+              {/* 시야각 표시 */}
+              {showCCTVViewAngle && (
+                <div 
+                  className="absolute"
+                  style={{
+                    width: '120px',
+                    height: '120px',
+                    left: '50%',
+                    top: '50%',
+                    transform: 'translate(-50%, -50%) rotate(45deg)',
+                    transformOrigin: 'center center',
+                    pointerEvents: 'none',
+                    zIndex: 90,
+                  }}
+                >
+                  <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
+                    <path
+                      d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
+                      fill="rgba(59, 130, 246, 0.2)"
+                      stroke="rgba(59, 130, 246, 0.6)"
+                      strokeWidth="2"
+                    />
+                  </svg>
+                </div>
+              )}
           </div>
         )}
         
@@ -207,6 +260,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   width="16px" 
                   height="16px"
                 />
+                {/* 클러스터 뱃지 */}
+                {location2CCTVs.length > 1 && (
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-20">
+                    {location2CCTVs.length}
+                  </div>
+                )}
               </div>
               {showCCTVName && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-blue-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
@@ -259,6 +318,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   width="16px" 
                   height="16px"
                 />
+                {/* 클러스터 뱃지 */}
+                {location3CCTVs.length > 1 && (
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-20">
+                    {location3CCTVs.length}
+                  </div>
+                )}
               </div>
               {showCCTVName && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-blue-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
@@ -311,6 +376,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   width="16px" 
                   height="16px"
                 />
+                {/* 클러스터 뱃지 */}
+                {location4CCTVs.length > 1 && (
+                  <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-20">
+                    {location4CCTVs.length}
+                  </div>
+                )}
               </div>
               {showCCTVName && (
                 <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-blue-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
@@ -360,9 +431,15 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               setShowMapCCTVPopup(true);
             }}
           >
-            {/* 대쉬 원 - 가장 아래 레이어 (펄스 애니메이션) */}
-            <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80 }}>
-              <div className="w-full h-full rounded-full border-2 border-red-400" style={{ borderColor: '#f87171', backgroundColor: 'rgba(248, 113, 113, 0.2)' }}></div>
+            {/* 대쉬 원 - 위험 상황 알람 펄스 애니메이션 (여러 레이어) */}
+            <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80, animationDelay: '0s' }}>
+              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
+            </div>
+            <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 79, animationDelay: '0.3s' }}>
+              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.4)' }}></div>
+            </div>
+            <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 78, animationDelay: '0.6s' }}>
+              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}></div>
             </div>
             {/* CCTV 아이콘 - 최상단 */}
             <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-red-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform" style={{ zIndex: 130 }}>
@@ -372,6 +449,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                 width="16px" 
                 height="16px"
               />
+              {/* 클러스터 뱃지 */}
+              {location5CCTVs.length > 1 && (
+                <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-blue-400 z-30">
+                  {location5CCTVs.length}
+                </div>
+              )}
             </div>
             {showCCTVName && (
               <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-red-500 rounded text-white text-xs whitespace-nowrap shadow-lg" style={{ zIndex: 140 }}>
