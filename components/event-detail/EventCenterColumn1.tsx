@@ -340,11 +340,13 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
         </div>
 
         {/* 지도 - 박스 밖으로 */}
+        {/* TODO: 지도 이미지 200% 확대 - 나중에 제거 필요 */}
         <div
           className="relative border border-[#31353a] bg-cover bg-center bg-no-repeat transition-transform duration-300"
           style={{
             borderWidth: '1px',
-            backgroundImage: 'url(/map_anyang.png)',
+            backgroundImage: 'url(/kintex.png)',
+            backgroundSize: '500%', // TODO: 지도 이미지 500% 확대 - 나중에 제거 필요 (원래: 'cover')
             height: '100%',
             width: '100%',
             transform: `scale(${mapScale})`,

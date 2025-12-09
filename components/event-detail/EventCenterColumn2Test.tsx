@@ -34,6 +34,7 @@ interface EventCenterColumn2TestProps {
   }>;
   cctvThumbnailMap: Record<string, string>;
   behaviorHighlights: string[];
+  showMapCCTVPopup?: boolean;
 }
 
 export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
@@ -50,22 +51,32 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
   cctvInfo,
   cctvThumbnailMap,
   behaviorHighlights,
+  showMapCCTVPopup = false,
 }) => {
   const [activeTab, setActiveTab] = useState<'cctv' | 'analysis'>('cctv');
 
-  // 키보드 단축키 (1: CCTV, 2: 분석 요약)
+  // 키보드 단축키 (1: CCTV, 2: 분석 요약) - 팝업이 열려있으면 동작하지 않음
   useEffect(() => {
+    if (showMapCCTVPopup) return;
+
     const handleKeyDown = (e: KeyboardEvent) => {
+      // 입력 필드에 포커스가 있으면 무시
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
       if (e.key === '1') {
+        e.preventDefault();
         setActiveTab('cctv');
       } else if (e.key === '2') {
+        e.preventDefault();
         setActiveTab('analysis');
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [showMapCCTVPopup]);
   return (
     <div className="flex flex-col pt-4 pr-4 flex-1 min-w-0 min-h-0 overflow-hidden" data-section-container style={{ minHeight: 0, height: '100%' }}>
       {/* 탭 버튼 */}

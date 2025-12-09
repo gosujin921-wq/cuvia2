@@ -118,6 +118,140 @@ const EventDetailPageContent = () => {
     setSelectedMapCCTV(currentCluster[nextIndex]);
     setCurrentCctvIndex(nextIndex);
   };
+
+  // PTZ 제어 핸들러
+  const handlePTZUp = () => {
+    console.log('PTZ: 위로 이동');
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  const handlePTZDown = () => {
+    console.log('PTZ: 아래로 이동');
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  const handlePTZLeft = () => {
+    console.log('PTZ: 왼쪽으로 이동');
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  const handlePTZRight = () => {
+    console.log('PTZ: 오른쪽으로 이동');
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  const handlePTZCenter = () => {
+    console.log('PTZ: 중앙');
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  const handleZoomIn = () => {
+    console.log('PTZ: 줌 인');
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  const handleZoomOut = () => {
+    console.log('PTZ: 줌 아웃');
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  const handlePreset = (preset: number) => {
+    console.log(`PTZ: 프리셋 ${preset}`);
+    // TODO: 실제 PTZ 제어 API 호출
+  };
+
+  // PTZ 키보드 pressed 상태
+  const [pressedKey, setPressedKey] = useState<string | null>(null);
+
+  // 키보드 이벤트 핸들러
+  useEffect(() => {
+    if (!showMapCCTVPopup) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 입력 필드에 포커스가 있으면 무시
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      let key: string | null = null;
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+          e.preventDefault();
+          key = 'up';
+          handlePTZUp();
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+          e.preventDefault();
+          key = 'down';
+          handlePTZDown();
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+          e.preventDefault();
+          key = 'left';
+          handlePTZLeft();
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+          e.preventDefault();
+          key = 'right';
+          handlePTZRight();
+          break;
+        case 'Home':
+        case '0':
+          e.preventDefault();
+          key = 'center';
+          handlePTZCenter();
+          break;
+        case '+':
+        case '=':
+        case 'PageUp':
+          e.preventDefault();
+          key = 'zoomIn';
+          handleZoomIn();
+          break;
+        case '-':
+        case '_':
+        case 'PageDown':
+          e.preventDefault();
+          key = 'zoomOut';
+          handleZoomOut();
+          break;
+        case '1':
+        case '2':
+        case '3':
+        case '4':
+        case '5':
+        case '6':
+          e.preventDefault();
+          key = `preset-${e.key}`;
+          handlePreset(parseInt(e.key));
+          break;
+      }
+
+      if (key) {
+        setPressedKey(key);
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      setPressedKey(null);
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [showMapCCTVPopup]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(332); // 5분 32초
@@ -624,6 +758,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setSelectedDetectedCCTV={setSelectedDetectedCCTV}
                 setShowDetectedCCTVPopup={setShowDetectedCCTVPopup}
                 detectedCCTVThumbnails={detectedCCTVThumbnails}
+                showMapCCTVPopup={showMapCCTVPopup}
                 cctvInfo={cctvInfo}
                 cctvThumbnailMap={cctvThumbnailMap}
                 behaviorHighlights={behaviorHighlights}
@@ -693,7 +828,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         >
           <div
             className="bg-[#101013] border border-[#31353a] w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col shadow-lg p-6 text-sm text-gray-100 space-y-5"
-            style={{ borderWidth: '1px' }}
+            style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }}
             onClick={(e) => e.stopPropagation()}
           >
             {/* 팝업 헤더 */}
@@ -996,7 +1131,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
           >
             <div
               className="bg-[#101013] border border-[#31353a] w-full max-w-3xl max-h-[90vh] overflow-y-auto flex flex-col shadow-lg"
-              style={{ borderWidth: '1px' }}
+              style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 헤더 */}
@@ -1114,18 +1249,17 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
           }}
         >
             <div
-              className="bg-[#101013] border border-[#31353a] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-lg"
-              style={{ borderWidth: '1px' }}
+              className="bg-[#101013] border border-[#31353a] w-full max-w-6xl max-h-[90vh] flex flex-col shadow-lg"
+              style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 팝업 헤더 */}
-              <div className="flex items-center justify-between p-6 border-b border-[#31353a] flex-shrink-0" style={{ borderBottomWidth: '1px' }}>
+              <div className="flex items-center justify-between p-6 border-b border-[#31353a] flex-shrink-0">
                 <div className="flex items-center gap-3">
                   {hasMultiple && (
                     <button
                       onClick={handlePrevCCTV}
                       className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                      style={{ borderWidth: '1px' }}
                       aria-label="이전 CCTV"
                     >
                       <Icon icon="mdi:chevron-left" className="w-5 h-5" />
@@ -1144,7 +1278,6 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     <button
                       onClick={handleNextCCTV}
                       className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                      style={{ borderWidth: '1px' }}
                       aria-label="다음 CCTV"
                     >
                       <Icon icon="mdi:chevron-right" className="w-5 h-5" />
@@ -1168,7 +1301,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               {/* 메인 콘텐츠 영역 */}
               <div className="flex-1 flex overflow-hidden min-h-0">
                 {/* 왼쪽: CCTV 영상 */}
-                <div className="w-[55%] bg-black flex flex-col">
+                <div className="flex-1 bg-black flex flex-col">
                   <div className="p-4 pb-3">
                     <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
                       <img
@@ -1195,11 +1328,12 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   </div>
                 </div>
 
-                {/* 오른쪽: 컨트롤 패널 */}
-                <div className="flex-1 bg-[#0f0f0f] border-l border-[#31353a] flex flex-col min-h-0 overflow-y-auto" style={{ borderLeftWidth: '1px' }}>
-                  <div className="p-6">
-                    {/* CCTV 정보 */}
-                    <div className="space-y-3 mb-6">
+                {/* 오른쪽: CCTV 정보 + PTZ 제어 */}
+                <div className="w-[400px] bg-[#0f0f0f] border-l border-[#31353a] flex flex-col overflow-hidden">
+                  {/* CCTV 정보 */}
+                  <div className="p-6 border-b border-[#31353a] flex-shrink-0">
+                    <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
+                    <div className="space-y-3">
                       <div>
                         <div className="text-gray-400 text-xs mb-1">관리번호</div>
                         <div className="text-white font-semibold text-sm">{selectedMapCCTV}</div>
@@ -1213,90 +1347,106 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                         <div className="text-gray-300 text-sm">{cctvInfo[Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV) || '']?.name || selectedMapCCTV}</div>
                       </div>
                     </div>
+                  </div>
 
-                    {/* PTZ 제어 */}
-                    <div className="space-y-4">
-                      <div className="text-white font-semibold text-sm mb-3">PTZ 제어</div>
-                      
-                      {/* Pan/Tilt 조이스틱 영역 */}
-                      <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
-                        <div className="text-gray-400 text-xs mb-3">Pan/Tilt</div>
-                        <div className="grid grid-cols-3 gap-2">
-                          <div></div>
-                          <button
-                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                            style={{ borderWidth: '1px' }}
-                            aria-label="위로 이동"
-                          >
-                            <Icon icon="mdi:chevron-up" className="w-5 h-5 mx-auto" />
-                          </button>
-                          <div></div>
-                          <button
-                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                            style={{ borderWidth: '1px' }}
-                            aria-label="왼쪽으로 이동"
-                          >
-                            <Icon icon="mdi:chevron-left" className="w-5 h-5 mx-auto" />
-                          </button>
-                          <button
-                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                            style={{ borderWidth: '1px' }}
-                            aria-label="중앙"
-                          >
-                            <Icon icon="mdi:target" className="w-5 h-5 mx-auto" />
-                          </button>
-                          <button
-                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                            style={{ borderWidth: '1px' }}
-                            aria-label="오른쪽으로 이동"
-                          >
-                            <Icon icon="mdi:chevron-right" className="w-5 h-5 mx-auto" />
-                          </button>
-                          <div></div>
-                          <button
-                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                            style={{ borderWidth: '1px' }}
-                            aria-label="아래로 이동"
-                          >
-                            <Icon icon="mdi:chevron-down" className="w-5 h-5 mx-auto" />
-                          </button>
-                          <div></div>
-                        </div>
-                      </div>
-
-                      {/* Zoom 제어 */}
-                      <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
-                        <div className="text-gray-400 text-xs mb-3">줌</div>
-                        <div className="flex items-center gap-3">
-                          <button
-                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                            style={{ borderWidth: '1px' }}
-                            aria-label="줌 아웃"
-                          >
-                            <Icon icon="mdi:minus" className="w-5 h-5" />
-                          </button>
-                          <div className="flex-1 h-2 bg-[#0f0f0f] rounded-full relative">
-                            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full"></div>
+                  {/* PTZ 제어 */}
+                  <div className="flex-1 p-6 overflow-y-auto">
+                    <div className="flex gap-4">
+                      {/* Pan/Tilt + Zoom 세로 배치 */}
+                      <div className="flex flex-col gap-4 flex-shrink-0">
+                        {/* Pan/Tilt 조이스틱 영역 */}
+                        <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
+                          <div className="grid grid-cols-3 gap-2">
+                            <div></div>
+                            <button
+                              onClick={handlePTZUp}
+                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
+                                pressedKey === 'up' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
+                              aria-label="위로 이동"
+                            >
+                              <Icon icon="mdi:chevron-up" className="w-5 h-5 mx-auto" />
+                            </button>
+                            <div></div>
+                            <button
+                              onClick={handlePTZLeft}
+                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
+                                pressedKey === 'left' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
+                              aria-label="왼쪽으로 이동"
+                            >
+                              <Icon icon="mdi:chevron-left" className="w-5 h-5 mx-auto" />
+                            </button>
+                            <button
+                              onClick={handlePTZCenter}
+                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
+                                pressedKey === 'center' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
+                              aria-label="중앙"
+                            >
+                              <Icon icon="mdi:target" className="w-5 h-5 mx-auto" />
+                            </button>
+                            <button
+                              onClick={handlePTZRight}
+                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
+                                pressedKey === 'right' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
+                              aria-label="오른쪽으로 이동"
+                            >
+                              <Icon icon="mdi:chevron-right" className="w-5 h-5 mx-auto" />
+                            </button>
+                            <div></div>
+                            <button
+                              onClick={handlePTZDown}
+                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
+                                pressedKey === 'down' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
+                              aria-label="아래로 이동"
+                            >
+                              <Icon icon="mdi:chevron-down" className="w-5 h-5 mx-auto" />
+                            </button>
+                            <div></div>
                           </div>
-                          <button
-                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
-                            style={{ borderWidth: '1px' }}
-                            aria-label="줌 인"
-                          >
-                            <Icon icon="mdi:plus" className="w-5 h-5" />
-                          </button>
+                        </div>
+
+                        {/* Zoom 제어 */}
+                        <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={handleZoomOut}
+                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
+                                pressedKey === 'zoomOut' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
+                              aria-label="줌 아웃"
+                            >
+                              <Icon icon="mdi:minus" className="w-5 h-5" />
+                            </button>
+                            <div className="flex-1 h-2 bg-[#0f0f0f] rounded-full relative">
+                              <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full"></div>
+                            </div>
+                            <button
+                              onClick={handleZoomIn}
+                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
+                                pressedKey === 'zoomIn' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
+                              aria-label="줌 인"
+                            >
+                              <Icon icon="mdi:plus" className="w-5 h-5" />
+                            </button>
+                          </div>
                         </div>
                       </div>
 
                       {/* 프리셋 */}
-                      <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
-                        <div className="text-gray-400 text-xs mb-3">프리셋</div>
+                      <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4 flex-1">
                         <div className="grid grid-cols-3 gap-2">
                           {[1, 2, 3, 4, 5, 6].map((preset) => (
                             <button
                               key={preset}
-                              className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded text-xs"
-                              style={{ borderWidth: '1px' }}
+                              onClick={() => handlePreset(preset)}
+                              className={`w-12 h-12 border border-[#31353a] text-white transition-colors rounded-full text-xs flex items-center justify-center ${
+                                pressedKey === `preset-${preset}` ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
+                              }`}
                             >
                               {preset}
                             </button>
@@ -1310,7 +1460,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
 
               {/* 썸네일 갤러리 */}
               {hasMultiple && (
-                <div className="border-t border-[#31353a] p-4 flex-shrink-0" style={{ borderTopWidth: '1px' }}>
+                <div className="border-t border-[#31353a] p-4 flex-shrink-0">
                   <div className="text-gray-400 text-xs mb-3 font-medium">클러스터 CCTV</div>
                   <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
                     {currentCluster.map((cctvId: string, index: number) => {
@@ -1327,7 +1477,6 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                               ? 'border-blue-500 ring-2 ring-blue-500/30' 
                               : 'border-[#31353a] hover:border-blue-500/50'
                           }`}
-                          style={{ borderWidth: '2px' }}
                         >
                           <img
                             src={cctvThumbnailMap[cctvId] || '/cctv_img/001.jpg'}
@@ -1346,7 +1495,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               )}
 
               {/* 하단 닫기 버튼 */}
-              <div className="flex justify-end p-4 border-t border-[#31353a] flex-shrink-0" style={{ borderTopWidth: '1px' }}>
+              <div className="flex justify-end p-4 border-t border-[#31353a] flex-shrink-0">
                 <button
                   type="button"
                   onClick={() => {
@@ -1356,7 +1505,6 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     setCurrentCctvIndex(0);
                   }}
                   className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white hover:border-white transition-colors"
-                  style={{ borderWidth: '1px' }}
                 >
                   닫기
                 </button>

@@ -502,7 +502,7 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
       {/* 지도 배경 이미지 - 가장 아래 */}
       <div className="absolute inset-0" style={{ zIndex: 1 }}>
         <img 
-          src="/map_anyang.png" 
+          src="/kintex.png" 
           alt="Map" 
           className="w-full h-full object-cover"
         />
@@ -834,95 +834,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         </div>
       )}
 
-      {/* 소방서 핀들 - 고정 위치 */}
-      <div className="absolute inset-0" style={{ zIndex: 90 }}>
-        {fireStations.map((station) => {
-          const isActive = nearbyStations.fireStations.some(s => s.id === station.id);
-          
-          return (
-            <div
-              key={station.id}
-              className="absolute cursor-pointer group"
-              style={{
-                left: `${station.left}%`,
-                top: `${station.top}%`,
-                transform: 'translate(-50%, -50%)',
-                opacity: isActive ? 1 : 0.3,
-                transition: 'opacity 0.3s ease-in-out',
-              }}
-            >
-              <div className={`w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center border-2 border-blue-400 shadow-2xl ${
-                isActive ? 'animate-pulse' : ''
-              }`}>
-                <Icon
-                  icon="mdi:fire-truck"
-                  className="text-white"
-                  width="20px"
-                  height="20px"
-                  style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' }}
-                />
-              </div>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-blue-500 text-white text-xs whitespace-nowrap shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="font-semibold">{station.name}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-
-      {/* 경찰서 핀들 - 고정 위치 */}
-      <div className="absolute inset-0" style={{ zIndex: 90 }}>
-        {policeStations.map((station) => {
-          const isActive = nearbyStations.policeStations.some(s => s.id === station.id);
-          
-          // event-2의 위치를 계산해서 가장 가까운 경찰서 찾기
-          const event2 = events.find(e => e.id === 'event-2');
-          let isEvent2ClosestStation = false;
-          if (event2) {
-            const event2Position = getEventPosition(event2);
-            const stationsWithDistance = policeStations.map(s => ({
-              ...s,
-              distance: calculateDistance(event2Position.left, event2Position.top, s.left, s.top),
-            }));
-            const closestStation = stationsWithDistance.sort((a, b) => a.distance - b.distance)[0];
-            isEvent2ClosestStation = station.id === closestStation.id;
-          }
-          
-          // event-2와 가장 가까운 경찰서의 기본 위치를 항상 아래로 200px 이동
-          const adjustedTop = isEvent2ClosestStation 
-            ? `calc(${station.top}% + 200px)` 
-            : `${station.top}%`;
-          
-          return (
-            <div
-              key={station.id}
-              className="absolute cursor-pointer group"
-              style={{
-                left: `${station.left}%`,
-                top: adjustedTop,
-                transform: 'translate(-50%, -50%)',
-                opacity: isActive ? 1 : 0.3,
-                transition: 'opacity 0.3s ease-in-out',
-              }}
-            >
-              <div className={`w-10 h-10 bg-indigo-600 rounded-full flex items-center justify-center border-2 border-indigo-400 shadow-2xl ${
-                isActive ? 'animate-pulse' : ''
-              }`}>
-                <Icon
-                  icon="mdi:police-badge"
-                  className="text-white"
-                  width="20px"
-                  height="20px"
-                  style={{ filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))' }}
-                />
-              </div>
-              <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 rounded-lg bg-[#1a1a1a] border border-indigo-500 text-white text-xs whitespace-nowrap shadow-xl opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="font-semibold">{station.name}</div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
       {/* 플로팅 검색창 */}
       <div 
