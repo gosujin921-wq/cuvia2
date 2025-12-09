@@ -1114,12 +1114,12 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
           }}
         >
             <div
-              className="bg-[#101013] border border-[#31353a] w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col shadow-lg"
+              className="bg-[#101013] border border-[#31353a] w-full max-w-5xl max-h-[90vh] flex flex-col shadow-lg"
               style={{ borderWidth: '1px' }}
               onClick={(e) => e.stopPropagation()}
             >
               {/* 팝업 헤더 */}
-              <div className="flex items-center justify-between p-6 border-b border-[#31353a]" style={{ borderBottomWidth: '1px' }}>
+              <div className="flex items-center justify-between p-6 border-b border-[#31353a] flex-shrink-0" style={{ borderBottomWidth: '1px' }}>
                 <div className="flex items-center gap-3">
                   {hasMultiple && (
                     <button
@@ -1158,7 +1158,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     setCctvClusterList([]);
                     setCurrentCctvIndex(0);
                   }}
-                  className="text-gray-400 hover:text-white focus:outline-none"
+                  className="text-gray-400 hover:text-white focus:outline-none transition-colors"
                   aria-label="CCTV 팝업 닫기"
                 >
                   <Icon icon="mdi:close" className="w-5 h-5" />
@@ -1166,51 +1166,65 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               </div>
 
               {/* 메인 콘텐츠 영역 */}
-              <div className="flex-1 flex overflow-hidden -mx-6">
+              <div className="flex-1 flex overflow-hidden min-h-0">
                 {/* 왼쪽: CCTV 영상 */}
-                <div className="w-[60%] bg-black p-4 flex flex-col gap-4">
-                  <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
-                    <img
-                      src={cctvThumbnailMap[selectedMapCCTV] || '/cctv_img/001.jpg'}
-                      alt={`${selectedMapCCTV} 라이브`}
-                      className="absolute inset-0 w-full h-full object-cover"
-                      onError={(e) => {
-                        const target = e.target as HTMLImageElement;
-                        target.src = '/cctv_img/001.jpg';
-                      }}
-                    />
-                    {/* REC 오버레이 */}
-                    <div className="absolute top-4 left-4 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold flex items-center gap-1.5 rounded-full z-10">
-                      <span className="w-2 h-2 bg-white rounded-full"></span>
-                      REC
+                <div className="w-[55%] bg-black flex flex-col">
+                  <div className="p-4 pb-3">
+                    <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
+                      <img
+                        src={cctvThumbnailMap[selectedMapCCTV] || '/cctv_img/001.jpg'}
+                        alt={`${selectedMapCCTV} 라이브`}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = '/cctv_img/001.jpg';
+                        }}
+                      />
+                      {/* REC 오버레이 */}
+                      <div className="absolute top-3 left-3 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold flex items-center gap-1.5 rounded-full z-10">
+                        <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
+                        REC
+                      </div>
                     </div>
                   </div>
-
-                  <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
-                    <span>{new Date().toISOString().slice(0, 19).replace('T', ' ')}</span>
-                    <span>LIVE</span>
+                  <div className="px-4 pb-4">
+                    <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
+                      <span>{new Date().toISOString().slice(0, 19).replace('T', ' ')}</span>
+                      <span className="text-red-500 font-semibold">LIVE</span>
+                    </div>
                   </div>
                 </div>
 
                 {/* 오른쪽: 컨트롤 패널 */}
-                <div className="flex-1 bg-[var(--color-black)] flex flex-col text-gray-100">
+                <div className="flex-1 bg-[#0f0f0f] border-l border-[#31353a] flex flex-col min-h-0 overflow-y-auto" style={{ borderLeftWidth: '1px' }}>
                   <div className="p-6">
-                    <div className="space-y-2 mb-4">
-                      <p className="text-white font-semibold text-sm">관리번호 {selectedMapCCTV}</p>
-                      <p className="text-gray-400 text-sm">위치 {cctvInfo[Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV) || '']?.location || '알 수 없음'}</p>
-                      <p className="text-gray-300 text-sm">{cctvInfo[Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV) || '']?.name || selectedMapCCTV}</p>
+                    {/* CCTV 정보 */}
+                    <div className="space-y-3 mb-6">
+                      <div>
+                        <div className="text-gray-400 text-xs mb-1">관리번호</div>
+                        <div className="text-white font-semibold text-sm">{selectedMapCCTV}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400 text-xs mb-1">위치</div>
+                        <div className="text-gray-300 text-sm">{cctvInfo[Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV) || '']?.location || '알 수 없음'}</div>
+                      </div>
+                      <div>
+                        <div className="text-gray-400 text-xs mb-1">CCTV 이름</div>
+                        <div className="text-gray-300 text-sm">{cctvInfo[Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV) || '']?.name || selectedMapCCTV}</div>
+                      </div>
                     </div>
 
                     {/* PTZ 제어 */}
-                    <div className="space-y-4 mb-6">
+                    <div className="space-y-4">
                       <div className="text-white font-semibold text-sm mb-3">PTZ 제어</div>
                       
                       {/* Pan/Tilt 조이스틱 영역 */}
-                      <div className="bg-[#0f0f0f] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
-                        <div className="grid grid-cols-3 gap-2 mb-2">
+                      <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                        <div className="text-gray-400 text-xs mb-3">Pan/Tilt</div>
+                        <div className="grid grid-cols-3 gap-2">
                           <div></div>
                           <button
-                            className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                             style={{ borderWidth: '1px' }}
                             aria-label="위로 이동"
                           >
@@ -1218,21 +1232,21 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           </button>
                           <div></div>
                           <button
-                            className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                             style={{ borderWidth: '1px' }}
                             aria-label="왼쪽으로 이동"
                           >
                             <Icon icon="mdi:chevron-left" className="w-5 h-5 mx-auto" />
                           </button>
                           <button
-                            className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                             style={{ borderWidth: '1px' }}
                             aria-label="중앙"
                           >
                             <Icon icon="mdi:target" className="w-5 h-5 mx-auto" />
                           </button>
                           <button
-                            className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                             style={{ borderWidth: '1px' }}
                             aria-label="오른쪽으로 이동"
                           >
@@ -1240,7 +1254,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           </button>
                           <div></div>
                           <button
-                            className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                             style={{ borderWidth: '1px' }}
                             aria-label="아래로 이동"
                           >
@@ -1251,21 +1265,21 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                       </div>
 
                       {/* Zoom 제어 */}
-                      <div className="bg-[#0f0f0f] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
-                        <div className="text-gray-400 text-xs mb-2">줌</div>
+                      <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                        <div className="text-gray-400 text-xs mb-3">줌</div>
                         <div className="flex items-center gap-3">
                           <button
-                            className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                             style={{ borderWidth: '1px' }}
                             aria-label="줌 아웃"
                           >
                             <Icon icon="mdi:minus" className="w-5 h-5" />
                           </button>
-                          <div className="flex-1 h-2 bg-[#1a1a1a] rounded-full relative">
+                          <div className="flex-1 h-2 bg-[#0f0f0f] rounded-full relative">
                             <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full"></div>
                           </div>
                           <button
-                            className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                            className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                             style={{ borderWidth: '1px' }}
                             aria-label="줌 인"
                           >
@@ -1275,13 +1289,13 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                       </div>
 
                       {/* 프리셋 */}
-                      <div className="bg-[#0f0f0f] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
-                        <div className="text-gray-400 text-xs mb-2">프리셋</div>
+                      <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                        <div className="text-gray-400 text-xs mb-3">프리셋</div>
                         <div className="grid grid-cols-3 gap-2">
                           {[1, 2, 3, 4, 5, 6].map((preset) => (
                             <button
                               key={preset}
-                              className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded text-xs"
+                              className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded text-xs"
                               style={{ borderWidth: '1px' }}
                             >
                               {preset}
@@ -1296,8 +1310,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
 
               {/* 썸네일 갤러리 */}
               {hasMultiple && (
-                <div className="border-t border-[#31353a] p-4 -mx-6 px-6" style={{ borderTopWidth: '1px' }}>
-                  <div className="text-gray-400 text-xs mb-3">클러스터 CCTV</div>
+                <div className="border-t border-[#31353a] p-4 flex-shrink-0" style={{ borderTopWidth: '1px' }}>
+                  <div className="text-gray-400 text-xs mb-3 font-medium">클러스터 CCTV</div>
                   <div className="flex gap-2 overflow-x-auto pb-2" style={{ scrollbarWidth: 'thin' }}>
                     {currentCluster.map((cctvId: string, index: number) => {
                       const isActive = cctvId === selectedMapCCTV;
@@ -1308,9 +1322,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             setSelectedMapCCTV(cctvId);
                             setCurrentCctvIndex(index);
                           }}
-                          className={`flex-shrink-0 w-24 h-16 rounded overflow-hidden border-2 transition-colors ${
+                          className={`flex-shrink-0 w-24 h-16 rounded overflow-hidden border-2 transition-all ${
                             isActive 
-                              ? 'border-blue-500' 
+                              ? 'border-blue-500 ring-2 ring-blue-500/30' 
                               : 'border-[#31353a] hover:border-blue-500/50'
                           }`}
                           style={{ borderWidth: '2px' }}
@@ -1331,7 +1345,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 </div>
               )}
 
-              <div className="flex justify-end p-6 border-t border-[#31353a] -mx-6 px-6" style={{ borderTopWidth: '1px' }}>
+              {/* 하단 닫기 버튼 */}
+              <div className="flex justify-end p-4 border-t border-[#31353a] flex-shrink-0" style={{ borderTopWidth: '1px' }}>
                 <button
                   type="button"
                   onClick={() => {
@@ -1340,7 +1355,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     setCctvClusterList([]);
                     setCurrentCctvIndex(0);
                   }}
-                  className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white transition-colors"
+                  className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white hover:border-white transition-colors"
                   style={{ borderWidth: '1px' }}
                 >
                   닫기
