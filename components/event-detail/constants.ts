@@ -49,10 +49,46 @@ export const behaviorHighlights = [
 ];
 
 export const movementTimeline = [
-  { time: '00:10:15', label: 'CCTV-7 현장', desc: '폭행 발생', color: 'text-yellow-400' },
-  { time: '00:12:34', label: 'CCTV-12 포착', desc: '북쪽으로 이동 (50m)', color: 'text-blue-400' },
-  { time: '00:13:02', label: 'CCTV-15 포착', desc: '골목길 진입', color: 'text-blue-400' },
-  { time: '00:13:30', label: '추적 위치', desc: '반경 200m 내', color: 'text-red-400' },
+  { 
+    time: '00:10:15', 
+    title: '폭행 발생', 
+    subtitle: '평촌대로 사거리',
+    cctvName: 'CCTV-7',
+    color: 'text-yellow-400',
+    cctvId: 'CCTV-7'
+  },
+  { 
+    time: '00:12:34', 
+    title: '차량 도주', 
+    subtitle: '비산동 주택가',
+    cctvName: 'CCTV-12',
+    color: 'text-blue-400',
+    cctvId: 'CCTV-12'
+  },
+  { 
+    time: '00:13:02', 
+    title: '급차선 변경', 
+    subtitle: '안양중앙시장 입구',
+    cctvName: 'CCTV-15',
+    color: 'text-blue-400',
+    cctvId: 'CCTV-15'
+  },
+  { 
+    time: '00:13:15', 
+    title: '신호 위반', 
+    subtitle: '관양동 교차로',
+    cctvName: 'CCTV-3',
+    color: 'text-blue-400',
+    cctvId: 'CCTV-3'
+  },
+  { 
+    time: '00:13:30', 
+    title: '용의자 추적 중', 
+    subtitle: '반경 200m 내',
+    cctvName: null,
+    color: 'text-red-400',
+    cctvId: null
+  },
 ];
 
 export const routeRecommendation = '최단 출동 경로: 중앙로 → 골목길 입구 (ETA 3분)';

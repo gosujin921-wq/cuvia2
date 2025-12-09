@@ -6,6 +6,9 @@ import { useParams } from 'next/navigation';
 import { getEventById, generateAIInsight, domainLabels, convertToDashboardEvent, formatEventDateTime } from '@/lib/events-data';
 import { EventLeftPanel } from '@/components/event-detail/EventLeftPanel';
 import { EventCenterPanel } from '@/components/event-detail/EventCenterPanel';
+import { EventCenterColumn1 } from '@/components/event-detail/EventCenterColumn1';
+import { EventCenterColumn2 } from '@/components/event-detail/EventCenterColumn2';
+import { EventCenterColumn2Test } from '@/components/event-detail/EventCenterColumn2Test';
 import { EventData, RiskFactor, ChatMessage, SavedClip } from '@/components/event-detail/types';
 import { behaviorHighlights, movementTimeline, cctvInfo, cctvThumbnailMap, cctvFovMap, detectedCCTVThumbnails } from '@/components/event-detail/constants';
 
@@ -155,10 +158,12 @@ const EventDetailPageContent = () => {
     setDragStartY(e.clientY);
     const container = document.querySelector('[data-section-container]') as HTMLElement;
     if (container) {
-      const currentHeight = cctvSectionHeight !== null 
+      // 현재 높이를 px로 계산 (cctvSectionHeight가 %인 경우)
+      const currentHeightPercent = cctvSectionHeight !== null 
         ? cctvSectionHeight 
-        : container.offsetHeight * 0.5;
-      setDragStartHeight(currentHeight);
+        : 50;
+      const currentHeightPx = (container.offsetHeight * currentHeightPercent) / 100;
+      setDragStartHeight(currentHeightPx);
     }
   };
 
@@ -171,8 +176,10 @@ const EventDetailPageContent = () => {
       if (!container) return;
       
       const containerHeight = container.offsetHeight;
-      const newHeight = Math.max(200, Math.min(containerHeight - 200, dragStartHeight + deltaY));
-      setCctvSectionHeight(newHeight);
+      const newHeightPx = Math.max(200, Math.min(containerHeight - 200, dragStartHeight + deltaY));
+      // px를 %로 변환하여 저장
+      const newHeightPercent = (newHeightPx / containerHeight) * 100;
+      setCctvSectionHeight(newHeightPercent);
     };
 
     const handleDragEnd = () => {
@@ -494,15 +501,17 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
       }}
     >
       <div 
-        className="flex flex-col flex-1"
+        className="flex flex-col"
         style={{
           width: '125%',
-          height: '125%',
+          height: '125vh',
+          minHeight: '125vh',
           transform: 'scale(0.8)',
           transformOrigin: 'top left',
         }}
       >
-        <div className="flex-1 flex overflow-hidden">
+        <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0, height: '100%' }}>
+        <div className="flex flex-1 overflow-hidden relative" style={{ minHeight: 0, height: '100%' }}>
         {/* Left Panel - 대시보드 스타일 적용 */}
         <EventLeftPanel
           event={event}
@@ -521,623 +530,75 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         />
 
         {/* Center Panel - 2컬럼 레이아웃 */}
-        <main className="flex-1 bg-[#161719] flex flex-col h-full overflow-hidden border-l border-r border-[#31353a]" style={{ borderWidth: '1px', borderTop: 'none', borderBottom: 'none' }}>
-          <div className="flex-1 overflow-hidden pl-7 pb-4">
-            <div className="flex gap-6 h-full">
+        <main className="flex-1 bg-[#161719] flex flex-col overflow-hidden border-l border-r border-[#31353a]" style={{ borderLeftWidth: '1px', borderRightWidth: '1px', borderTopWidth: '0', borderBottomWidth: '0', minHeight: 0, width: '100%', height: '100%', alignSelf: 'stretch' }}>
+          <div className="flex-1 overflow-hidden pl-7" style={{ minHeight: 0 }}>
+            <div className="flex gap-6" style={{ minHeight: 0, width: '100%', height: '100%' }}>
               {/* 1열: 위치 및 동선 - 우측 패널이 펼쳐졌을 때 더 넓게 */}
-              <div className="flex flex-col pt-4 h-full overflow-y-auto pr-4 flex-shrink-0" style={{ width: isRightPanelCollapsed ? '50%' : '55%' }}>
-                {/* 지도 - 박스 밖으로 */}
-                <div
-                  className="relative border border-[#31353a] overflow-hidden bg-cover bg-center bg-no-repeat mb-6"
-                      style={{
-                        borderWidth: '1px',
-                        backgroundImage: 'url(/map_anyang.png)',
-                    height: 'calc(80vh)',
-                  }}
-                >
-                  {/* CCTV 토글 버튼 */}
-                  <div 
-                    className="absolute top-4 right-4 flex flex-col gap-2" 
-                    style={{ zIndex: 250 }}
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setShowCCTV(prev => !prev);
-                      }}
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                        showCCTV 
-                          ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                          : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-                      }`}
-                      style={{ borderWidth: '1px' }}
-                      aria-label="CCTV"
-                    >
-                      <Icon icon="mdi:cctv" className="w-5 h-5" />
-                    </button>
-                    
-                    {/* CCTV 서브 토글 버튼들 */}
-                    {showCCTV && (
-                      <>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowCCTVViewAngle(prev => !prev);
-                          }}
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                            showCCTVViewAngle 
-                              ? 'bg-green-600 hover:bg-green-700 text-white' 
-                              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-                          }`}
-                          style={{ borderWidth: '1px' }}
-                          aria-label="시야각 켜기"
-                        >
-                          <Icon icon="mdi:angle-acute" className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowCCTVName(prev => !prev);
-                          }}
-                          className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                            showCCTVName 
-                              ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-                          }`}
-                          style={{ borderWidth: '1px' }}
-                          aria-label="CCTV 명 켜기"
-                        >
-                          <Icon icon="mdi:label" className="w-5 h-5" />
-                        </button>
-                      </>
-                    )}
-                  </div>
-
-                      {/* 지도 이미지 위에 SVG 오버레이 */}
-                      <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-                        {/* 동선 경로 */}
-                        <polyline 
-                          points="30,160 80,120 140,130 170,90" 
-                          fill="none" 
-                          stroke="#5390ff" 
-                      strokeWidth="1" 
-                      strokeDasharray="2 2"
-                          className="animate-dash"
-                        />
-                      </svg>
-                  
-                  {/* CCTV 아이콘들로 핀 대체 */}
-                  {/* 시작 지점 CCTV */}
-                  {showCCTV && (
-                    <div 
-                      className="absolute cursor-pointer" 
-                      style={{ left: '15%', top: '80%', transform: 'translate(-50%, -50%)', zIndex: 100 }}
-                      onClick={() => {
-                        setSelectedMapCCTV('CCTV-7');
-                        setShowMapCCTVPopup(true);
-                      }}
-                    >
-                      <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-yellow-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform">
-                        <Icon 
-                          icon="mdi:cctv" 
-                          className="text-yellow-400" 
-                          width="16px" 
-                          height="16px"
-                        />
-                      </div>
-                      {showCCTVName && (
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-yellow-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
-                          CCTV-7
-                    </div>
-                      )}
-                      {/* 시야각 표시 */}
-                      {showCCTVViewAngle && (
-                        <div 
-                          className="absolute"
-                          style={{
-                            width: '120px',
-                            height: '120px',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%) rotate(45deg)',
-                            transformOrigin: 'center center',
-                            pointerEvents: 'none',
-                            zIndex: 90,
-                          }}
-                        >
-                          <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
-                            <path
-                              d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-                              fill="rgba(59, 130, 246, 0.2)"
-                              stroke="rgba(59, 130, 246, 0.6)"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* 중간 지점 CCTV들 */}
-                  {showCCTV && (
-                    <>
-                      <div 
-                        className="absolute cursor-pointer" 
-                        style={{ left: '40%', top: '60%', transform: 'translate(-50%, -50%)', zIndex: 100 }}
-                        onClick={() => {
-                          setSelectedMapCCTV('CCTV-12');
-                          setShowMapCCTVPopup(true);
-                        }}
-                      >
-                        <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform">
-                          <Icon 
-                            icon="mdi:cctv" 
-                            className="text-blue-400" 
-                            width="16px" 
-                            height="16px"
-                          />
-                        </div>
-                        {showCCTVName && (
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-blue-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
-                            CCTV-12
-                          </div>
-                        )}
-                        {/* 시야각 표시 */}
-                        {showCCTVViewAngle && (
-                          <div 
-                            className="absolute"
-                            style={{
-                              width: '120px',
-                              height: '120px',
-                              left: '50%',
-                              top: '50%',
-                              transform: 'translate(-50%, -50%) rotate(90deg)',
-                              transformOrigin: 'center center',
-                              pointerEvents: 'none',
-                              zIndex: 90,
-                            }}
-                          >
-                            <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
-                              <path
-                                d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-                                fill="rgba(59, 130, 246, 0.2)"
-                                stroke="rgba(59, 130, 246, 0.6)"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div 
-                        className="absolute cursor-pointer" 
-                        style={{ left: '70%', top: '65%', transform: 'translate(-50%, -50%)', zIndex: 100 }}
-                        onClick={() => {
-                          setSelectedMapCCTV('CCTV-15');
-                          setShowMapCCTVPopup(true);
-                        }}
-                      >
-                        <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform">
-                          <Icon 
-                            icon="mdi:cctv" 
-                            className="text-blue-400" 
-                            width="16px" 
-                            height="16px"
-                          />
-                        </div>
-                        {showCCTVName && (
-                          <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-blue-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
-                            CCTV-15
-                          </div>
-                        )}
-                        {/* 시야각 표시 */}
-                        {showCCTVViewAngle && (
-                          <div 
-                            className="absolute"
-                            style={{
-                              width: '120px',
-                              height: '120px',
-                              left: '50%',
-                              top: '50%',
-                              transform: 'translate(-50%, -50%) rotate(135deg)',
-                              transformOrigin: 'center center',
-                              pointerEvents: 'none',
-                              zIndex: 90,
-                            }}
-                          >
-                            <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
-                              <path
-                                d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-                                fill="rgba(59, 130, 246, 0.2)"
-                                stroke="rgba(59, 130, 246, 0.6)"
-                                strokeWidth="2"
-                              />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </>
-                  )}
-                  
-                  {/* 현재 위치 CCTV - 모든 요소를 하나의 컨테이너에 중앙 정렬 */}
-                  {showCCTV && (
-                    <div 
-                      className="absolute flex items-center justify-center cursor-pointer" 
-                      style={{ left: '85%', top: '45%', transform: 'translate(-50%, -50%)', zIndex: 120, width: '80px', height: '80px' }}
-                      onClick={() => {
-                        setSelectedMapCCTV('현재 위치');
-                        setShowMapCCTVPopup(true);
-                      }}
-                    >
-                      {/* 대쉬 원 - 가장 아래 레이어 (펄스 애니메이션) */}
-                      <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80 }}>
-                        <div className="w-full h-full rounded-full border-2 border-red-400" style={{ borderColor: '#f87171', backgroundColor: 'rgba(248, 113, 113, 0.2)' }}></div>
-                      </div>
-                      {/* CCTV 아이콘 - 최상단 */}
-                      <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-red-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform" style={{ zIndex: 130 }}>
-                        <Icon 
-                          icon="mdi:cctv" 
-                          className="text-red-400" 
-                          width="16px" 
-                          height="16px"
-                        />
-                      </div>
-                      {showCCTVName && (
-                        <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-red-500 rounded text-white text-xs whitespace-nowrap shadow-lg" style={{ zIndex: 140 }}>
-                          현재 위치
-                        </div>
-                      )}
-                      {/* 시야각 표시 */}
-                      {showCCTVViewAngle && (
-                        <div 
-                          className="absolute"
-                          style={{
-                            width: '120px',
-                            height: '120px',
-                            left: '50%',
-                            top: '50%',
-                            transform: 'translate(-50%, -50%) rotate(180deg)',
-                            transformOrigin: 'center center',
-                            pointerEvents: 'none',
-                            zIndex: 90,
-                          }}
-                        >
-                          <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
-                            <path
-                              d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-                              fill="rgba(59, 130, 246, 0.2)"
-                              stroke="rgba(59, 130, 246, 0.6)"
-                              strokeWidth="2"
-                            />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-
-                {/* 위치 및 동선 - 타임라인만 */}
-                <div className="flex-1 flex flex-col min-h-0">
-                  <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
-                    <Icon icon="mdi:map-marker" className="w-4 h-4 text-green-300" />
-                    위치 및 동선
-                  </div>
-                  <div className="space-y-2 text-sm overflow-y-auto flex-1">
-                    {[...movementTimeline].reverse().map((entry) => (
-                      <div key={entry.time} className="flex gap-3">
-                        <div className="text-xs text-gray-500 w-16">{entry.time}</div>
-                        <div>
-                          <p className={`font-semibold ${entry.color}`}>{entry.label}</p>
-                          <p className="text-gray-400 text-xs">{entry.desc}</p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <EventCenterColumn1
+                isRightPanelCollapsed={isRightPanelCollapsed}
+                showCCTV={showCCTV}
+                setShowCCTV={setShowCCTV}
+                showCCTVViewAngle={showCCTVViewAngle}
+                setShowCCTVViewAngle={setShowCCTVViewAngle}
+                showCCTVName={showCCTVName}
+                setShowCCTVName={setShowCCTVName}
+                selectedMapCCTV={selectedMapCCTV}
+                setSelectedMapCCTV={setSelectedMapCCTV}
+                setShowMapCCTVPopup={setShowMapCCTVPopup}
+                movementTimeline={movementTimeline}
+              />
 
               {/* 2열: CCTV, 인물 분석, 행동 요약 */}
-              <div className="flex flex-col pt-4 pr-4 flex-1 min-w-0" data-section-container>
-                {/* CCTV 묶음 영역 */}
-                <div 
-                  className="flex flex-col flex-shrink-0" 
-                  style={{ height: cctvSectionHeight !== null ? `${cctvSectionHeight}px` : '50%' }}
-                >
-                  <div className="flex flex-col space-y-6 h-full">
-                    {/* 포착된 CCTV 썸네일 */}
-                    <div className="flex flex-col flex-1 min-h-0">
-                  <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
-                    <Icon icon="mdi:image-multiple" className="w-4 h-4 text-purple-300" />
-                    포착된 CCTV 썸네일
-                  </div>
-                  <div className="overflow-y-auto flex-1">
-                    <div className={`grid gap-3`} style={{ 
-                      gridTemplateColumns: isRightPanelCollapsed ? `repeat(auto-fill, minmax(160px, 1fr))` : `repeat(4, minmax(0, 1fr))`,
-                      gridTemplateRows: 'repeat(2, minmax(0, 1fr))', 
-                      gridAutoRows: 'minmax(0, 1fr)',
-                      minHeight: 'fit-content'
-                    }}>
-                      {[...detectedCCTVThumbnails].sort((a, b) => {
-                        // 시간을 비교하여 최신순으로 정렬 (내림차순)
-                        const timeA = a.timestamp.split(':').map(Number);
-                        const timeB = b.timestamp.split(':').map(Number);
-                        const secondsA = timeA[0] * 3600 + timeA[1] * 60 + timeA[2];
-                        const secondsB = timeB[0] * 3600 + timeB[1] * 60 + timeB[2];
-                        return secondsB - secondsA; // 최신순 (내림차순)
-                      }).map((detected) => (
-                      <div
-                        key={detected.id}
-                        className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-purple-500/50 transition-colors overflow-hidden group"
-                        style={{ borderWidth: '1px' }}
-                        onClick={() => {
-                          setSelectedCCTV(detected.cctvName);
-                          setShowCCTVPopup(true);
-                        }}
-                      >
-                        <div className="relative aspect-video bg-black">
-                          <img
-                            src={detected.thumbnail}
-                            alt={detected.cctvName}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                            onError={(e) => {
-                              const target = e.target as HTMLImageElement;
-                              target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
-                            }}
-                          />
-                          <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 rounded text-white text-[10px] font-semibold">
-                            {detected.timestamp}
-                          </div>
-                          <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-purple-600/80 rounded text-white text-[10px] font-semibold">
-                            {detected.confidence}%
-                          </div>
-                        </div>
-                        <div className="p-1.5 space-y-0.5">
-                          <div className="text-white text-[10px] font-semibold truncate">{detected.cctvId}</div>
-                          <div className="text-gray-400 text-[10px] truncate">{detected.location}</div>
-                          <div className="text-gray-400 text-[10px] truncate">{detected.description}</div>
-                        </div>
-                      </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-
-                {/* CCTV 모니터링 */}
-                <div className="flex flex-col flex-1 min-h-0">
-                  <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
-                    <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-300" />
-                    주변 cctv
-                  </div>
-                  <div className="overflow-y-auto flex-1">
-                    <div className={`grid gap-3`} style={{ 
-                      gridTemplateColumns: isRightPanelCollapsed ? `repeat(auto-fill, minmax(160px, 1fr))` : `repeat(4, minmax(0, 1fr))`,
-                      gridTemplateRows: 'repeat(2, minmax(0, 1fr))', 
-                      gridAutoRows: 'minmax(0, 1fr)',
-                      minHeight: 'fit-content'
-                    }}>
-                    {monitoringCCTVs.length === 0 ? (
-                      <div className="col-span-4 text-center py-8">
-                        <Icon icon="mdi:cctv-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
-                        <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
-                      </div>
-                    ) : (
-                      [...monitoringCCTVs].sort((a, b) => {
-                        const cctvA = cctvInfo[a];
-                        const cctvB = cctvInfo[b];
-                        if (!cctvA || !cctvB) return 0;
-                        // 추적중이 먼저 오도록 정렬
-                        if (cctvA.status === '추적중' && cctvB.status !== '추적중') return -1;
-                        if (cctvA.status !== '추적중' && cctvB.status === '추적중') return 1;
-                        return 0;
-                      }).map((cctvKey) => {
-                        const cctv = cctvInfo[cctvKey];
-                        if (!cctv) return null;
-                        const isTracking = cctv.status === '추적중';
-                        return (
-                          <div
-                            key={cctvKey}
-                            className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-blue-500/50 transition-colors overflow-hidden group relative"
-                            style={{ borderWidth: isTracking ? '2px' : '1px', borderColor: isTracking ? 'rgba(234, 179, 8, 0.5)' : undefined }}
-                              onClick={() => {
-                                setSelectedCCTV(cctvKey);
-                                setShowCCTVPopup(true);
-                              }}
-                            >
-                            <div className="relative aspect-video bg-black">
-                              <img
-                                src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
-                                alt={`${cctv.id} 썸네일`}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
-                                onError={(e) => {
-                                  const target = e.target as HTMLImageElement;
-                                  target.src = '/cctv_img/001.jpg';
-                                }}
-                              />
-                              <div className="absolute top-1 right-1">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleRemoveFromMonitoring(cctvKey);
-                                  }}
-                                  className="text-white bg-black/70 hover:bg-red-600/80 rounded-full p-1 transition-colors"
-                                  aria-label="모니터링에서 제거"
-                                >
-                                  <Icon icon="mdi:close" className="w-3 h-3" />
-                                </button>
-                              </div>
-                            </div>
-                            <div className="p-1.5 space-y-0.5">
-                              <div className="flex items-center gap-1.5">
-                                <span className="text-white text-[10px] font-semibold truncate">{cctv.id}</span>
-                                <span className={`px-1 py-0.5 text-[10px] flex-shrink-0 ${
-                                  cctv.status === '활성' 
-                                    ? 'bg-green-500/20 text-green-400'
-                                    : cctv.status === '추적중'
-                                      ? 'bg-yellow-500/20 text-yellow-400'
-                                      : 'bg-gray-500/20 text-gray-400'
-                                }`}>
-                                  {cctv.status}
-                                </span>
-                              </div>
-                              <div className="text-gray-400 text-[10px] truncate">{cctv.location}</div>
-                            </div>
-                          </div>
-                        );
-                      })
-                    )}
-                    </div>
-                  </div>
-                </div>
-                  </div>
-                </div>
-
-                {/* 드래그 가능한 구분선 */}
-                <div
-                  onMouseDown={handleDragStart}
-                  className="flex-shrink-0 h-1 bg-[#31353a] hover:bg-[#4a4f56] cursor-row-resize transition-colors relative group"
-                  style={{ borderTop: '1px solid #31353a', borderBottom: '1px solid #31353a' }}
-                >
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="w-12 h-0.5 bg-gray-500 group-hover:bg-gray-400 rounded-full transition-colors" />
-                  </div>
-                </div>
-
-                {/* 분석 요약 묶음 영역 */}
-                <div className="flex flex-col overflow-y-auto flex-1 min-h-0">
-                  <div className="flex flex-col space-y-6 pt-4">
-                    {/* 인물 분석 & 차량 분석 */}
-                <div className="grid grid-cols-2 gap-6">
-                {/* 인물 분석 */}
-                <div>
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2 text-sm text-white font-semibold">
-                      <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
-                      인물 분석
-                    </div>
-                    <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
-                  </div>
-                  <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
-                    <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
-                      <div>
-                        <p className="text-gray-500 text-xs mb-0.5">성별/연령</p>
-                        <p>남성, 30대 초반 추정</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs mb-0.5">상의</p>
-                        <p>검은색 후드티</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs mb-0.5">하의</p>
-                        <p>청바지</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs mb-0.5">신발</p>
-                        <p>흰색 운동화</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs mb-0.5">체격</p>
-                        <p>170cm 추정, 중간 체격</p>
-                      </div>
-                      <div>
-                        <p className="text-gray-500 text-xs mb-0.5">ReID 신뢰도</p>
-                        <p className="text-green-400 font-semibold">89%</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 차량 분석 */}
-                  <div>
-                    <div className="flex items-center justify-between mb-3">
-                      <div className="flex items-center gap-2 text-sm text-white font-semibold">
-                        <Icon icon="mdi:car" className="w-4 h-4 text-blue-300" />
-                        차량 분석
-                      </div>
-                      <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
-                    </div>
-                    <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
-                      <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
-                        <div>
-                          <p className="text-gray-500 text-xs mb-0.5">차종</p>
-                          <p>소형 승용차</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs mb-0.5">색상</p>
-                          <p>흰색</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs mb-0.5">번호판</p>
-                          <p>12가3456</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs mb-0.5">방향</p>
-                          <p>북쪽으로 이동</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs mb-0.5">속도</p>
-                          <p>약 60km/h</p>
-                        </div>
-                        <div>
-                          <p className="text-gray-500 text-xs mb-0.5">인식 신뢰도</p>
-                          <p className="text-green-400 font-semibold">92%</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* 행동 요약 */}
-                <div>
-                  <div className="flex items-center gap-2 text-sm text-red-300 font-semibold mb-3">
-                    <Icon icon="mdi:alert" className="w-4 h-4" />
-                    행동 요약
-                  </div>
-                  <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
-                    <ul className="text-sm text-red-100 space-y-1">
-                      {behaviorHighlights.map((item) => (
-                        <li key={item}>• {item}</li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-                  </div>
-                </div>
-              </div>
+              <EventCenterColumn2Test
+                isRightPanelCollapsed={isRightPanelCollapsed}
+                cctvSectionHeight={cctvSectionHeight}
+                handleDragStart={handleDragStart}
+                monitoringCCTVs={monitoringCCTVs}
+                handleRemoveFromMonitoring={handleRemoveFromMonitoring}
+                setSelectedCCTV={setSelectedCCTV}
+                setShowCCTVPopup={setShowCCTVPopup}
+                detectedCCTVThumbnails={detectedCCTVThumbnails}
+                cctvInfo={cctvInfo}
+                cctvThumbnailMap={cctvThumbnailMap}
+                behaviorHighlights={behaviorHighlights}
+              />
             </div>
           </div>
         </main>
+        </div>
 
         {/* Right Panel - AI Agent (채팅) */}
-        {!isRightPanelCollapsed && (
-          <aside className="w-[30rem] bg-white border-l border-[#31353a] flex flex-col h-full overflow-hidden relative transition-all duration-300" style={{ borderWidth: '1px', borderTop: 'none', borderBottom: 'none' }}>
-            {/* 우측 패널 토글 버튼 */}
-            <button
-              onClick={() => setIsRightPanelCollapsed(true)}
-              className="absolute top-1/2 -translate-y-1/2 -left-2 w-8 h-14 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-colors focus:outline-none z-50 bg-[#161719] border border-[#31353a] rounded"
-              style={{ borderWidth: '1px' }}
-              aria-label="우측 패널 접기"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-            </button>
-            <div className="flex-1 overflow-y-auto">
-          <EventCenterPanel
-            categoryLabel={categoryLabel}
-            chatMessages={chatMessages}
-            chatInput={chatInput}
-            setChatInput={setChatInput}
-            isResponding={isResponding}
-            savedClips={savedClips}
-            setSelectedCCTV={setSelectedCCTV}
-            setShowCCTVPopup={setShowCCTVPopup}
-            handleSendMessage={handleSendMessage}
-            handleDeleteClip={handleDeleteClip}
-          />
-            </div>
+        <aside className={`bg-white border-l border-[#31353a] flex flex-col overflow-hidden relative transition-all duration-300 flex-shrink-0 ${isRightPanelCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[30rem] opacity-100'}`} style={{ borderLeftWidth: isRightPanelCollapsed ? '0' : '1px', borderTopWidth: '0', borderBottomWidth: '0', minHeight: 0, height: '100%', alignSelf: 'stretch' }}>
+          {!isRightPanelCollapsed && (
+            <>
+              {/* 우측 패널 토글 버튼 */}
+              <button
+                onClick={() => setIsRightPanelCollapsed(true)}
+                className="absolute top-1/2 -translate-y-1/2 -left-2 w-8 h-14 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-colors focus:outline-none z-50 bg-[#161719] border border-[#31353a] rounded"
+                style={{ borderWidth: '1px' }}
+                aria-label="우측 패널 접기"
+              >
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
+                <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
+              </button>
+              <div className="flex-1 overflow-y-auto">
+                <EventCenterPanel
+                  categoryLabel={categoryLabel}
+                  chatMessages={chatMessages}
+                  chatInput={chatInput}
+                  setChatInput={setChatInput}
+                  isResponding={isResponding}
+                  savedClips={savedClips}
+                  setSelectedCCTV={setSelectedCCTV}
+                  setShowCCTVPopup={setShowCCTVPopup}
+                  handleSendMessage={handleSendMessage}
+                  handleDeleteClip={handleDeleteClip}
+                />
+              </div>
+            </>
+          )}
         </aside>
-        )}
 
         {/* 우측 패널 접힘 시 플로팅 버튼 */}
         {isRightPanelCollapsed && (

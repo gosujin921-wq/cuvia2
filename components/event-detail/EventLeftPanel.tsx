@@ -40,7 +40,7 @@ export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
   onOpenModalRef,
 }) => {
   return (
-    <aside className="flex flex-col flex-shrink-0 w-[370px] pl-4 pr-5">
+    <aside className="flex flex-col flex-shrink-0 w-[370px] pl-4 pr-5 h-full overflow-hidden">
       <div className="py-4 px-3 flex items-center justify-between flex-shrink-0">
         <Link href="/" className="w-24 h-5 flex items-center justify-start">
           <img 
