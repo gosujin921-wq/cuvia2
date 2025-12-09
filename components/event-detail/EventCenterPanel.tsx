@@ -40,8 +40,8 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
   }, [chatMessages, isResponding]);
 
   return (
-    <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden">
-      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-3 pl-10 pr-9 space-y-8">
+    <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden h-full">
+      <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-3 pl-10 pr-9 space-y-8 min-h-0">
         {/* AI Chat Blocks */}
         <div className="space-y-4">
           {chatBlocks.map((block) => (
@@ -142,7 +142,7 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
       </div>
 
       {/* 빠른 명령 + 자연어 입력 */}
-      <div className="border-t border-gray-200 bg-white p-4 sticky bottom-0 left-0 right-0" style={{ borderWidth: '1px' }}>
+      <div className="border-t border-gray-200 bg-white p-4 flex-shrink-0" style={{ borderWidth: '1px' }}>
         <div className="flex flex-wrap gap-2 mb-3">
           {quickCommands.map((cmd) => (
             <button
