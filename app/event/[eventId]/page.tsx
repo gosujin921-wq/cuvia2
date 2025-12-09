@@ -2,19 +2,16 @@
 
 import React, { useEffect, useRef, useState, useMemo, Suspense } from 'react';
 import { Icon } from '@iconify/react';
-import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
-import { getEventById, generateAIInsight, domainLabels, getEventCategory, getAIInsightKeywords, convertToDashboardEvent, formatEventDateTime } from '@/lib/events-data';
-import BroadcastControls from '@/components/BroadcastControls';
+import { useParams } from 'next/navigation';
+import { getEventById, generateAIInsight, domainLabels, convertToDashboardEvent, formatEventDateTime } from '@/lib/events-data';
 import { EventLeftPanel } from '@/components/event-detail/EventLeftPanel';
 import { EventCenterPanel } from '@/components/event-detail/EventCenterPanel';
 import { EventData, RiskFactor, ChatMessage, SavedClip } from '@/components/event-detail/types';
-import { riskLevelMeta, chatBlocks, quickCommands, behaviorHighlights, movementTimeline, routeRecommendation, cctvInfo, cctvThumbnailMap, cctvFovMap, detectedCCTVThumbnails } from '@/components/event-detail/constants';
+import { behaviorHighlights, movementTimeline, cctvInfo, cctvThumbnailMap, cctvFovMap, detectedCCTVThumbnails } from '@/components/event-detail/constants';
 
 
 const EventDetailPageContent = () => {
   const params = useParams();
-  const router = useRouter();
   const eventId = params.eventId as string;
   
   const baseEvent = useMemo(() => {
@@ -75,6 +72,7 @@ const EventDetailPageContent = () => {
   const [showCCTVViewAngle, setShowCCTVViewAngle] = useState(false);
   const [showCCTVName, setShowCCTVName] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [isRightPanelCollapsed, setIsRightPanelCollapsed] = useState(false);
 
   // 클라이언트 마운트 후 localStorage에서 값 읽기
   useEffect(() => {
@@ -434,19 +432,6 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
   const selectedCctvThumbnail = selectedCctvId ? cctvThumbnailMap[selectedCctvId] || '/cctv_img/001.jpg' : '/cctv_img/001.jpg';
   const selectedCctvFov = selectedCctvId ? cctvFovMap[selectedCctvId] || '100°' : '100°';
 
-  const rightPanelBlocks = [
-    {
-      title: '전파 상태',
-      content: savedClips.length
-        ? `전파 준비 클립 ${savedClips.length}건이 저장되어 있습니다. 필요 시 전파 초안으로 바로 활용 가능합니다.`
-        : '현재 전파 준비 클립이 없습니다. CCTV 모달에서 클립을 저장하면 이 영역에 요약이 표시됩니다.',
-    },
-    {
-      title: '위험 요인 요약',
-      content: riskReasonSummary,
-    },
-  ];
-
   return (
     <div 
       className="flex flex-col bg-[#161719] overflow-hidden relative"
@@ -484,11 +469,24 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         />
 
         {/* Center Panel - 2컬럼 레이아웃 */}
-        <main className="flex-1 bg-[#161719] flex flex-col h-full overflow-hidden border-l border-r border-[#31353a]" style={{ borderWidth: '1px', borderTop: 'none', borderBottom: 'none' }}>
+        <main className="flex-1 bg-[#161719] flex flex-col h-full overflow-hidden border-l border-r border-[#31353a] relative" style={{ borderWidth: '1px', borderTop: 'none', borderBottom: 'none' }}>
+          {/* 우측 패널 토글 버튼 */}
+          {!isRightPanelCollapsed && (
+            <button
+              onClick={() => setIsRightPanelCollapsed(true)}
+              className="absolute top-1/2 -translate-y-1/2 -right-2 w-8 h-14 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-colors focus:outline-none z-50 bg-[#161719] border border-[#31353a] rounded"
+              style={{ borderWidth: '1px' }}
+              aria-label="우측 패널 접기"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
+              <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
+            </button>
+          )}
           <div className="flex-1 overflow-hidden pl-7 pb-4">
-            <div className="grid grid-cols-2 gap-6 h-full">
-              {/* 1열: 위치 및 동선 */}
-              <div className="flex flex-col pt-4 h-full overflow-y-auto pr-4">
+            <div className="flex gap-6 h-full">
+              {/* 1열: 위치 및 동선 - 우측 패널이 펼쳐졌을 때 더 넓게 */}
+              <div className="flex flex-col pt-4 h-full overflow-y-auto pr-4 flex-shrink-0" style={{ width: isRightPanelCollapsed ? '50%' : '55%' }}>
                 {/* 지도 - 박스 밖으로 */}
                 <div
                   className="relative border border-[#31353a] overflow-hidden bg-cover bg-center bg-no-repeat mb-6"
@@ -775,7 +773,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               </div>
 
               {/* 2열: CCTV, 인물 분석, 행동 요약 */}
-              <div className="flex flex-col space-y-6 pt-4 overflow-y-auto h-full pr-4">
+              <div className="flex flex-col space-y-6 pt-4 overflow-y-auto h-full pr-4 flex-1 min-w-0">
                 {/* 포착된 CCTV 썸네일 */}
                 <div>
                   <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
@@ -783,7 +781,11 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     포착된 CCTV 썸네일
                   </div>
                   <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
-                    <div className="grid grid-cols-4 gap-3" style={{ gridTemplateRows: 'repeat(2, minmax(0, 1fr))', gridAutoRows: 'minmax(0, 1fr)' }}>
+                    <div className={`grid gap-3`} style={{ 
+                      gridTemplateColumns: `repeat(auto-fill, minmax(160px, 1fr))`,
+                      gridTemplateRows: 'repeat(2, minmax(0, 1fr))', 
+                      gridAutoRows: 'minmax(0, 1fr)' 
+                    }}>
                       {[...detectedCCTVThumbnails].sort((a, b) => {
                         // 시간을 비교하여 최신순으로 정렬 (내림차순)
                         const timeA = a.timestamp.split(':').map(Number);
@@ -836,7 +838,11 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     주변 cctv
                   </div>
                   <div className="overflow-y-auto" style={{ maxHeight: '400px' }}>
-                    <div className="grid grid-cols-4 gap-3" style={{ gridTemplateRows: 'repeat(2, minmax(0, 1fr))', gridAutoRows: 'minmax(0, 1fr)' }}>
+                    <div className={`grid gap-3`} style={{ 
+                      gridTemplateColumns: `repeat(auto-fill, minmax(160px, 1fr))`,
+                      gridTemplateRows: 'repeat(2, minmax(0, 1fr))', 
+                      gridAutoRows: 'minmax(0, 1fr)' 
+                    }}>
                     {monitoringCCTVs.length === 0 ? (
                       <div className="col-span-4 text-center py-8">
                         <Icon icon="mdi:cctv-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
@@ -1012,7 +1018,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         </main>
 
         {/* Right Panel - AI Agent (채팅) */}
-        <aside className="w-[30rem] bg-white border-l border-[#31353a] flex flex-col h-full overflow-y-auto pl-4 pr-5" style={{ borderWidth: '1px' }}>
+        {!isRightPanelCollapsed && (
+          <aside className="w-[30rem] bg-white border-l border-[#31353a] flex flex-col h-full overflow-y-auto pl-4 pr-5 transition-all duration-300" style={{ borderWidth: '1px', borderTop: 'none', borderBottom: 'none' }}>
           <EventCenterPanel
             categoryLabel={categoryLabel}
             chatMessages={chatMessages}
@@ -1026,6 +1033,18 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             handleDeleteClip={handleDeleteClip}
           />
         </aside>
+        )}
+
+        {/* 우측 패널 접힘 시 플로팅 버튼 */}
+        {isRightPanelCollapsed && (
+          <button
+            onClick={() => setIsRightPanelCollapsed(false)}
+            className="fixed bottom-6 right-6 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full flex items-center justify-center shadow-lg transition-all duration-300 z-50"
+            aria-label="우측 패널 펼치기"
+          >
+            <Icon icon="mdi:chevron-right" className="w-6 h-6" />
+          </button>
+        )}
 
         </div>
       </div>
