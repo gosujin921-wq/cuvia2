@@ -116,8 +116,10 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
                       <button
                         key={button}
                         onClick={() => {
-                          setSelectedCCTV(button);
-                          setShowCCTVPopup(true);
+                          if (setSelectedMapCCTV && setShowMapCCTVPopup) {
+                            setSelectedMapCCTV(button);
+                            setShowMapCCTVPopup(true);
+                          }
                         }}
                         className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm hover:border-blue-500 hover:bg-blue-50 transition-colors"
                         style={{ borderWidth: '1px' }}

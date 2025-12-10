@@ -2,19 +2,11 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { Icon } from '@iconify/react';
+import { BroadcastDraftPopup, ClipData } from './event-detail/BroadcastDraftPopup';
 
 type PriorityLabel = '긴급' | '경계' | '주의';
 
-export type ClipData = {
-  id: string;
-  cctvId: string;
-  cctvName: string;
-  timestamp: string;
-  duration: string;
-  frameTimestamp: string;
-  thumbnail: string;
-  status: 'saved' | 'ready';
-};
+export type { ClipData } from './event-detail/BroadcastDraftPopup';
 
 export type BroadcastControlsProps = {
   eventId: string;
@@ -160,12 +152,6 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
     }
   };
 
-  const handleOverlayClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    if (event.target === event.currentTarget) {
-      handleClose();
-    }
-  };
-
   const handleBroadcast = () => {
     console.info('Broadcast request:', { eventId, message, recipients: selectedRecipients, attachments });
     setDraftStatus('idle');
@@ -223,13 +209,6 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
     };
   };
 
-  const priorityBadgeClass =
-    priority === '긴급'
-      ? 'bg-red-500/20 text-red-400'
-      : priority === '경계'
-        ? 'bg-yellow-500/20 text-yellow-400'
-        : 'bg-blue-500/20 text-blue-400';
-
   return (
     <>
       <button
@@ -244,166 +223,26 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
         {draftStatus === 'drafting' || attachments.length > 0 ? '전파 초안 작성 중' : '전파 초안 작성'}
       </button>
 
-      {isModalOpen && (
-        <div
-          className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center px-6"
-          role="dialog"
-          aria-modal="true"
-          aria-label="전파 모달"
-          onClick={handleOverlayClick}
-        >
-          <div className="w-full max-w-2xl bg-[#101013] border border-[#31353a] p-6 text-sm text-gray-100 space-y-5 shadow-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-base font-semibold text-white">
-                <Icon icon="mdi:send" className="w-5 h-5 text-[#50A1FF]" />
-                전파 초안 작성
-              </div>
-              <button
-                type="button"
-                onClick={handleClose}
-                aria-label="전파 모달 닫기"
-                className="text-gray-400 hover:text-white focus:outline-none"
-              >
-                <Icon icon="mdi:close" className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-gray-300">
-              <div>
-                <p className="text-white font-semibold">이벤트명</p>
-                <p className="text-gray-300 text-sm">{eventTitle}</p>
-              </div>
-              <div>
-                <p className="text-white font-semibold">우선순위</p>
-                <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-semibold ${priorityBadgeClass}`}>
-                  {priority}
-                </span>
-              </div>
-              <div>
-                <p className="text-white font-semibold">접수 시간</p>
-                <p className="text-gray-300 text-sm">{receivedAt}</p>
-              </div>
-              <div>
-                <p className="text-white font-semibold">위치</p>
-                <p className="text-gray-300 text-sm">{location}</p>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-white font-semibold">전파 대상</span>
-                <span className="text-gray-400 font-medium">수정 가능</span>
-                <span className="text-gray-500 font-medium text-xs sm:text-sm">(다중 선택)</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {availableRecipients.map((recipient) => {
-                  const isSelected = selectedRecipients.includes(recipient);
-                  return (
-                    <button
-                      key={recipient}
-                      type="button"
-                      onClick={() => toggleRecipient(recipient)}
-                      className={`px-3 py-1 text-xs border ${
-                        isSelected ? 'bg-[#155DFC] text-white border-[#155DFC]' : 'border-[#2a2d36] text-gray-300'
-                      }`}
-                    >
-                      {recipient}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-white font-semibold">전파 메시지</span>
-                <span className="text-gray-400 font-medium">수정 가능</span>
-                <span className="text-gray-500 font-medium text-xs sm:text-sm">AI 요약 기반</span>
-              </div>
-              <textarea
-                id="broadcast-message"
-                value={message}
-                onChange={(event) => setMessage(event.target.value)}
-                className="w-full h-40 bg-white text-gray-900 border border-[#31353a] text-sm p-3 focus:outline-none focus:ring-2 focus:ring-[#50A1FF] resize-none placeholder:text-gray-500"
-              />
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center gap-2 text-sm">
-                <span className="text-white font-semibold">이벤트 클립</span>
-                <span className="text-gray-400 font-medium">수정 가능</span>
-              </div>
-              {attachments.length > 0 ? (
-                <div className="flex gap-3 overflow-x-auto pb-1">
-                  {attachments.map((attachment) => (
-                    <div key={attachment.id} className="min-w-[160px] bg-[#36383B] border border-[#2a2d36] shadow-sm relative">
-                      <button
-                        type="button"
-                        onClick={() => removeAttachment(attachment.id)}
-                        className="absolute top-2 right-2 z-10 text-white bg-black/60 rounded-full p-1 hover:bg-black/80 transition-colors"
-                        aria-label="첨부 삭제"
-                      >
-                        <Icon icon="mdi:close" className="w-4 h-4" />
-                      </button>
-                      <div className="relative h-24 bg-gray-200 overflow-hidden">
-                        <img 
-                          src={attachment.thumbnail} 
-                          alt={`${attachment.cctvId} 썸네일`} 
-                          className="absolute inset-0 w-full h-full object-cover" 
-                          onError={(e) => {
-                            const target = e.target as HTMLImageElement;
-                            target.src = '/cctv_img/001.jpg';
-                          }}
-                        />
-                        <span className="absolute bottom-2 right-2 bg-black/70 text-white text-xs px-2 py-0.5 rounded">
-                          {attachment.frameTimestamp}
-                        </span>
-                      </div>
-                      <div className="px-3 py-2 space-y-1 text-xs bg-white">
-                        <div className="flex items-center justify-between font-semibold">
-                          <span className="text-gray-900">{attachment.cctvId}</span>
-                          <span className="text-gray-500">{attachment.status === 'ready' ? '전파 준비' : '저장'}</span>
-                        </div>
-                        <div className="text-gray-500">{attachment.timestamp}</div>
-                        <div className="text-gray-700">{attachment.duration}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="border border-dashed border-[#2a2d36] text-xs text-gray-300 p-4 text-center">
-                  첨부된 정보가 없습니다.
-                </div>
-              )}
-            </div>
-
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleBroadcast}
-                className="px-4 py-2 text-sm font-semibold bg-[#155DFC] text-white hover:bg-[#1f6dff]"
-              >
-                즉시 전파
-              </button>
-              <button
-                type="button"
-                onClick={handleSaveDraft}
-                className="px-4 py-2 text-sm border border-[#31353a] text-gray-300 hover:text-white hover:border-white"
-              >
-                초안 저장
-              </button>
-              <button
-                type="button"
-                onClick={handleClose}
-                className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white"
-              >
-                닫기
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      <BroadcastDraftPopup
+        isOpen={isModalOpen}
+        eventId={eventId}
+        eventTitle={eventTitle}
+        source={source}
+        location={location}
+        receivedAt={receivedAt}
+        priority={priority}
+        aiSummary={aiSummary}
+        riskSummary={riskSummary}
+        message={message}
+        setMessage={setMessage}
+        selectedRecipients={selectedRecipients}
+        toggleRecipient={toggleRecipient}
+        attachments={attachments}
+        removeAttachment={removeAttachment}
+        onClose={handleClose}
+        onBroadcast={handleBroadcast}
+        onSaveDraft={handleSaveDraft}
+      />
     </>
   );
 };
