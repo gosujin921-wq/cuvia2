@@ -924,15 +924,34 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               {/* 왼쪽: CCTV 영상 */}
               <div className="w-[60%] bg-black p-4 flex flex-col gap-4">
                 <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
-                  <img
-                    src={selectedCctvThumbnail}
-                    alt={`${cctvInfo[selectedCCTV].id} 라이브`}
-                    className="absolute inset-0 w-full h-full object-cover"
-                    onError={(e) => {
-                      const target = e.target as HTMLImageElement;
-                      target.src = cctvThumbnailMap[cctvInfo[selectedCCTV].id] || '/cctv_img/001.jpg';
-                    }}
-                  />
+                  {(() => {
+                    if (selectedCCTV === null) {
+                      return (
+                        <img
+                          src={selectedCctvThumbnail}
+                          alt="라이브"
+                          className="absolute inset-0 w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = '/cctv_img/001.jpg';
+                          }}
+                        />
+                      );
+                    }
+                    const cctvKey = selectedCCTV as string;
+                    const currentCctv = cctvInfo[cctvKey];
+                    return (
+                      <img
+                        src={selectedCctvThumbnail}
+                        alt={`${currentCctv ? currentCctv.id : ''} 라이브`}
+                        className="absolute inset-0 w-full h-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = currentCctv ? (cctvThumbnailMap[currentCctv.id] || '/cctv_img/001.jpg') : '/cctv_img/001.jpg';
+                        }}
+                      />
+                    );
+                  })()}
                   {/* REC 오버레이 */}
                   <button
                     onClick={() => setIsPlaying(!isPlaying)}
@@ -975,12 +994,28 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               {/* 오른쪽: 컨트롤 패널 */}
               <div className="flex-1 bg-[var(--color-black)] flex flex-col text-gray-100">
                 <div className="p-6">
-                  <div className="space-y-2 mb-4">
-                    <p className="text-white font-semibold text-sm">관리번호 {cctvInfo[selectedCCTV].id}</p>
-                    <p className="text-gray-400 text-sm">위치 {cctvInfo[selectedCCTV].location}</p>
-                    <p className="text-gray-400 text-sm">화각 {selectedCctvFov}</p>
-                    <p className="text-gray-300 text-sm">{cctvInfo[selectedCCTV].name}</p>
-                  </div>
+                  {(() => {
+                    if (selectedCCTV === null) {
+                      return (
+                        <div className="space-y-2 mb-4">
+                          <p className="text-white font-semibold text-sm">관리번호 </p>
+                          <p className="text-gray-400 text-sm">위치 </p>
+                          <p className="text-gray-400 text-sm">화각 {selectedCctvFov}</p>
+                          <p className="text-gray-300 text-sm"></p>
+                        </div>
+                      );
+                    }
+                    const cctvKey = selectedCCTV as string;
+                    const currentCctv = cctvInfo[cctvKey];
+                    return (
+                      <div className="space-y-2 mb-4">
+                        <p className="text-white font-semibold text-sm">관리번호 {currentCctv ? currentCctv.id : ''}</p>
+                        <p className="text-gray-400 text-sm">위치 {currentCctv ? currentCctv.location : ''}</p>
+                        <p className="text-gray-400 text-sm">화각 {selectedCctvFov}</p>
+                        <p className="text-gray-300 text-sm">{currentCctv ? currentCctv.name : ''}</p>
+                      </div>
+                    );
+                  })()}
                   <div className="space-y-3">
                     <div className="flex items-center gap-2">
                       <button
@@ -1036,13 +1071,16 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     </button>
                     <button
                       onClick={() => {
+                        if (!selectedCCTV) return;
+                        const currentCctv = cctvInfo[selectedCCTV];
+                        if (!currentCctv) return;
                         const clipId = `clip-${Date.now()}`;
                         const frameTime = new Date().toISOString().slice(11, 19);
-                        const cctvId = cctvInfo[selectedCCTV].id;
+                        const cctvId = currentCctv.id;
                         const clip = {
                           id: clipId,
                           cctvId: cctvId,
-                          cctvName: cctvInfo[selectedCCTV].name,
+                          cctvName: currentCctv.name,
                           timestamp: new Date().toISOString().slice(0, 19).replace('T', ' '),
                           duration: `${Math.floor(currentTime / 60)}:${String(Math.floor(currentTime % 60)).padStart(2, '0')} - ${Math.floor(duration / 60)}:${String(Math.floor(duration % 60)).padStart(2, '0')}`,
                           frameTimestamp: frameTime,
@@ -1069,10 +1107,16 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   <span className="text-xs text-gray-400">{savedClips.length}개</span>
                 </div>
                 <div className="flex gap-3 overflow-x-auto pb-1">
-                  {savedClips
-                    .filter((clip) => clip.cctvId === cctvInfo[selectedCCTV].id)
-                    .map((clip) => (
-                      <div key={clip.id} className="min-w-[160px] bg-[#36383B] border border-[#2a2d36] shadow-sm relative">
+                  {(() => {
+                    if (selectedCCTV === null) {
+                      return null;
+                    }
+                    const cctvKey = selectedCCTV as string;
+                    const currentCctv = cctvInfo[cctvKey];
+                    return savedClips
+                      .filter((clip) => currentCctv && clip.cctvId === currentCctv.id)
+                      .map((clip) => (
+                        <div key={clip.id} className="min-w-[160px] bg-[#36383B] border border-[#2a2d36] shadow-sm relative">
                         <button
                           className="absolute top-2 right-2 z-10 text-white bg-black/60 rounded-full p-1 hover:bg-black/80 transition-colors"
                           onClick={() => handleDeleteClip(clip.id)}
@@ -1103,7 +1147,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           <div className="text-gray-700">{clip.duration}</div>
                         </div>
                       </div>
-                    ))}
+                    ));
+                  })()}
                 </div>
               </div>
             )}
@@ -1131,7 +1176,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 <button
                   type="button"
                   onClick={() => {
-                    if (!selectedCCTV) return;
+                    if (!selectedCCTV || !cctvInfo[selectedCCTV]) return;
                     const currentClips = savedClips.filter((clip) => clip.cctvId === cctvInfo[selectedCCTV].id);
                     const clipCount = currentClips.length;
                     if (clipCount > 0) {
@@ -1202,6 +1247,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         const detected = detectedCCTVThumbnails.find(d => d.cctvId === selectedDetectedCCTV);
         if (!detected) return null;
         
+        // TypeScript 타입 가드를 위해 non-null assertion 사용
+        const detectedItem = detected!;
+        
         return (
           <div
             className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
@@ -1240,25 +1288,25 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   <div className="p-4 pb-3">
                     <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
                       <img
-                        src={detected.thumbnail}
-                        alt={detected.cctvName}
+                        src={detectedItem.thumbnail}
+                        alt={detectedItem.cctvName}
                         className="absolute inset-0 w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
-                          target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
+                          target.src = cctvThumbnailMap[detectedItem.cctvId] || '/cctv_img/001.jpg';
                         }}
                       />
                       <div className="absolute top-3 left-3 px-3 py-1.5 bg-black/70 rounded text-white text-xs font-semibold">
-                        {detected.timestamp}
+                        {detectedItem.timestamp}
                       </div>
                       <div className="absolute top-3 right-3 px-3 py-1.5 bg-purple-600/80 rounded text-white text-xs font-semibold">
-                        신뢰도 {detected.confidence}%
+                        신뢰도 {detectedItem.confidence}%
                       </div>
                     </div>
                   </div>
                   <div className="px-4 pb-4">
                     <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
-                      <span>{detected.timestamp}</span>
+                      <span>{detectedItem.timestamp}</span>
                       <span className="text-purple-400 font-semibold">클립</span>
                     </div>
                   </div>
@@ -1271,9 +1319,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
                     <div className="space-y-3">
                       {(() => {
-                        const cctvKey = Object.keys(cctvInfo).find(key => cctvInfo[key].id === detected.cctvId);
-                        const cctv = cctvKey ? cctvInfo[cctvKey] : null;
-                        const fov = cctvFovMap[detected.cctvId] || '95°';
+                        const cctvKey = Object.keys(cctvInfo).find(key => cctvInfo[key].id === detectedItem.cctvId);
+                        const cctv = cctvKey ? cctvInfo[cctvKey as keyof typeof cctvInfo] : null;
+                        const fov = cctvFovMap[detectedItem.cctvId] || '95°';
                         
                         // 방향 계산 (예시: location에서 추출)
                         const getDirection = (location: string) => {
@@ -1316,30 +1364,44 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           return captures.length > 0 ? captures.join(' / ') : '없음';
                         };
                         
+                        // 변수 미리 추출
+                        const cctvName = cctv?.name || detectedItem.cctvName;
+                        const cctvLocation = cctv?.location;
+                        const detectedLocation = detectedItem.location;
+                        const locationText = cctvLocation ? `(${cctvLocation})` : detectedLocation ? `(${detectedLocation})` : '';
+                        let directionText: string;
+                        if (cctvLocation) {
+                          directionText = getDirection(cctvLocation as string);
+                        } else if (detectedLocation) {
+                          directionText = getDirection(detectedLocation as string);
+                        } else {
+                          directionText = '알 수 없음';
+                        }
+                        
                         return (
                           <>
                             <div>
                               <div className="text-gray-400 text-xs mb-1">CCTV</div>
                               <div className="text-white font-semibold text-sm">
-                                {detected.cctvId}  (PTZ / 화각 {fov})
+                                {detectedItem.cctvId}  (PTZ / 화각 {fov})
                               </div>
                             </div>
                             <div>
                               <div className="text-gray-400 text-xs mb-1">지점</div>
                               <div className="text-gray-300 text-sm">
-                                {cctv?.name || detected.cctvName}{cctv?.location ? `(${cctv.location})` : detected.location ? `(${detected.location})` : ''}
+                                {cctvName}{locationText}
                               </div>
                             </div>
                             <div>
                               <div className="text-gray-400 text-xs mb-1">방향</div>
                               <div className="text-gray-300 text-sm">
-                                {cctv?.location ? getDirection(cctv.location) : detected.location ? getDirection(detected.location) : '알 수 없음'}
+                                {directionText}
                               </div>
                             </div>
                             <div>
                               <div className="text-gray-400 text-xs mb-1">군집</div>
                               <div className="text-gray-300 text-sm">
-                                {getCluster(detected.cctvId)}
+                                {getCluster(detectedItem.cctvId)}
                               </div>
                             </div>
                             <div>
@@ -1358,7 +1420,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <div>
                               <div className="text-gray-400 text-xs mb-1">최근포착</div>
                               <div className="text-gray-300 text-sm">
-                                {getRecentCaptures(detected.cctvId)}
+                                {getRecentCaptures(detectedItem.cctvId)}
                               </div>
                             </div>
                           </>
@@ -1436,35 +1498,35 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               {/* 포착 이유 - 하단 */}
               <div className="border-t border-[#31353a] p-6 flex-shrink-0 overflow-y-auto">
                 {/* AI 해석 */}
-                {detected.aiAnalysis && (
+                {detectedItem.aiAnalysis && (
                   <div className="bg-[#0f1723] border border-[#155DFC] p-4 rounded mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Icon icon="mdi:sparkles" className="w-4 h-4 text-[#50A1FF]" />
                       <span className="text-[#50A1FF] font-semibold text-sm">AI 해석</span>
                     </div>
-                    <p className="text-white text-sm leading-relaxed">{detected.aiAnalysis}</p>
+                    <p className="text-white text-sm leading-relaxed">{detectedItem.aiAnalysis}</p>
                   </div>
                 )}
 
                 {/* 용의자 의심 이유 */}
-                {detected.suspectReason && (
+                {detectedItem.suspectReason && (
                   <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded mb-4">
                     <div className="flex items-center gap-2 mb-2">
                       <Icon icon="mdi:alert-circle" className="w-4 h-4 text-yellow-400" />
                       <span className="text-yellow-400 font-semibold text-sm">용의자 의심 이유</span>
                     </div>
-                    <p className="text-gray-300 text-sm leading-relaxed">{detected.suspectReason}</p>
+                    <p className="text-gray-300 text-sm leading-relaxed">{detectedItem.suspectReason}</p>
                   </div>
                 )}
 
                 {/* 상황 설명 */}
-                {detected.situation && (
+                {detectedItem.situation && (
                   <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded">
                     <div className="flex items-center gap-2 mb-2">
                       <Icon icon="mdi:information" className="w-4 h-4 text-blue-400" />
                       <span className="text-blue-400 font-semibold text-sm">상황 설명</span>
                     </div>
-                    <p className="text-gray-300 text-sm leading-relaxed">{detected.situation}</p>
+                    <p className="text-gray-300 text-sm leading-relaxed">{detectedItem.situation}</p>
                   </div>
                 )}
               </div>
@@ -1592,8 +1654,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   <div className="p-4 pb-3">
                     <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
                       <img
-                        src={cctvThumbnailMap[selectedMapCCTV] || '/cctv_img/001.jpg'}
-                        alt={`${selectedMapCCTV} 라이브`}
+                        src={selectedMapCCTV ? (cctvThumbnailMap[selectedMapCCTV as string] || '/cctv_img/001.jpg') : '/cctv_img/001.jpg'}
+                        alt={`${selectedMapCCTV || ''} 라이브`}
                         className="absolute inset-0 w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
@@ -1608,13 +1670,14 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                       </div>
                       {/* AI 포착 이유 - 우측 하단 */}
                       {(() => {
+                        if (!selectedMapCCTV) return null;
                         const timelineEntry = movementTimeline.find(item => item.cctvId === selectedMapCCTV);
                         if (timelineEntry?.title) {
                           return (
                             <div className="absolute bottom-3 right-3 px-3 py-2 bg-black/80 backdrop-blur-sm text-white text-xs font-medium rounded-lg z-10 border border-white/20">
                               <div className="flex items-center gap-2">
                                 <Icon icon="mdi:robot" className="w-4 h-4 text-purple-400" />
-                                <span>{timelineEntry.title}</span>
+                                <span>{timelineEntry?.title}</span>
                               </div>
                             </div>
                           );
@@ -1637,9 +1700,10 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
                     <div className="space-y-3">
                       {(() => {
+                        if (!selectedMapCCTV) return null;
                         const cctvKey = Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV);
-                        const cctv = cctvKey ? cctvInfo[cctvKey] : null;
-                        const fov = cctvFovMap[selectedMapCCTV] || '95°';
+                        const cctv = cctvKey ? cctvInfo[cctvKey as keyof typeof cctvInfo] : null;
+                        const fov = cctvFovMap[selectedMapCCTV as string] || '95°';
                         
                         // 방향 계산 (예시: location에서 추출)
                         const getDirection = (location: string) => {
@@ -1682,6 +1746,17 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           return captures.length > 0 ? captures.join(' / ') : '없음';
                         };
                         
+                        // 변수 미리 추출
+                        const cctvName = cctv?.name || selectedMapCCTV;
+                        const cctvLocation = cctv?.location;
+                        const locationText = cctvLocation ? `(${cctvLocation})` : '';
+                        let directionText: string;
+                        if (cctvLocation) {
+                          directionText = getDirection(cctvLocation as string);
+                        } else {
+                          directionText = '알 수 없음';
+                        }
+                        
                         return (
                           <>
                             <div>
@@ -1693,19 +1768,19 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <div>
                               <div className="text-gray-400 text-xs mb-1">지점</div>
                               <div className="text-gray-300 text-sm">
-                                {cctv?.name || selectedMapCCTV}{cctv?.location ? `(${cctv.location})` : ''}
+                                {cctvName}{locationText}
                               </div>
                             </div>
                             <div>
                               <div className="text-gray-400 text-xs mb-1">방향</div>
                               <div className="text-gray-300 text-sm">
-                                {cctv?.location ? getDirection(cctv.location) : '알 수 없음'}
+                                {directionText}
                               </div>
                             </div>
                             <div>
                               <div className="text-gray-400 text-xs mb-1">군집</div>
                               <div className="text-gray-300 text-sm">
-                                {getCluster(selectedMapCCTV)}
+                                {getCluster(selectedMapCCTV as string)}
                               </div>
                             </div>
                             <div>
@@ -1724,7 +1799,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <div>
                               <div className="text-gray-400 text-xs mb-1">최근포착</div>
                               <div className="text-gray-300 text-sm">
-                                {getRecentCaptures(selectedMapCCTV)}
+                                {getRecentCaptures(selectedMapCCTV as string)}
                               </div>
                             </div>
                           </>
