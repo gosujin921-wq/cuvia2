@@ -35,6 +35,14 @@ interface EventCenterColumn2TestProps {
   cctvThumbnailMap: Record<string, string>;
   behaviorHighlights: string[];
   showMapCCTVPopup?: boolean;
+  movementTimeline: Array<{
+    time: string;
+    title: string;
+    subtitle: string;
+    cctvName: string | null;
+    color: string;
+    cctvId: string | null;
+  }>;
 }
 
 export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
@@ -52,10 +60,11 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
   cctvThumbnailMap,
   behaviorHighlights,
   showMapCCTVPopup = false,
+  movementTimeline,
 }) => {
-  const [activeTab, setActiveTab] = useState<'cctv' | 'analysis'>('cctv');
+  const [activeTab, setActiveTab] = useState<'cctv' | 'movement' | 'analysis'>('cctv');
 
-  // 키보드 단축키 (1: CCTV, 2: 분석 요약) - 팝업이 열려있으면 동작하지 않음
+  // 키보드 단축키 (1: CCTV, 2: 위치 및 동선, 3: 분석 요약) - 팝업이 열려있으면 동작하지 않음
   useEffect(() => {
     if (showMapCCTVPopup) return;
 
@@ -69,6 +78,9 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
         e.preventDefault();
         setActiveTab('cctv');
       } else if (e.key === '2') {
+        e.preventDefault();
+        setActiveTab('movement');
+      } else if (e.key === '3') {
         e.preventDefault();
         setActiveTab('analysis');
       }
@@ -85,19 +97,30 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
           onClick={() => setActiveTab('cctv')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
             activeTab === 'cctv'
-              ? 'bg-blue-600 text-white'
-              : 'bg-[#0f0f0f] text-gray-400 hover:text-white border border-[#31353a]'
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
           }`}
           style={{ borderWidth: activeTab === 'cctv' ? '0' : '1px' }}
         >
           CCTV
         </button>
         <button
+          onClick={() => setActiveTab('movement')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
+            activeTab === 'movement'
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+          }`}
+          style={{ borderWidth: activeTab === 'movement' ? '0' : '1px' }}
+        >
+          위치 및 동선
+        </button>
+        <button
           onClick={() => setActiveTab('analysis')}
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
             activeTab === 'analysis'
-              ? 'bg-blue-600 text-white'
-              : 'bg-[#0f0f0f] text-gray-400 hover:text-white border border-[#31353a]'
+              ? 'bg-blue-600 hover:bg-blue-700 text-white'
+              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
           }`}
           style={{ borderWidth: activeTab === 'analysis' ? '0' : '1px' }}
         >
@@ -263,6 +286,29 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
               </div>
             </div>
           </div>
+          </div>
+        )}
+
+        {activeTab === 'movement' && (
+          <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+            <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3 flex-shrink-0">
+              <Icon icon="mdi:map-marker" className="w-4 h-4 text-green-300" />
+              위치 및 동선
+            </div>
+            <div className="space-y-2 text-sm overflow-y-auto flex-1 min-h-0">
+              {[...movementTimeline].reverse().map((entry, index) => (
+                <div key={index} className="flex gap-3">
+                  <div className="text-xs text-gray-500 w-16 flex-shrink-0">{entry.time}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-semibold ${entry.color} mb-0.5`}>{entry.title}</p>
+                    <p className="text-gray-400 text-xs mb-1">{entry.subtitle}</p>
+                    {entry.cctvName && (
+                      <p className="text-gray-500 text-xs">{entry.cctvName}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

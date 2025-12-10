@@ -765,7 +765,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
 
         {/* Center Panel - 2컬럼 레이아웃 */}
         <main className="flex-1 bg-[#161719] flex flex-col overflow-hidden border-l border-r border-[#31353a]" style={{ borderLeftWidth: '1px', borderRightWidth: '1px', borderTopWidth: '0', borderBottomWidth: '0', minHeight: 0, width: '100%', height: '100%', alignSelf: 'stretch' }}>
-          <div className="flex-1 overflow-hidden pl-7" style={{ minHeight: 0 }}>
+          <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
             <div className="flex gap-6" style={{ minHeight: 0, width: '100%', height: '100%' }}>
               {/* 1열: 위치 및 동선 - 우측 패널이 펼쳐졌을 때 더 넓게 */}
               <EventCenterColumn1
@@ -781,7 +781,6 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setShowMapCCTVPopup={setShowMapCCTVPopup}
                 setShowDetectedCCTVPopup={setShowDetectedCCTVPopup}
                 setSelectedDetectedCCTV={setSelectedDetectedCCTV}
-                movementTimeline={movementTimeline}
               />
 
               {/* 2열: CCTV, 인물 분석, 행동 요약 */}
@@ -800,6 +799,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 cctvInfo={cctvInfo}
                 cctvThumbnailMap={cctvThumbnailMap}
                 behaviorHighlights={behaviorHighlights}
+                movementTimeline={movementTimeline}
               />
             </div>
           </div>

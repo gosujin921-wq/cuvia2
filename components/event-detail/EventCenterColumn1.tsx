@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Icon } from '@iconify/react';
+import { movementTimeline } from './constants';
 
 interface EventCenterColumn1Props {
   isRightPanelCollapsed: boolean;
@@ -16,14 +17,6 @@ interface EventCenterColumn1Props {
   setShowMapCCTVPopup: (value: boolean) => void;
   setShowDetectedCCTVPopup: (value: boolean) => void;
   setSelectedDetectedCCTV: (value: string | null) => void;
-  movementTimeline: Array<{
-    time: string;
-    title: string;
-    subtitle: string;
-    cctvName: string | null;
-    color: string;
-    cctvId: string | null;
-  }>;
 }
 
 export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
@@ -39,7 +32,6 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   setShowMapCCTVPopup,
   setShowDetectedCCTVPopup,
   setSelectedDetectedCCTV,
-  movementTimeline,
 }) => {
   const [zoomLevel, setZoomLevel] = React.useState(0); // 0: 축소(클러스터), 1: 확대(개별)
   
@@ -264,9 +256,9 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   };
 
   return (
-    <div className="flex flex-col pt-4 overflow-y-auto pr-4 flex-shrink-0" style={{ width: isRightPanelCollapsed ? '50%' : '55%', minHeight: 0, height: '100%' }}>
+    <div className="flex flex-col pr-4 flex-shrink-0" style={{ width: isRightPanelCollapsed ? '50%' : '55%', minHeight: 0, height: '100%' }}>
       {/* 지도 컨테이너 wrapper */}
-      <div className="relative mb-6 overflow-hidden" style={{ height: 'calc(80vh)' }}>
+      <div className="relative overflow-hidden" style={{ height: '100%' }}>
         {/* 줌 컨트롤 버튼 - 지도 확대와 무관하게 고정 위치 */}
         <div 
           className="absolute top-4 left-4 flex flex-col gap-2" 
@@ -364,7 +356,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           className="relative border border-[#31353a] bg-cover bg-center bg-no-repeat transition-transform duration-300"
           style={{
             borderWidth: '1px',
-            backgroundImage: 'url(/kintex.png)',
+            backgroundImage: 'url(/map_anyang.png)',
             backgroundSize: '500%', // TODO: 지도 이미지 500% 확대 - 나중에 제거 필요 (원래: 'cover')
             height: '100%',
             width: '100%',
@@ -373,6 +365,101 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           }}
         >
 
+
+        {/* 가상 CCTV 아이콘들 - 그레이 컬러 */}
+        {[
+          { left: 10, top: 20, count: 1 },
+          { left: 25, top: 15, count: 3 },
+          { left: 35, top: 30, count: 1 },
+          { left: 55, top: 25, count: 2 },
+          { left: 70, top: 20, count: 1 },
+          { left: 85, top: 30, count: 4 },
+          { left: 20, top: 50, count: 2 },
+          { left: 40, top: 55, count: 1 },
+          { left: 60, top: 50, count: 3 },
+          { left: 80, top: 55, count: 1 },
+          { left: 15, top: 75, count: 2 },
+          { left: 30, top: 70, count: 1 },
+          { left: 50, top: 75, count: 5 },
+          { left: 70, top: 70, count: 2 },
+          { left: 90, top: 75, count: 1 },
+          { left: 10, top: 90, count: 1 },
+          { left: 25, top: 95, count: 3 },
+          { left: 45, top: 90, count: 2 },
+          { left: 65, top: 95, count: 1 },
+          { left: 85, top: 90, count: 4 },
+        ].map((item, index) => {
+          if (zoomLevel === 0) {
+            // 축소 모드: 클러스터 뱃지만 표시
+            return (
+              <div
+                key={`virtual-cctv-${index}`}
+                className="absolute cursor-pointer"
+                style={{ 
+                  left: `${item.left}%`, 
+                  top: `${item.top}%`, 
+                  transform: 'translate(-50%, -50%)', 
+                  zIndex: 50 
+                }}
+                onClick={() => {
+                  // 나중에 모달 띄울 예정
+                }}
+              >
+                <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-gray-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform">
+                  <Icon 
+                    icon="mdi:cctv" 
+                    className="text-gray-400"
+                    width="16px" 
+                    height="16px"
+                  />
+                  {/* 클러스터 뱃지 - 여러 CCTV가 있을 때 */}
+                  {item.count > 1 && (
+                    <div className="absolute -top-[18px] -right-[18px] w-6 h-6 bg-gray-500/90 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 border-gray-400 z-20">
+                      {item.count}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          } else {
+            // 확대 모드: 개별 CCTV 아이콘 표시
+            return Array.from({ length: item.count }, (_, i) => {
+              const angle = (i / item.count) * 2 * Math.PI;
+              const radius = 2;
+              const offsetLeft = Math.cos(angle) * radius;
+              const offsetTop = Math.sin(angle) * radius;
+              
+              return (
+                <div
+                  key={`virtual-cctv-${index}-${i}`}
+                  className="absolute cursor-pointer"
+                  style={{ 
+                    left: `${item.left + offsetLeft}%`, 
+                    top: `${item.top + offsetTop}%`, 
+                    transform: 'translate(-50%, -50%)', 
+                    zIndex: 50 
+                  }}
+                  onClick={() => {
+                    // 나중에 모달 띄울 예정
+                  }}
+                >
+                  <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-gray-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform">
+                    <Icon 
+                      icon="mdi:cctv" 
+                      className="text-gray-400"
+                      width="16px" 
+                      height="16px"
+                    />
+                    {/* 개별 CCTV 이름 */}
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-gray-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
+                      CCTV-V-{index + 1}-{i + 1}
+                    </div>
+                  </div>
+                </div>
+              );
+            });
+          }
+        })}
 
         {/* 지도 이미지 위에 SVG 오버레이 - CCTV가 켜져있을 때만 표시 */}
         {showCCTV && (
@@ -528,27 +615,6 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
         </div>
       </div>
 
-      {/* 위치 및 동선 - 타임라인만 */}
-      <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
-        <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3 flex-shrink-0">
-          <Icon icon="mdi:map-marker" className="w-4 h-4 text-green-300" />
-          위치 및 동선
-        </div>
-        <div className="space-y-2 text-sm overflow-y-auto flex-1 min-h-0">
-          {[...movementTimeline].reverse().map((entry) => (
-            <div key={entry.time} className="flex gap-3">
-              <div className="text-xs text-gray-500 w-16 flex-shrink-0">{entry.time}</div>
-              <div className="flex-1 min-w-0">
-                <p className={`font-semibold ${entry.color} mb-0.5`}>{entry.title}</p>
-                <p className="text-gray-400 text-xs mb-1">{entry.subtitle}</p>
-                {entry.cctvName && (
-                  <p className="text-gray-500 text-xs">{entry.cctvName}</p>
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 };
