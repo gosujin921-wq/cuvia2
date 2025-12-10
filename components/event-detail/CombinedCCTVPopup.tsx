@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { cctvInfo, cctvThumbnailMap, cctvFovMap, cctvCoordinatesMap, detectedCCTVThumbnails, movementTimeline, cctvLocationGroups } from './constants';
+import { getTabButtonClassName, getSecondaryButtonClassName } from '@/components/shared/styles';
 
 interface CombinedCCTVPopupProps {
   isOpen: boolean;
@@ -65,6 +66,9 @@ export const CombinedCCTVPopup = ({
 }: CombinedCCTVPopupProps) => {
   const [activeTab, setActiveTab] = useState<'clip' | 'live'>('clip');
   const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [isTrackingBoxDraggable, setIsTrackingBoxDraggable] = useState(false);
+  const [trackingBoxPosition, setTrackingBoxPosition] = useState({ top: 30, left: 40 }); // 퍼센트 기준
+  const [isDragging, setIsDragging] = useState(false);
 
   // 탭 변경 시 키보드 이벤트 리셋
   useEffect(() => {
@@ -238,34 +242,9 @@ export const CombinedCCTVPopup = ({
       >
         {/* 헤더 */}
         <div className="flex items-center justify-between p-6 border-b border-[#31353a] flex-shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-base font-semibold text-white">
-              <Icon icon="mdi:cctv" className="w-5 h-5 text-[#50A1FF]" />
-              {popupTitle}
-            </div>
-            {/* 탭 버튼 */}
-            <div className="flex gap-2 ml-4">
-              <button
-                onClick={() => setActiveTab('clip')}
-                className={`px-4 py-2 text-sm border transition-colors rounded ${
-                  activeTab === 'clip'
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600'
-                    : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border-[#2a2a2a]'
-                }`}
-              >
-                {clipTabTitle}
-              </button>
-              <button
-                onClick={() => setActiveTab('live')}
-                className={`px-4 py-2 text-sm border transition-colors rounded ${
-                  activeTab === 'live'
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white border-blue-600'
-                    : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border-[#2a2a2a]'
-                }`}
-              >
-                {liveTabTitle}
-              </button>
-            </div>
+          <div className="flex items-center gap-2 text-base font-semibold text-white">
+            <Icon icon="mdi:cctv" className="w-5 h-5 text-[#50A1FF]" />
+            {popupTitle}
           </div>
           <button
             onClick={onClose}
@@ -278,11 +257,26 @@ export const CombinedCCTVPopup = ({
 
         {/* 메인 콘텐츠 영역 */}
         <div className="flex flex-col min-h-0 flex-1">
+          {/* 탭 버튼 */}
+          <div className="flex gap-2 p-4 pb-3 flex-shrink-0">
+            <button
+              onClick={() => setActiveTab('clip')}
+              className={`${getTabButtonClassName(activeTab === 'clip')} rounded`}
+            >
+              {clipTabTitle}
+            </button>
+            <button
+              onClick={() => setActiveTab('live')}
+              className={`${getTabButtonClassName(activeTab === 'live')} rounded`}
+            >
+              {liveTabTitle}
+            </button>
+          </div>
           {activeTab === 'clip' && detected ? (
             // 포착된 CCTV 클립 탭
             <>
             {/* 영상 영역 - 2컬럼 */}
-            <div className="flex p-4 pb-3 flex-1 min-h-0">
+            <div className="flex p-4 flex-1 min-h-0">
               {/* 왼쪽: 영상 */}
               <div className="flex-1 pr-4">
                 <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
@@ -296,15 +290,44 @@ export const CombinedCCTVPopup = ({
                     }}
                   />
                   {/* 추적 영역 표시 */}
-                  <div className="absolute inset-0 pointer-events-none">
+                  <div 
+                    className="absolute inset-0"
+                    style={{ pointerEvents: isTrackingBoxDraggable ? 'auto' : 'none' }}
+                    onMouseMove={(e) => {
+                      if (isDragging && isTrackingBoxDraggable) {
+                        const rect = e.currentTarget.getBoundingClientRect();
+                        const x = e.clientX - rect.left;
+                        const y = e.clientY - rect.top;
+                        const percentX = (x / rect.width) * 100;
+                        const percentY = (y / rect.height) * 100;
+                        setTrackingBoxPosition({
+                          top: Math.max(0, Math.min(100, percentY)),
+                          left: Math.max(0, Math.min(100, percentX)),
+                        });
+                      }
+                    }}
+                    onMouseUp={() => {
+                      setIsDragging(false);
+                    }}
+                    onMouseLeave={() => {
+                      setIsDragging(false);
+                    }}
+                  >
                     <div
-                      className="absolute border-2 border-red-500 bg-red-500/20 rounded"
+                      className={`absolute border-2 border-red-500 bg-red-500/20 rounded ${isTrackingBoxDraggable ? 'cursor-move' : ''}`}
                       style={{
                         width: '200px',
                         height: '150px',
-                        top: '30%',
-                        left: '40%',
+                        top: `${trackingBoxPosition.top}%`,
+                        left: `${trackingBoxPosition.left}%`,
                         transform: 'translate(-50%, -50%)',
+                        pointerEvents: isTrackingBoxDraggable ? 'auto' : 'none',
+                      }}
+                      onMouseDown={(e) => {
+                        if (isTrackingBoxDraggable) {
+                          e.stopPropagation();
+                          setIsDragging(true);
+                        }
                       }}
                     >
                       <div className="absolute -top-6 left-0 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
@@ -481,7 +504,7 @@ export const CombinedCCTVPopup = ({
             // 실시간 모니터링 탭
             <>
             {/* 영상 영역 - 2컬럼 */}
-            <div className="flex p-4 pb-3 flex-1 min-h-0">
+            <div className="flex p-4 flex-1 min-h-0">
               {/* 왼쪽: 영상 */}
               <div className="flex-1 pr-4">
                 <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
@@ -704,12 +727,55 @@ export const CombinedCCTVPopup = ({
           )}
         </div>
 
-        {/* 하단 닫기 버튼 */}
-        <div className="flex justify-end p-4 border-t border-[#31353a] flex-shrink-0">
+        {/* 하단 버튼 */}
+        <div className="flex justify-between items-center gap-2 p-4 border-t border-[#31353a] flex-shrink-0">
+          <div className="flex gap-2">
+            {activeTab === 'clip' ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (isTrackingBoxDraggable) {
+                      // 추적대상 재선택 완료
+                      alert('추적대상 재선택이 완료되었습니다. AI가 추적대상을 재 분석합니다.');
+                      setIsTrackingBoxDraggable(false);
+                      onClose();
+                    } else {
+                      setIsTrackingBoxDraggable(true);
+                    }
+                  }}
+                  className={`${getSecondaryButtonClassName()} ${isTrackingBoxDraggable ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+                >
+                  {isTrackingBoxDraggable ? '추적대상 재선택 완료' : '추적대상 재추적'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    // TODO: 전파하기 기능 구현
+                    console.log('전파하기');
+                  }}
+                  className={getSecondaryButtonClassName()}
+                >
+                  전파하기
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => {
+                  // TODO: CCTV 모니터링 추가 기능 구현
+                  console.log('CCTV 모니터링 추가');
+                }}
+                className={getSecondaryButtonClassName()}
+              >
+                CCTV 모니터링 추가
+              </button>
+            )}
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white hover:border-white transition-colors"
+            className={getSecondaryButtonClassName()}
           >
             닫기
           </button>

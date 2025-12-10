@@ -12,8 +12,8 @@ interface EventCenterPanelProps {
   setChatInput: (value: string) => void;
   isResponding: boolean;
   savedClips: SavedClip[];
-  setSelectedCCTV: (cctv: string | null) => void;
-  setShowCCTVPopup: (show: boolean) => void;
+  setSelectedMapCCTV?: (cctvId: string | null) => void;
+  setShowMapCCTVPopup?: (show: boolean) => void;
   handleSendMessage: (messageText?: string) => void;
   handleDeleteClip: (clipId: string) => void;
 }
@@ -25,8 +25,8 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
   setChatInput,
   isResponding,
   savedClips,
-  setSelectedCCTV,
-  setShowCCTVPopup,
+  setSelectedMapCCTV,
+  setShowMapCCTVPopup,
   handleSendMessage,
   handleDeleteClip,
 }) => {
@@ -66,8 +66,10 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
               <button
                 key={cctv}
                 onClick={() => {
-                  setSelectedCCTV(cctv);
-                  setShowCCTVPopup(true);
+                  if (setSelectedMapCCTV && setShowMapCCTVPopup) {
+                    setSelectedMapCCTV(cctv);
+                    setShowMapCCTVPopup(true);
+                  }
                 }}
                 className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-gray-900 text-sm hover:border-blue-500 hover:bg-blue-50 transition-colors"
                 style={{ borderWidth: '1px' }}

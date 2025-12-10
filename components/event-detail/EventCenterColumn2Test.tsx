@@ -10,10 +10,10 @@ interface EventCenterColumn2TestProps {
   handleDragStart: (e: React.MouseEvent) => void;
   monitoringCCTVs: string[];
   handleRemoveFromMonitoring: (cctvKey: string) => void;
-  setSelectedCCTV: (cctv: string | null) => void;
-  setShowCCTVPopup: (show: boolean) => void;
   setSelectedDetectedCCTV: (id: string | null) => void;
   setShowDetectedCCTVPopup: (show: boolean) => void;
+  setSelectedMapCCTV?: (cctvId: string | null) => void;
+  setShowMapCCTVPopup?: (show: boolean) => void;
   detectedCCTVThumbnails: Array<{
     id: string;
     cctvId: string;
@@ -52,10 +52,10 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
   handleDragStart,
   monitoringCCTVs,
   handleRemoveFromMonitoring,
-  setSelectedCCTV,
-  setShowCCTVPopup,
   setSelectedDetectedCCTV,
   setShowDetectedCCTVPopup,
+  setSelectedMapCCTV,
+  setShowMapCCTVPopup,
   detectedCCTVThumbnails,
   cctvInfo,
   cctvThumbnailMap,
@@ -193,7 +193,7 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
           <div className="flex flex-col flex-1 min-h-0 overflow-hidden" style={{ flexBasis: '50%', flexGrow: 1, flexShrink: 1 }}>
             <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
               <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-300" />
-              주변 cctv
+              CCTV 모니터링
             </div>
             <div className="overflow-y-auto flex-1">
               <div className={`grid gap-3`} style={{ 
@@ -208,26 +208,18 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
                     <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
                   </div>
                 ) : (
-                  [...monitoringCCTVs].sort((a, b) => {
-                    const cctvA = cctvInfo[a];
-                    const cctvB = cctvInfo[b];
-                    if (!cctvA || !cctvB) return 0;
-                    // 추적중이 먼저 오도록 정렬
-                    if (cctvA.status === '추적중' && cctvB.status !== '추적중') return -1;
-                    if (cctvA.status !== '추적중' && cctvB.status === '추적중') return 1;
-                    return 0;
-                  }).map((cctvKey) => {
+                  monitoringCCTVs.map((cctvKey) => {
                     const cctv = cctvInfo[cctvKey];
                     if (!cctv) return null;
-                    const isTracking = cctv.status === '추적중';
                     return (
                       <div
                         key={cctvKey}
                         className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-blue-500/50 transition-colors overflow-hidden group relative"
-                        style={{ borderWidth: isTracking ? '2px' : '1px', borderColor: isTracking ? 'rgba(234, 179, 8, 0.5)' : undefined }}
                         onClick={() => {
-                          setSelectedCCTV(cctvKey);
-                          setShowCCTVPopup(true);
+                          if (setSelectedMapCCTV && setShowMapCCTVPopup) {
+                            setSelectedMapCCTV(cctvKey);
+                            setShowMapCCTVPopup(true);
+                          }
                         }}
                       >
                         <div className="relative aspect-video bg-black">
@@ -256,15 +248,6 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
                         <div className="p-1.5 space-y-0.5">
                           <div className="flex items-center gap-1.5">
                             <span className="text-white text-[10px] font-semibold truncate">{cctv.id}</span>
-                            <span className={`px-1 py-0.5 text-[10px] flex-shrink-0 ${
-                              cctv.status === '활성' 
-                                ? 'bg-green-500/20 text-green-400'
-                                : cctv.status === '추적중'
-                                  ? 'bg-yellow-500/20 text-yellow-400'
-                                  : 'bg-gray-500/20 text-gray-400'
-                            }`}>
-                              {cctv.status}
-                            </span>
                           </div>
                           <div className="text-gray-400 text-[10px] truncate">{cctv.location}</div>
                         </div>

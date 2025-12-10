@@ -1,7 +1,9 @@
 'use client';
 
+import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { cctvInfo, cctvThumbnailMap, cctvFovMap, cctvCoordinatesMap, detectedCCTVThumbnails, movementTimeline, cctvLocationGroups } from './constants';
+import { getSecondaryButtonClassName } from '@/components/shared/styles';
 
 interface DetectedCCTVClipPopupProps {
   isOpen: boolean;
@@ -30,6 +32,10 @@ export const DetectedCCTVClipPopup = ({
   setIsClipPlaying,
   setClipCurrentTime,
 }: DetectedCCTVClipPopupProps) => {
+  const [isTrackingBoxDraggable, setIsTrackingBoxDraggable] = useState(false);
+  const [trackingBoxPosition, setTrackingBoxPosition] = useState({ top: 30, left: 40 }); // 퍼센트 기준
+  const [isDragging, setIsDragging] = useState(false);
+
   if (!isOpen || !selectedDetectedCCTV) return null;
 
   const detected = detectedCCTVThumbnails.find(d => d.cctvId === selectedDetectedCCTV);
@@ -124,15 +130,44 @@ export const DetectedCCTVClipPopup = ({
                 }}
               />
               {/* 추적 영역 표시 */}
-              <div className="absolute inset-0 pointer-events-none">
+              <div 
+                className="absolute inset-0"
+                style={{ pointerEvents: isTrackingBoxDraggable ? 'auto' : 'none' }}
+                onMouseMove={(e) => {
+                  if (isDragging && isTrackingBoxDraggable) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const percentX = (x / rect.width) * 100;
+                    const percentY = (y / rect.height) * 100;
+                    setTrackingBoxPosition({
+                      top: Math.max(0, Math.min(100, percentY)),
+                      left: Math.max(0, Math.min(100, percentX)),
+                    });
+                  }
+                }}
+                onMouseUp={() => {
+                  setIsDragging(false);
+                }}
+                onMouseLeave={() => {
+                  setIsDragging(false);
+                }}
+              >
                 <div
-                  className="absolute border-2 border-red-500 bg-red-500/20 rounded"
+                  className={`absolute border-2 border-red-500 bg-red-500/20 rounded ${isTrackingBoxDraggable ? 'cursor-move' : ''}`}
                   style={{
                     width: '200px',
                     height: '150px',
-                    top: '30%',
-                    left: '40%',
+                    top: `${trackingBoxPosition.top}%`,
+                    left: `${trackingBoxPosition.left}%`,
                     transform: 'translate(-50%, -50%)',
+                    pointerEvents: isTrackingBoxDraggable ? 'auto' : 'none',
+                  }}
+                  onMouseDown={(e) => {
+                    if (isTrackingBoxDraggable) {
+                      e.stopPropagation();
+                      setIsDragging(true);
+                    }
                   }}
                 >
                   <div className="absolute -top-6 left-0 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
@@ -305,11 +340,40 @@ export const DetectedCCTVClipPopup = ({
         </div>
 
 
-        {/* 하단 닫기 버튼 */}
-        <div className="flex justify-end p-4 border-t border-[#31353a] flex-shrink-0">
+        {/* 하단 버튼 */}
+        <div className="flex justify-between items-center gap-2 p-4 border-t border-[#31353a] flex-shrink-0">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (isTrackingBoxDraggable) {
+                  // 추적대상 재선택 완료
+                  alert('추적대상 재선택이 완료되었습니다. AI가 추적대상을 재 분석합니다.');
+                  setIsTrackingBoxDraggable(false);
+                  onClose();
+                } else {
+                  setIsTrackingBoxDraggable(true);
+                }
+              }}
+              className={`${getSecondaryButtonClassName()} ${isTrackingBoxDraggable ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+            >
+              {isTrackingBoxDraggable ? '추적대상 재선택 완료' : '추적대상 재추적'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                // TODO: 전파하기 기능 구현
+                console.log('전파하기');
+              }}
+              className={getSecondaryButtonClassName()}
+            >
+              전파하기
+            </button>
+          </div>
           <button
+            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white hover:border-white transition-colors"
+            className={getSecondaryButtonClassName()}
           >
             닫기
           </button>

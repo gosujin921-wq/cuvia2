@@ -3,12 +3,16 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { cctvInfo, cctvThumbnailMap, cctvFovMap, cctvCoordinatesMap, movementTimeline, cctvLocationGroups } from './constants';
+import { getSecondaryButtonClassName } from '@/components/shared/styles';
 
 interface MapCCTVPopupProps {
   isOpen: boolean;
   selectedMapCCTV: string | null;
   currentCctvIndex: number;
   popupTitle?: string; // 팝업 헤더 타이틀
+  monitoringCCTVs?: string[]; // 모니터링 중인 CCTV 목록
+  handleAddToMonitoring?: (cctvKey: string) => void; // 모니터링 추가 핸들러
+  handleRemoveFromMonitoring?: (cctvKey: string) => void; // 모니터링 해제 핸들러
   onClose: () => void;
   setSelectedMapCCTV: (cctvId: string) => void;
   setCurrentCctvIndex: (index: number) => void;
@@ -28,7 +32,10 @@ export const MapCCTVPopup = ({
   isOpen,
   selectedMapCCTV,
   currentCctvIndex,
-  popupTitle = 'CCTV 팝업',
+  popupTitle = 'CCTV 모니터링',
+  monitoringCCTVs = [],
+  handleAddToMonitoring,
+  handleRemoveFromMonitoring,
   onClose,
   setSelectedMapCCTV,
   setCurrentCctvIndex,
@@ -44,6 +51,9 @@ export const MapCCTVPopup = ({
   handleNextCCTV,
 }: MapCCTVPopupProps) => {
   const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [isTrackingBoxDraggable, setIsTrackingBoxDraggable] = useState(false);
+  const [trackingBoxPosition, setTrackingBoxPosition] = useState({ top: 30, left: 40 }); // 퍼센트 기준
+  const [isDragging, setIsDragging] = useState(false);
 
   // 키보드 이벤트 핸들러
   useEffect(() => {
@@ -244,6 +254,52 @@ export const MapCCTVPopup = ({
                   target.src = '/cctv_img/001.jpg';
                 }}
               />
+              {/* 추적 영역 표시 */}
+              <div 
+                className="absolute inset-0"
+                style={{ pointerEvents: isTrackingBoxDraggable ? 'auto' : 'none' }}
+                onMouseMove={(e) => {
+                  if (isDragging && isTrackingBoxDraggable) {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const y = e.clientY - rect.top;
+                    const percentX = (x / rect.width) * 100;
+                    const percentY = (y / rect.height) * 100;
+                    setTrackingBoxPosition({
+                      top: Math.max(0, Math.min(100, percentY)),
+                      left: Math.max(0, Math.min(100, percentX)),
+                    });
+                  }
+                }}
+                onMouseUp={() => {
+                  setIsDragging(false);
+                }}
+                onMouseLeave={() => {
+                  setIsDragging(false);
+                }}
+              >
+                <div
+                  className={`absolute border-2 border-red-500 bg-red-500/20 rounded ${isTrackingBoxDraggable ? 'cursor-move' : ''}`}
+                  style={{
+                    width: '200px',
+                    height: '150px',
+                    top: `${trackingBoxPosition.top}%`,
+                    left: `${trackingBoxPosition.left}%`,
+                    transform: 'translate(-50%, -50%)',
+                    pointerEvents: isTrackingBoxDraggable ? 'auto' : 'none',
+                  }}
+                  onMouseDown={(e) => {
+                    if (isTrackingBoxDraggable) {
+                      e.stopPropagation();
+                      setIsDragging(true);
+                    }
+                  }}
+                >
+                  <div className="absolute -top-6 left-0 bg-red-500 text-white text-xs font-semibold px-2 py-1 rounded">
+                    추적 대상
+                  </div>
+                </div>
+              </div>
               {/* LIVE 오버레이 */}
               <div className="absolute top-3 left-3 px-3 py-1.5 bg-red-600 text-white text-xs font-semibold flex items-center gap-1.5 rounded-full z-10">
                 <span className="w-2 h-2 bg-white rounded-full animate-pulse"></span>
@@ -451,12 +507,59 @@ export const MapCCTVPopup = ({
         </div>
 
 
-        {/* 하단 닫기 버튼 */}
-        <div className="flex justify-end p-4 border-t border-[#31353a] flex-shrink-0">
+        {/* 하단 버튼 */}
+        <div className="flex justify-between items-center gap-2 p-4 border-t border-[#31353a] flex-shrink-0">
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                if (isTrackingBoxDraggable) {
+                  // 추적대상 재선택 완료
+                  alert('추적대상 재선택이 완료되었습니다. AI가 추적대상을 재 분석합니다.');
+                  setIsTrackingBoxDraggable(false);
+                  onClose();
+                } else {
+                  setIsTrackingBoxDraggable(true);
+                }
+              }}
+              className={`${getSecondaryButtonClassName()} ${isTrackingBoxDraggable ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+            >
+              {isTrackingBoxDraggable ? '추적대상 재선택 완료' : '추적대상 재추적'}
+            </button>
+          {selectedMapCCTV && monitoringCCTVs && (
+            <>
+              {!monitoringCCTVs.includes(selectedMapCCTV) && handleAddToMonitoring && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    handleAddToMonitoring(selectedMapCCTV);
+                  }}
+                  className={getSecondaryButtonClassName()}
+                >
+                  CCTV 모니터링 추가
+                </button>
+              )}
+              {monitoringCCTVs.includes(selectedMapCCTV) && handleRemoveFromMonitoring && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (window.confirm('CCTV 모니터링을 해제하시겠습니까?')) {
+                      handleRemoveFromMonitoring(selectedMapCCTV);
+                      onClose();
+                    }
+                  }}
+                  className={`${getSecondaryButtonClassName()} text-red-400 hover:text-red-300`}
+                >
+                  CCTV 모니터링 해제
+                </button>
+              )}
+            </>
+          )}
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="px-4 py-2 text-sm border border-[#31353a] text-gray-400 hover:text-white hover:border-white transition-colors"
+            className={getSecondaryButtonClassName()}
           >
             닫기
           </button>
