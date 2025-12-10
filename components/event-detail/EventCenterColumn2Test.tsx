@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import { getTabButtonClassName } from '@/components/shared/styles';
 
 interface EventCenterColumn2TestProps {
   isRightPanelCollapsed: boolean;
@@ -95,33 +96,21 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
       <div className="flex gap-2 mb-4 flex-shrink-0">
         <button
           onClick={() => setActiveTab('cctv')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-            activeTab === 'cctv'
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-          }`}
+          className={getTabButtonClassName(activeTab === 'cctv')}
           style={{ borderWidth: activeTab === 'cctv' ? '0' : '1px' }}
         >
           CCTV
         </button>
         <button
           onClick={() => setActiveTab('movement')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-            activeTab === 'movement'
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-          }`}
+          className={getTabButtonClassName(activeTab === 'movement')}
           style={{ borderWidth: activeTab === 'movement' ? '0' : '1px' }}
         >
           위치 및 동선
         </button>
         <button
           onClick={() => setActiveTab('analysis')}
-          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors ${
-            activeTab === 'analysis'
-              ? 'bg-blue-600 hover:bg-blue-700 text-white'
-              : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-          }`}
+          className={getTabButtonClassName(activeTab === 'analysis')}
           style={{ borderWidth: activeTab === 'analysis' ? '0' : '1px' }}
         >
           분석 요약

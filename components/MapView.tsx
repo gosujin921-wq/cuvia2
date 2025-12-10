@@ -6,6 +6,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getEventById, generateAIInsight } from '@/lib/events-data';
+import { getCCTVIconClassName, getCCTVLabelClassName } from '@/components/shared/styles';
 
 interface MapViewProps {
   events: Event[];
@@ -814,7 +815,7 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                 </div>
               )}
               
-              <div className="w-7 h-7 bg-[#1a1a1a] border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-xl relative z-10">
+              <div className={getCCTVIconClassName('active')}>
                 <Icon 
                   icon="mdi:cctv" 
                   className="text-blue-400" 
@@ -825,7 +826,7 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
               
               {/* CCTV 이름 표시 */}
               {showCCTVName && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border border-blue-500 rounded text-white text-xs whitespace-nowrap shadow-lg z-10">
+                <div className={`${getCCTVLabelClassName('active')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
                   {cctv.name}
                 </div>
               )}
