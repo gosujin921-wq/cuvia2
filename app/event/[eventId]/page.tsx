@@ -321,18 +321,11 @@ const EventDetailPageContent = () => {
   const [dragStartY, setDragStartY] = useState(0);
   const [dragStartHeight, setDragStartHeight] = useState(0);
 
-  // 클라이언트 마운트 후 localStorage에서 값 읽기
+  // 클라이언트 마운트 후 localStorage에서 값 읽기 (이벤트 상세 페이지에서는 초기값 false 유지)
   useEffect(() => {
     setIsMounted(true);
-    if (typeof window !== 'undefined') {
-      const savedCCTV = localStorage.getItem('cctv-show-cctv');
-      const savedViewAngle = localStorage.getItem('cctv-show-view-angle');
-      const savedName = localStorage.getItem('cctv-show-name');
-      
-      if (savedCCTV === 'true') setShowCCTV(true);
-      if (savedViewAngle === 'true') setShowCCTVViewAngle(true);
-      if (savedName === 'true') setShowCCTVName(true);
-    }
+    // 이벤트 상세 페이지에서는 초기 진입시 항상 CCTV 토글이 꺼진 상태로 시작
+    // localStorage에서 값을 읽어오지 않음
   }, []);
 
   // localStorage 동기화

@@ -5,7 +5,7 @@ import { Icon } from '@iconify/react';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { getEventById, generateAIInsight } from '@/lib/events-data';
+import { getEventById, generateAIInsight, getAIInsightKeywords } from '@/lib/events-data';
 import { getCCTVIconClassName, getCCTVLabelClassName, getCCTVBadgeClassName } from '@/components/shared/styles';
 
 interface MapViewProps {
@@ -22,10 +22,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
   const router = useRouter();
   const [searchInput, setSearchInput] = useState('');
   const [selectedRouteType, setSelectedRouteType] = useState<'ai' | 'nearby' | null>(null);
-  const [tooltipPositions, setTooltipPositions] = useState<Record<string, { x: number; y: number }>>({});
-  const [currentDragPosition, setCurrentDragPosition] = useState<{ x: number; y: number } | null>(null);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [zoomLevel, setZoomLevel] = useState(0); // 0: 축소(클러스터), 1: 확대(개별)
   
   // 줌 레벨에 따른 지도 스케일 계산
@@ -33,16 +29,23 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
   const mapTransformOrigin = 'center center'; // 확대 기준점
   // CCTV 토글 상태 (localStorage로 공유)
   // Hydration 오류 방지를 위해 초기값은 항상 false로 설정하고, useEffect에서 localStorage 읽기
+  // 대시보드에서는 초기 진입시 CCTV 토글이 켜진 상태가 디폴트
   const [showCCTV, setShowCCTV] = useState(false);
   const [showCCTVViewAngle, setShowCCTVViewAngle] = useState(false);
   const [showCCTVName, setShowCCTVName] = useState(false);
 
   // localStorage에서 초기값 읽기 (클라이언트에서만)
+  // 대시보드에서는 localStorage에 값이 없으면 기본값으로 true 설정
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const savedCCTV = localStorage.getItem('cctv-show-cctv');
       if (savedCCTV === 'true') {
         setShowCCTV(true);
+      } else if (savedCCTV === null) {
+        // localStorage에 값이 없으면 대시보드에서는 기본값으로 true
+        setShowCCTV(true);
+        setShowCCTVViewAngle(true);
+        setShowCCTVName(true);
       }
       const savedViewAngle = localStorage.getItem('cctv-show-view-angle');
       if (savedViewAngle === 'true') {
@@ -326,68 +329,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
     return { fireStations: nearbyFire, policeStations: nearbyPolice };
   }, [selectedEventId, events, fireStations, policeStations, positionsById]);
 
-  // 드래그 핸들러 (팝업 헤더에서 작동)
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
-    // 버튼을 클릭한 경우 드래그 시작하지 않음
-    const target = e.target as HTMLElement;
-    if (target.tagName === 'BUTTON' || target.closest('button')) {
-      return;
-    }
-    
-    if (!tooltipRef.current) return;
-    
-    const tooltipRect = tooltipRef.current.getBoundingClientRect();
-    
-    // 마우스 클릭 위치와 툴팁 왼쪽 상단 모서리의 차이 계산
-    setDragOffset({
-      x: e.clientX - tooltipRect.left,
-      y: e.clientY - tooltipRect.top,
-    });
-    setIsDragging(true);
-    e.preventDefault();
-    e.stopPropagation();
-  };
-
-  useEffect(() => {
-    if (!isDragging) return;
-
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!tooltipRef.current) return;
-      
-      const tooltipRect = tooltipRef.current.getBoundingClientRect();
-      
-      // 전체 화면 기준 위치 계산 (fixed positioning)
-      let newX = e.clientX - dragOffset.x;
-      let newY = e.clientY - dragOffset.y;
-      
-      // 화면 경계 내에서만 이동하도록 제한
-      newX = Math.max(0, Math.min(newX, window.innerWidth - tooltipRect.width));
-      newY = Math.max(0, Math.min(newY, window.innerHeight - tooltipRect.height));
-      
-      // 드래그 중에는 실시간 위치만 업데이트
-      setCurrentDragPosition({ x: newX, y: newY });
-    };
-
-    const handleMouseUp = () => {
-      // 드래그 완료 시 위치 저장
-      if (selectedEventId && currentDragPosition) {
-        setTooltipPositions(prev => ({
-          ...prev,
-          [selectedEventId]: currentDragPosition
-        }));
-      }
-      setIsDragging(false);
-      setCurrentDragPosition(null);
-    };
-
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-
-    return () => {
-      document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [isDragging, dragOffset, selectedEventId, currentDragPosition]);
 
   // 선택된 이벤트가 변경되면 경로 타입 초기화
   useEffect(() => {
@@ -458,16 +399,26 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
          </button>
        </div>
 
-       {/* CCTV 토글 버튼 - 지도 확대와 무관하게 고정 위치 */}
+       {/* CCTV 토글 버튼 - +/- 버튼 아래에 그룹핑 */}
        <div 
-         className="absolute top-4 right-4 flex flex-col gap-2" 
-         style={{ zIndex: 250 }}
+         className="absolute top-4 left-4 flex flex-col gap-2" 
+         style={{ zIndex: 250, marginTop: '100px' }}
          onClick={(e) => e.stopPropagation()}
        >
          <button
            onClick={(e) => {
              e.stopPropagation();
-             setShowCCTV(prev => !prev);
+             const newValue = !showCCTV;
+             setShowCCTV(newValue);
+             // CCTV를 켜면 화각과 라벨도 자동으로 켜기
+             if (newValue) {
+               setShowCCTVViewAngle(true);
+               setShowCCTVName(true);
+             } else {
+               // CCTV를 끄면 화각과 라벨도 함께 끄기
+               setShowCCTVViewAngle(false);
+               setShowCCTVName(false);
+             }
            }}
            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
              showCCTV 
@@ -480,37 +431,41 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
            <Icon icon="mdi:cctv" className="w-5 h-5" />
          </button>
          
-         {/* CCTV 서브 토글 버튼들 - CCTV 온오프와 상관없이 항상 표시 */}
-         <button
-           onClick={(e) => {
-             e.stopPropagation();
-             setShowCCTVViewAngle(prev => !prev);
-           }}
-           className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-             showCCTVViewAngle 
-               ? 'bg-green-600 hover:bg-green-700 text-white' 
-               : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-           }`}
-           style={{ borderWidth: '1px' }}
-           aria-label="시야각 켜기"
-         >
-           <Icon icon="mdi:angle-acute" className="w-5 h-5" />
-         </button>
-         <button
-           onClick={(e) => {
-             e.stopPropagation();
-             setShowCCTVName(prev => !prev);
-           }}
-           className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-             showCCTVName 
-               ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-               : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-           }`}
-           style={{ borderWidth: '1px' }}
-           aria-label="CCTV 명 켜기"
-         >
-           <Icon icon="mdi:label" className="w-5 h-5" />
-         </button>
+         {/* CCTV 서브 토글 버튼들 - CCTV가 켜져있을 때만 표시 */}
+         {showCCTV && (
+           <>
+             <button
+               onClick={(e) => {
+                 e.stopPropagation();
+                 setShowCCTVViewAngle(prev => !prev);
+               }}
+               className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                 showCCTVViewAngle 
+                   ? 'bg-green-600 hover:bg-green-700 text-white' 
+                   : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+               }`}
+               style={{ borderWidth: '1px' }}
+               aria-label="시야각 켜기"
+             >
+               <Icon icon="mdi:angle-acute" className="w-5 h-5" />
+             </button>
+             <button
+               onClick={(e) => {
+                 e.stopPropagation();
+                 setShowCCTVName(prev => !prev);
+               }}
+               className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+                 showCCTVName 
+                   ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                   : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+               }`}
+               style={{ borderWidth: '1px' }}
+               aria-label="CCTV 명 켜기"
+             >
+               <Icon icon="mdi:label" className="w-5 h-5" />
+             </button>
+           </>
+         )}
        </div>
 
       {/* 지도 - 박스 밖으로 */}
@@ -682,79 +637,59 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
 
 
         {/* SVG 오버레이 - map1.svg, map2.svg */}
-        {selectedEventId && selectedRouteType && (
-          <div className="absolute inset-0" style={{ zIndex: 3 }}>
-            <img 
-              src={selectedRouteType === 'ai' ? '/map2.svg' : '/map1.svg'} 
-              alt="Map Overlay" 
-              className="w-full h-full object-cover"
-            />
-          </div>
-        )}
+        {selectedRouteType && (() => {
+          const displayEvent = selectedEventId 
+            ? events.find(e => e.id === selectedEventId)
+            : events[0];
+          if (!displayEvent) return null;
+          return (
+            <div className="absolute inset-0" style={{ zIndex: 3 }}>
+              <img 
+                src={selectedRouteType === 'ai' ? '/map2.svg' : '/map1.svg'} 
+                alt="Map Overlay" 
+                className="w-full h-full object-cover"
+              />
+            </div>
+          );
+        })()}
 
       </div>
 
-      {/* 선택된 이벤트 툴팁 팝업 */}
-      {selectedEventId && (() => {
-        const selectedEvent = events.find(e => e.id === selectedEventId);
-        if (!selectedEvent) return null;
+      {/* 이벤트 팝업 - 항상 중앙 패널(맵 영역) 우측 상단에 고정 표시 */}
+      {(() => {
+        // selectedEventId가 있으면 해당 이벤트, 없으면 첫 번째 이벤트 사용
+        const displayEvent = selectedEventId 
+          ? events.find(e => e.id === selectedEventId)
+          : events[0];
         
-        const position = getEventPosition(selectedEvent);
-        const savedPosition = tooltipPositions[selectedEventId];
+        if (!displayEvent) return null;
         
-        // 핀 위치 계산 (전체 화면 기준 fixed positioning)
-        const getTooltipInitialPosition = () => {
-          if (!containerRef.current) return { x: 0, y: 0 };
-          const containerRect = containerRef.current.getBoundingClientRect();
-          let pinX = containerRect.left + (position.left / 100) * containerRect.width;
-          let pinY = containerRect.top + (position.top / 100) * containerRect.height;
-          
-          // event-3(오토바이 도주)의 경우 transform 오프셋 적용
-          if (selectedEvent.id === 'event-3') {
-            pinX = pinX - 285; // 좌측으로 285px
-            pinY = pinY - 150; // 위로 150px
-          } else if (selectedEvent.id === 'event-7') {
-            pinX = pinX - 55; // 좌측으로 55px
-            pinY = pinY - 30; // 위로 30px
-          }
-          
-          // 핀 아래 위치 (핀 크기 + 여백)
-          return {
-            x: pinX - 160, // 툴팁 너비의 절반 (320px / 2)
-            y: pinY + 20 // 핀 아래 20px
-          };
-        };
-        
-        const initialPos = getTooltipInitialPosition();
-        const displayPosition = isDragging && currentDragPosition 
-          ? currentDragPosition 
-          : savedPosition || initialPos;
+        // "상가 절도 의심" 이벤트는 팝업 전체 제외
+        const isTheftEvent = displayEvent.title.includes('상가 절도 의심') || displayEvent.title.includes('현금 절취 포착');
+        if (isTheftEvent) return null;
         
         return (
           <div
             ref={tooltipRef}
             data-tooltip
-            className="fixed rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs shadow-xl"
+            className="absolute rounded-lg bg-[#1a1a1a] border border-[#2a2a2a] text-white text-xs shadow-xl"
             style={{ 
-              minWidth: '320px', 
+              width: '420px',
+              maxHeight: '600px',
+              overflowY: 'auto',
               zIndex: 1000,
-              left: `${displayPosition.x}px`,
-              top: `${displayPosition.y}px`,
+              top: '20px',
+              right: '20px',
               transform: 'none'
             }}
             onClick={(e) => {
               e.stopPropagation();
             }}
           >
-            {/* 헤더: 위치 정보 + 닫기 버튼 (드래그 핸들) */}
+            {/* 헤더: 닫기 버튼만 */}
             <div 
-              className="px-3 py-1.5 border-b border-[#2a2a2a] flex items-center justify-between cursor-move"
-              onMouseDown={handleMouseDown}
+              className="px-3 py-1.5 border-b border-[#2a2a2a] flex items-center justify-end"
             >
-              <div>
-                <div className="font-semibold whitespace-nowrap">{selectedEvent.location.name}</div>
-                <div className="text-gray-400 text-[10px]">{selectedEvent.type}</div>
-              </div>
               <button
                 onClick={(e) => {
                   e.stopPropagation();
@@ -763,98 +698,212 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                 onMouseDown={(e) => {
                   e.stopPropagation();
                 }}
-                className="p-1 hover:bg-[#36383B] rounded transition-colors ml-2"
+                className="p-1 hover:bg-[#36383B] rounded transition-colors"
                 aria-label="닫기"
               >
                 <Icon icon="mdi:close" className="w-4 h-4 text-gray-400 hover:text-white" />
               </button>
             </div>
 
-            {/* AI 인사이트 */}
-            {(() => {
-              const baseEvent = selectedEvent.eventId ? getEventById(selectedEvent.eventId) : null;
-              const aiInsightText = baseEvent ? generateAIInsight(baseEvent) : null;
-              
-              return aiInsightText ? (
-                <div className="m-3 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4" style={{ borderWidth: '1px' }}>
-                  <div className="flex items-start gap-2 mb-2">
-                    <Icon icon="mdi:robot" className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <h3 className="text-white font-semibold text-sm">AI 인사이트</h3>
+            {/* 감지된 CCTV 영상 */}
+            <div className="m-3">
+              <div className="w-full bg-[#0f0f0f] border border-[#2a2a2a] rounded-lg overflow-hidden relative" style={{ borderWidth: '1px', aspectRatio: '16/9' }}>
+                <img 
+                  src="/cctv_img/001.jpg" 
+                  alt="감지된 CCTV 영상" 
+                  className="w-full h-full object-cover"
+                />
+                {/* Live/Clip 상태 오버레이 */}
+                <div className="absolute top-2 left-2 flex gap-2" style={{ zIndex: 10 }}>
+                  <span className="px-2 py-0.5 bg-red-500/90 text-white text-xs font-semibold rounded flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse"></span>
+                    LIVE
+                  </span>
+                  <span className="px-2 py-0.5 bg-blue-500/90 text-white text-xs font-semibold rounded">
+                    CLIP
+                  </span>
+                </div>
+                
+                {/* 플레이 타임라인과 인디케이터 */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3" style={{ zIndex: 10 }}>
+                  {/* 타임라인 */}
+                  <div className="relative w-full h-1 bg-gray-600/50 rounded-full mb-2 cursor-pointer flex items-center">
+                    {/* 재생 진행 바 */}
+                    <div 
+                      className="absolute left-0 top-0 h-full bg-blue-500 rounded-full"
+                      style={{ width: '35%' }}
+                    ></div>
+                    {/* 재생 인디케이터 */}
+                    <div 
+                      className="absolute w-3 h-3 bg-blue-500 rounded-full border-2 border-white shadow-lg"
+                      style={{ left: '35%', top: '50%', transform: 'translate(-50%, -50%)' }}
+                    ></div>
                   </div>
-                  <div className="space-y-1.5 text-xs text-white leading-relaxed">
-                    {aiInsightText.split('. ').filter(s => s.trim()).map((sentence, idx) => (
-                      <div key={idx} className="text-white">
-                        {sentence.trim()}{sentence.trim().endsWith('.') ? '' : '.'}
-                      </div>
-                    ))}
+                  {/* 시간 표시 */}
+                  <div className="flex items-center justify-between text-white text-xs">
+                    <span>00:12</span>
+                    <span className="text-gray-400">00:35</span>
                   </div>
                 </div>
-              ) : null;
-            })()}
-            <div className="p-2 space-y-2">
-              <div className="flex gap-2">
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedRouteType('ai');
-                  }}
-                  className={`flex-1 px-3 py-1.5 text-white text-xs font-medium rounded transition-colors ${
-                    selectedRouteType === 'ai' 
-                      ? 'bg-blue-700 ring-2 ring-blue-400' 
-                      : 'bg-blue-600 hover:bg-blue-700'
-                  }`}
-                >
-                  AI 추천경로
-                </button>
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedRouteType('nearby');
-                  }}
-                  className={`flex-1 px-3 py-1.5 text-white text-xs font-medium rounded transition-colors ${
-                    selectedRouteType === 'nearby' 
-                      ? 'bg-indigo-700 ring-2 ring-indigo-400' 
-                      : 'bg-indigo-600 hover:bg-indigo-700'
-                  }`}
-                >
-                  가까운 경로
-                </button>
               </div>
-              {selectedRouteType && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const generateAIInsight = () => {
-                      if (selectedEvent.type.includes('화재')) {
-                        return '화재 이벤트 발생. 강풍 영향으로 확산 위험이 높으며, 접근 가능한 도로가 제한적입니다. 즉시 소방대 출동이 필요합니다.';
-                      } else if (selectedEvent.type.includes('미아') || selectedEvent.type.includes('배회')) {
-                        return '실종/배회 이벤트 발생. 마지막 목격 좌표 기준 반경 300m 내에서 배회 행동이 감지되었습니다. 즉시 수색대 출동이 필요합니다.';
-                      } else if (selectedEvent.type.includes('약자')) {
-                        return '약자 쓰러짐 이벤트 발생. 강풍·조도·지형 영향으로 긴급도 High입니다. 즉시 구조대 출동이 필요합니다.';
-                      } else if (selectedEvent.type.includes('치안') || selectedEvent.type.includes('폭행') || selectedEvent.type.includes('절도')) {
-                        return '치안 사건 발생. CCTV AI 감지 및 112 신고가 동시에 접수되어 고신뢰도 사건으로 분류되었습니다. 즉시 경찰 출동이 필요합니다.';
-                      }
-                      return `${selectedEvent.title} 이벤트 발생. 현재 상황을 분석 중이며, 필요시 즉시 대응이 필요합니다.`;
-                    };
-                    
-                    const aiInsight = generateAIInsight();
-                    const routeType = selectedRouteType === 'ai' ? 'AI 추천경로' : '가까운 경로';
-                    const message = `[${selectedEvent.location.name}]\n\n${aiInsight}\n\n추천 경로: ${routeType}`;
-                    
-                    alert(message);
-                  }}
-                  className="w-full px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors"
-                >
-                  바로 전파
-                </button>
-              )}
+            </div>
+
+            {/* 이벤트 명 */}
+            <div className="px-3 mb-2">
+              <div className="text-white font-semibold text-sm mb-1">{displayEvent.title}</div>
+              <div className="text-gray-400 text-xs">{displayEvent.location.name}</div>
+            </div>
+
+            {/* AI 분석 - AI 인사이트 요약 + 핵심 키워드 */}
+            {(() => {
+              const baseEvent = displayEvent.eventId ? getEventById(displayEvent.eventId) : null;
+              const keywords = baseEvent ? getAIInsightKeywords(baseEvent) : [];
+              const aiInsightText = baseEvent ? generateAIInsight(baseEvent) : null;
+              
+              if (keywords.length === 0 && !aiInsightText) return null;
+              
+              return (
+                <div className="m-3 bg-blue-500/10 border border-blue-500/30 rounded-lg p-4" style={{ borderWidth: '1px' }}>
+                  <div className="flex items-start gap-2 mb-3">
+                    <Icon icon="mdi:robot" className="w-5 h-5 text-blue-400 flex-shrink-0 mt-0.5" />
+                    <h3 className="text-white font-semibold text-sm">AI 분석</h3>
+                  </div>
+                  
+                  {/* AI 인사이트 내용 요약 */}
+                  {aiInsightText && (
+                    <div className="mb-3 text-xs text-white leading-relaxed">
+                      {aiInsightText.split('. ').filter(s => s.trim()).slice(0, 2).map((sentence, idx) => (
+                        <div key={idx} className="text-white mb-1">
+                          {sentence.trim()}{sentence.trim().endsWith('.') ? '' : '.'}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* 핵심 키워드 */}
+                  {keywords.length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {keywords.slice(0, 5).map((keyword, idx) => (
+                        <span 
+                          key={idx}
+                          className="px-2 py-1 bg-blue-500/20 text-blue-300 text-xs rounded border border-blue-500/30"
+                          style={{ borderWidth: '1px' }}
+                        >
+                          {keyword}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
+            {/* 버튼 영역 - 모니터링화면으로 가기 | 바로 전파 */}
+            <div className="p-2 flex gap-2">
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (displayEvent.eventId) {
+                    router.push(`/event/${displayEvent.eventId}`);
+                  }
+                }}
+                className="flex-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded transition-colors"
+              >
+                모니터링화면으로 가기
+              </button>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  const generateAIInsight = () => {
+                    if (displayEvent.type.includes('화재')) {
+                      return '화재 이벤트 발생. 강풍 영향으로 확산 위험이 높으며, 접근 가능한 도로가 제한적입니다. 즉시 소방대 출동이 필요합니다.';
+                    } else if (displayEvent.type.includes('미아') || displayEvent.type.includes('배회')) {
+                      return '실종/배회 이벤트 발생. 마지막 목격 좌표 기준 반경 300m 내에서 배회 행동이 감지되었습니다. 즉시 수색대 출동이 필요합니다.';
+                    } else if (displayEvent.type.includes('약자')) {
+                      return '약자 쓰러짐 이벤트 발생. 강풍·조도·지형 영향으로 긴급도 High입니다. 즉시 구조대 출동이 필요합니다.';
+                    } else if (displayEvent.type.includes('치안') || displayEvent.type.includes('폭행') || displayEvent.type.includes('절도')) {
+                      return '치안 사건 발생. CCTV AI 감지 및 112 신고가 동시에 접수되어 고신뢰도 사건으로 분류되었습니다. 즉시 경찰 출동이 필요합니다.';
+                    }
+                    return `${displayEvent.title} 이벤트 발생. 현재 상황을 분석 중이며, 필요시 즉시 대응이 필요합니다.`;
+                  };
+                  
+                  const aiInsight = generateAIInsight();
+                  const message = `[${displayEvent.location.name}]\n\n${aiInsight}`;
+                  
+                  alert(message);
+                }}
+                className="flex-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded transition-colors"
+              >
+                바로 전파
+              </button>
             </div>
           </div>
         );
       })()}
 
+      {/* 이벤트 핀들 - 추적 CCTV 아이콘으로 표시 */}
+      <div className="absolute inset-0" style={{ zIndex: 100, width: '100%', height: '100%', pointerEvents: 'none' }}>
+        {(events || []).map((event) => {
+          const position = getEventPosition(event);
+          const isHighlighted = highlightedEventId === event.id;
+          const isSelected = selectedEventId === event.id;
 
-
+          return (
+            <div
+              key={event.id}
+              data-event-pin
+              className="absolute flex items-center justify-center"
+              style={{
+                left: `${position.left}%`,
+                top: `${position.top}%`,
+                transform: 'translate(-50%, -50%)',
+                zIndex: isSelected ? 150 : isHighlighted ? 140 : 100,
+                pointerEvents: 'auto',
+                width: '80px',
+                height: '80px',
+              }}
+            >
+              {/* 펄스 애니메이션 (여러 레이어) - "상가 절도 의심, 현금 절취 포착" 제외 */}
+              {!event.title.includes('상가 절도 의심') && !event.title.includes('현금 절취 포착') && (
+                <>
+                  {!event.title.includes('상가 절도 의심') && !event.title.includes('현금 절취 포착') && (
+                    <>
+                      <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80, animationDelay: '0s' }}>
+                        <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
+                      </div>
+                      <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 79, animationDelay: '0.3s' }}>
+                        <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.4)' }}></div>
+                      </div>
+                      <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 78, animationDelay: '0.6s' }}>
+                        <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}></div>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+              
+              {/* 추적 CCTV 아이콘 */}
+              <div 
+                className="absolute cursor-pointer" 
+                style={{ zIndex: 130 }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onEventClick?.(event.id);
+                }}
+              >
+                <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative' }}>
+                  <Icon 
+                    icon="mdi:cctv" 
+                    className="text-red-400" 
+                    width="16px" 
+                    height="16px"
+                  />
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
 
       {/* 플로팅 검색창 */}
       <div 

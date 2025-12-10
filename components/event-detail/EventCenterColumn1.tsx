@@ -310,16 +310,26 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           </button>
         </div>
 
-        {/* CCTV 토글 버튼 - 지도 확대와 무관하게 고정 위치 */}
+        {/* CCTV 토글 버튼 - +/- 버튼 아래에 그룹핑 */}
         <div 
-          className="absolute top-4 right-4 flex flex-col gap-2" 
-          style={{ zIndex: 250 }}
+          className="absolute top-4 left-4 flex flex-col gap-2" 
+          style={{ zIndex: 250, marginTop: '100px' }}
           onClick={(e) => e.stopPropagation()}
         >
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setShowCCTV(prev => !prev);
+              const newShowCCTV = !showCCTV;
+              setShowCCTV(newShowCCTV);
+              // CCTV 토글을 켜면 라벨과 화각도 함께 켜짐
+              if (newShowCCTV) {
+                setShowCCTVViewAngle(true);
+                setShowCCTVName(true);
+              } else {
+                // CCTV 토글을 끄면 라벨과 화각도 함께 꺼짐
+                setShowCCTVViewAngle(false);
+                setShowCCTVName(false);
+              }
             }}
             className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
               showCCTV 
