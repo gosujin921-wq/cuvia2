@@ -16,13 +16,27 @@ interface MapViewProps {
   onMapClick?: () => void;
   onEventHover?: (eventId: string | null) => void;
   onToggleGeneralEvents?: () => void;
+  externalZoomLevel?: number;
+  onZoomLevelChange?: (level: number) => void;
 }
 
-const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, onMapClick, onEventHover, onToggleGeneralEvents }: MapViewProps) => {
+const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, onMapClick, onEventHover, onToggleGeneralEvents, externalZoomLevel, onZoomLevelChange }: MapViewProps) => {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState('');
   const [selectedRouteType, setSelectedRouteType] = useState<'ai' | 'nearby' | null>(null);
   const [zoomLevel, setZoomLevel] = useState(0); // 0: 축소(클러스터), 1: 확대(개별)
+  
+  // 외부에서 줌 레벨 제어
+  useEffect(() => {
+    if (externalZoomLevel !== undefined) {
+      setZoomLevel(externalZoomLevel);
+    }
+  }, [externalZoomLevel]);
+  
+  // 줌 레벨 변경 시 부모에게 알림
+  useEffect(() => {
+    onZoomLevelChange?.(zoomLevel);
+  }, [zoomLevel, onZoomLevelChange]);
   
   // 줌 레벨에 따른 지도 스케일 계산
   const mapScale = zoomLevel === 0 ? 1 : 1.5; // 확대 시 1.5배
@@ -41,19 +55,29 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
       const savedCCTV = localStorage.getItem('cctv-show-cctv');
       if (savedCCTV === 'true') {
         setShowCCTV(true);
-      } else if (savedCCTV === null) {
-        // localStorage에 값이 없으면 대시보드에서는 기본값으로 true
+      } else if (savedCCTV === null || savedCCTV === 'false') {
+        // localStorage에 값이 없거나 false면 대시보드에서는 기본값으로 true
         setShowCCTV(true);
         setShowCCTVViewAngle(true);
         setShowCCTVName(true);
+        // localStorage에도 저장
+        localStorage.setItem('cctv-show-cctv', 'true');
+        localStorage.setItem('cctv-show-view-angle', 'true');
+        localStorage.setItem('cctv-show-name', 'true');
       }
       const savedViewAngle = localStorage.getItem('cctv-show-view-angle');
       if (savedViewAngle === 'true') {
         setShowCCTVViewAngle(true);
+      } else if (savedViewAngle === null || savedViewAngle === 'false') {
+        setShowCCTVViewAngle(true);
+        localStorage.setItem('cctv-show-view-angle', 'true');
       }
       const savedName = localStorage.getItem('cctv-show-name');
       if (savedName === 'true') {
         setShowCCTVName(true);
+      } else if (savedName === null || savedName === 'false') {
+        setShowCCTVName(true);
+        localStorage.setItem('cctv-show-name', 'true');
       }
     }
   }, []);
@@ -863,22 +887,18 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                 height: '80px',
               }}
             >
-              {/* 펄스 애니메이션 (여러 레이어) - "상가 절도 의심, 현금 절취 포착" 제외 */}
-              {!event.title.includes('상가 절도 의심') && !event.title.includes('현금 절취 포착') && (
+              {/* 펄스 애니메이션 (여러 레이어) - 선택된 이벤트에만 표시, "상가 절도 의심, 현금 절취 포착" 제외 */}
+              {isSelected && !event.title.includes('상가 절도 의심') && !event.title.includes('현금 절취 포착') && (
                 <>
-                  {!event.title.includes('상가 절도 의심') && !event.title.includes('현금 절취 포착') && (
-                    <>
-                      <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80, animationDelay: '0s' }}>
-                        <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
-                      </div>
-                      <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 79, animationDelay: '0.3s' }}>
-                        <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.4)' }}></div>
-                      </div>
-                      <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 78, animationDelay: '0.6s' }}>
-                        <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}></div>
-                      </div>
-                    </>
-                  )}
+                  <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 80, animationDelay: '0s' }}>
+                    <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
+                  </div>
+                  <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 79, animationDelay: '0.3s' }}>
+                    <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.4)' }}></div>
+                  </div>
+                  <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 78, animationDelay: '0.6s' }}>
+                    <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}></div>
+                  </div>
                 </>
               )}
               
@@ -891,13 +911,39 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                   onEventClick?.(event.id);
                 }}
               >
-                <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative' }}>
+                <div 
+                  className={getCCTVIconClassName('tracking')} 
+                  style={{ 
+                    zIndex: 110, 
+                    position: 'relative',
+                    transform: zoomLevel === 1 ? 'scale(1.5)' : 'scale(1)',
+                    transformOrigin: 'center center'
+                  }}
+                >
                   <Icon 
                     icon="mdi:cctv" 
                     className="text-red-400" 
                     width="16px" 
                     height="16px"
                   />
+                  {/* 클러스터 뱃지 - 같은 위치의 이벤트 개수 표시 */}
+                  {(() => {
+                    // 같은 위치에 있는 이벤트 개수 계산 (위치가 1% 이내로 가까운 경우)
+                    const samePositionEvents = events.filter(e => {
+                      const otherPosition = getEventPosition(e);
+                      const distance = Math.sqrt(
+                        Math.pow(position.left - otherPosition.left, 2) + 
+                        Math.pow(position.top - otherPosition.top, 2)
+                      );
+                      return distance < 1; // 1% 이내 거리
+                    });
+                    const clusterCount = samePositionEvents.length;
+                    return clusterCount > 1 ? (
+                      <div className={`${getCCTVBadgeClassName('tracking')} absolute -top-[18px] -right-[18px]`}>
+                        {clusterCount}
+                      </div>
+                    ) : null;
+                  })()}
                 </div>
               </div>
             </div>

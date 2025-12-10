@@ -237,7 +237,7 @@ export const CombinedCCTVPopup = ({
     >
       <div
         className="bg-[#101013] border border-[#31353a] w-full max-w-6xl flex flex-col shadow-lg"
-        style={{ transform: 'scale(0.8)', transformOrigin: 'center center', maxHeight: '120vh', height: 'auto' }}
+        style={{ maxHeight: '120vh', height: 'auto' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* 헤더 */}

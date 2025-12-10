@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import EventSummary from '@/components/EventSummary';
 import EventList from '@/components/EventList';
 import MapView from '@/components/MapView';
@@ -12,6 +12,7 @@ import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 export default function Home() {
   const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const [highlightedEventId, setHighlightedEventId] = useState<string | null>(null);
+  const [mapZoomLevel, setMapZoomLevel] = useState<number>(0);
 
   // 공통 데이터 사용
   const events: Event[] = useMemo(() => {
@@ -62,6 +63,34 @@ export default function Home() {
     setHighlightedEventId(eventId);
   };
 
+  // 숫자 1 키를 누르면 오토바이 도주 이벤트로 확대 및 팝업 표시
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // 입력 필드에 포커스가 있으면 무시
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+      
+      if (e.key === '1') {
+        // 오토바이 도주 이벤트 찾기
+        const motorcycleEvent = events.find(event => 
+          event.title.includes('오토바이 도주') || 
+          (event.eventId && event.eventId === 'event-3')
+        );
+        
+        if (motorcycleEvent) {
+          setSelectedEventId(motorcycleEvent.id);
+          setHighlightedEventId(motorcycleEvent.id);
+          setMapZoomLevel(1); // 확대
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyPress);
+    return () => {
+      window.removeEventListener('keydown', handleKeyPress);
+    };
+  }, [events]);
 
   return (
     <ScaledLayout>
@@ -99,6 +128,8 @@ export default function Home() {
                 setSelectedEventId(null);
                 setHighlightedEventId(null);
               }}
+              externalZoomLevel={mapZoomLevel}
+              onZoomLevelChange={setMapZoomLevel}
             />
           </div>
           {/* 우측: RightPanel */}
