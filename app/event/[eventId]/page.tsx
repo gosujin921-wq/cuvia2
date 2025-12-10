@@ -9,6 +9,10 @@ import { EventCenterPanel } from '@/components/event-detail/EventCenterPanel';
 import { EventCenterColumn1 } from '@/components/event-detail/EventCenterColumn1';
 import { EventCenterColumn2 } from '@/components/event-detail/EventCenterColumn2';
 import { EventCenterColumn2Test } from '@/components/event-detail/EventCenterColumn2Test';
+import { CCTVMonitoringPopup } from '@/components/event-detail/CCTVMonitoringPopup';
+import { DetectedCCTVClipPopup } from '@/components/event-detail/DetectedCCTVClipPopup';
+import { MapCCTVPopup } from '@/components/event-detail/MapCCTVPopup';
+import { CombinedCCTVPopup } from '@/components/event-detail/CombinedCCTVPopup';
 import { EventData, RiskFactor, ChatMessage, SavedClip } from '@/components/event-detail/types';
 import { behaviorHighlights, movementTimeline, cctvInfo, cctvThumbnailMap, cctvFovMap, detectedCCTVThumbnails } from '@/components/event-detail/constants';
 
@@ -92,6 +96,8 @@ const EventDetailPageContent = () => {
   }, [isClipPlaying, clipDuration]);
   const [showMapCCTVPopup, setShowMapCCTVPopup] = useState(false);
   const [selectedMapCCTV, setSelectedMapCCTV] = useState<string | null>(null);
+  const [showCombinedCCTVPopup, setShowCombinedCCTVPopup] = useState(false);
+  const [selectedCombinedCCTV, setSelectedCombinedCCTV] = useState<string | null>(null);
   const [cctvClusterList, setCctvClusterList] = useState<string[]>([]);
   const [currentCctvIndex, setCurrentCctvIndex] = useState(0);
 
@@ -781,6 +787,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setShowMapCCTVPopup={setShowMapCCTVPopup}
                 setShowDetectedCCTVPopup={setShowDetectedCCTVPopup}
                 setSelectedDetectedCCTV={setSelectedDetectedCCTV}
+                setShowCombinedCCTVPopup={setShowCombinedCCTVPopup}
+                setSelectedCombinedCCTV={setSelectedCombinedCCTV}
               />
 
               {/* 2열: CCTV, 인물 분석, 행동 요약 */}
@@ -854,16 +862,38 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
       </div>
 
       {/* CCTV 팝업 - 미디어 플레이어 */}
-      {showCCTVPopup && selectedCCTV && cctvInfo[selectedCCTV] && (
-        <div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
-          onClick={() => {
-            setShowCCTVPopup(false);
-            setSelectedCCTV(null);
-            setIsPlaying(false);
-            setCurrentTime(0);
-          }}
-        >
+      <CCTVMonitoringPopup
+        isOpen={showCCTVPopup && selectedCCTV !== null && cctvInfo[selectedCCTV] !== undefined}
+        selectedCCTV={selectedCCTV}
+        cctvInfo={cctvInfo}
+        selectedCctvThumbnail={selectedCctvThumbnail}
+        selectedCctvFov={selectedCctvFov}
+        isPlaying={isPlaying}
+        currentTime={currentTime}
+        duration={duration}
+        savedClips={savedClips}
+        showTrackingOverlay={showTrackingOverlay}
+        monitoringCCTVs={monitoringCCTVs}
+        onClose={() => {
+          setShowCCTVPopup(false);
+          setSelectedCCTV(null);
+          setIsPlaying(false);
+          setCurrentTime(0);
+        }}
+        setIsPlaying={setIsPlaying}
+        setCurrentTime={setCurrentTime}
+        setSavedClips={setSavedClips}
+        setShowTrackingOverlay={setShowTrackingOverlay}
+        handleActivateTracking={handleActivateTracking}
+        handleDeleteClip={handleDeleteClip}
+        handleAddToMonitoring={handleAddToMonitoring}
+        handleRemoveFromMonitoring={handleRemoveFromMonitoring}
+        addClipsToBroadcastRef={addClipsToBroadcastRef}
+        addMessage={addMessage}
+      />
+      {/* 기존 CCTV 모니터링 팝업 코드는 CCTVMonitoringPopup 컴포넌트로 이동됨 */}
+      {false && false && (
+        <div>
           <div
             className="bg-[#101013] border border-[#31353a] w-full max-w-4xl max-h-[90vh] overflow-y-auto flex flex-col shadow-lg p-6 text-sm text-gray-100 space-y-5"
             style={{ transform: 'scale(0.8)', transformOrigin: 'center center' }}
@@ -1155,7 +1185,20 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
       )}
 
       {/* 포착된 CCTV 상세 모달 */}
-      {showDetectedCCTVPopup && selectedDetectedCCTV && (() => {
+      <DetectedCCTVClipPopup
+        isOpen={showDetectedCCTVPopup}
+        selectedDetectedCCTV={selectedDetectedCCTV}
+        isClipPlaying={isClipPlaying}
+        clipCurrentTime={clipCurrentTime}
+        clipDuration={clipDuration}
+        onClose={() => {
+          setShowDetectedCCTVPopup(false);
+          setSelectedDetectedCCTV(null);
+        }}
+        setIsClipPlaying={setIsClipPlaying}
+        setClipCurrentTime={setClipCurrentTime}
+      />
+      {false && showDetectedCCTVPopup && selectedDetectedCCTV && (() => {
         const detected = detectedCCTVThumbnails.find(d => d.cctvId === selectedDetectedCCTV);
         if (!detected) return null;
         
@@ -1443,8 +1486,71 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         );
       })()}
 
-      {/* 맵 CCTV 팝업 모달 */}
-      {showMapCCTVPopup && selectedMapCCTV && (
+      {/* 통합 CCTV 팝업 (과거 포착 아이콘 클릭 시) */}
+      <CombinedCCTVPopup
+        isOpen={showCombinedCCTVPopup}
+        selectedCCTV={selectedCombinedCCTV}
+        currentCctvIndex={currentCctvIndex}
+        isClipPlaying={isClipPlaying}
+        clipCurrentTime={clipCurrentTime}
+        clipDuration={clipDuration}
+        popupTitle={(() => {
+          if (!selectedCombinedCCTV) return 'CCTV 팝업';
+          const timelineEntry = movementTimeline.find(item => item.cctvId === selectedCombinedCCTV);
+          return timelineEntry?.title || 'CCTV 팝업';
+        })()}
+        onClose={() => {
+          setShowCombinedCCTVPopup(false);
+          setSelectedCombinedCCTV(null);
+          setCctvClusterList([]);
+          setCurrentCctvIndex(0);
+        }}
+        setSelectedCCTV={setSelectedCombinedCCTV}
+        setCurrentCctvIndex={setCurrentCctvIndex}
+        setIsClipPlaying={setIsClipPlaying}
+        setClipCurrentTime={setClipCurrentTime}
+        handlePTZUp={handlePTZUp}
+        handlePTZDown={handlePTZDown}
+        handlePTZLeft={handlePTZLeft}
+        handlePTZRight={handlePTZRight}
+        handlePTZCenter={handlePTZCenter}
+        handleZoomIn={handleZoomIn}
+        handleZoomOut={handleZoomOut}
+        handlePreset={handlePreset}
+        handlePrevCCTV={handlePrevCCTV}
+        handleNextCCTV={handleNextCCTV}
+      />
+
+      {/* 맵 CCTV 팝업 모달 (추적 아이콘 클릭 시) */}
+      <MapCCTVPopup
+        isOpen={showMapCCTVPopup}
+        selectedMapCCTV={selectedMapCCTV}
+        currentCctvIndex={currentCctvIndex}
+        popupTitle={(() => {
+          if (!selectedMapCCTV) return 'CCTV 팝업';
+          const timelineEntry = movementTimeline.find(item => item.cctvId === selectedMapCCTV);
+          return timelineEntry?.title || 'CCTV 팝업';
+        })()}
+        onClose={() => {
+          setShowMapCCTVPopup(false);
+          setSelectedMapCCTV(null);
+          setCctvClusterList([]);
+          setCurrentCctvIndex(0);
+        }}
+        setSelectedMapCCTV={setSelectedMapCCTV}
+        setCurrentCctvIndex={setCurrentCctvIndex}
+        handlePTZUp={handlePTZUp}
+        handlePTZDown={handlePTZDown}
+        handlePTZLeft={handlePTZLeft}
+        handlePTZRight={handlePTZRight}
+        handlePTZCenter={handlePTZCenter}
+        handleZoomIn={handleZoomIn}
+        handleZoomOut={handleZoomOut}
+        handlePreset={handlePreset}
+        handlePrevCCTV={handlePrevCCTV}
+        handleNextCCTV={handleNextCCTV}
+      />
+      {false && showMapCCTVPopup && selectedMapCCTV && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
           onClick={() => {

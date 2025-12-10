@@ -182,6 +182,24 @@ export const cctvFovMap: Record<string, string> = {
   'CCTV-11': '105°',
 };
 
+// CCTV 위/경도 정보
+export const cctvCoordinatesMap: Record<string, { latitude: string; longitude: string }> = {
+  'CCTV-7': { latitude: '37.3925', longitude: '126.9567' },
+  'CCTV-12': { latitude: '37.3930', longitude: '126.9570' },
+  'CCTV-15': { latitude: '37.3920', longitude: '126.9560' },
+  'CCTV-9': { latitude: '37.3935', longitude: '126.9575' },
+  'CCTV-11': { latitude: '37.3928', longitude: '126.9565' },
+  'CCTV-3': { latitude: '37.3922', longitude: '126.9562' },
+  'CCTV-5': { latitude: '37.3932', longitude: '126.9572' },
+  'CCTV-8': { latitude: '37.3927', longitude: '126.9567' },
+  'CCTV-13': { latitude: '37.3930', longitude: '126.9568' },
+  'CCTV-16': { latitude: '37.3925', longitude: '126.9570' },
+  'CCTV-17': { latitude: '37.3926', longitude: '126.9571' },
+  'CCTV-18': { latitude: '37.3927', longitude: '126.9572' },
+  'CCTV-19': { latitude: '37.3928', longitude: '126.9573' },
+  'CCTV-20': { latitude: '37.3929', longitude: '126.9574' },
+};
+
 // 포착된 CCTV 썸네일 데이터 (CCTV에서 감지되어 판단된 기준)
 // 접수시간 직전이 처음 포착된 시간, 최신순으로 정렬
 export const detectedCCTVThumbnails = [
@@ -307,5 +325,29 @@ export const detectedCCTVThumbnails = [
     location: '동안동 골목',
   },
 ];
+
+// CCTV 위치 그룹 정보 - 같은 위치에 여러 CCTV가 있을 수 있음
+export const cctvLocationGroups: Record<string, { position: { left: number; top: number }; cctvs: string[] }> = {
+  'location-1': {
+    position: { left: 15, top: 80 },
+    cctvs: ['CCTV-7', 'CCTV-8', 'CCTV-9'], // 같은 위치에 여러 CCTV
+  },
+  'location-2': {
+    position: { left: 40, top: 60 },
+    cctvs: ['CCTV-12', 'CCTV-11'], // 같은 위치에 여러 CCTV
+  },
+  'location-3': {
+    position: { left: 70, top: 65 },
+    cctvs: ['CCTV-15'], // 단독 CCTV
+  },
+  'location-4': {
+    position: { left: 50, top: 40 },
+    cctvs: ['CCTV-3', 'CCTV-5', 'CCTV-13'], // 같은 위치에 여러 CCTV
+  },
+  'location-5': {
+    position: { left: 85, top: 45 },
+    cctvs: ['CCTV-16', 'CCTV-17', 'CCTV-18', 'CCTV-19', 'CCTV-20'], // 현재 위치 주변 (용의자 추적중) - 5개 클러스터
+  },
+};
 
 

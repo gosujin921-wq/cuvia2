@@ -22,6 +22,8 @@ interface EventCenterColumn1Props {
   setShowMapCCTVPopup: (value: boolean) => void;
   setShowDetectedCCTVPopup: (value: boolean) => void;
   setSelectedDetectedCCTV: (value: string | null) => void;
+  setShowCombinedCCTVPopup: (value: boolean) => void;
+  setSelectedCombinedCCTV: (value: string | null) => void;
 }
 
 export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
@@ -37,6 +39,8 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   setShowMapCCTVPopup,
   setShowDetectedCCTVPopup,
   setSelectedDetectedCCTV,
+  setShowCombinedCCTVPopup,
+  setSelectedCombinedCCTV,
 }) => {
   const [zoomLevel, setZoomLevel] = React.useState(0); // 0: 축소(클러스터), 1: 확대(개별)
   
@@ -105,14 +109,14 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
 
   // CCTV 클릭 핸들러 - 색상에 따라 다른 팝업 열기
   const handleCCTVClick = (cctvId: string, borderColor: string) => {
-    // red (추적중) → CCTV 팝업
+    // red (추적중) → CCTV 팝업만
     if (borderColor === 'border-red-500') {
       setSelectedMapCCTV(cctvId);
       setShowMapCCTVPopup(true);
     } else {
-      // yellow 또는 blue (과거 동선) → 포착된 CCTV 클립 팝업
-      setSelectedDetectedCCTV(cctvId);
-      setShowDetectedCCTVPopup(true);
+      // yellow 또는 blue (과거 동선) → 통합 팝업 (탭 전환)
+      setSelectedCombinedCCTV(cctvId);
+      setShowCombinedCCTVPopup(true);
     }
   };
 
