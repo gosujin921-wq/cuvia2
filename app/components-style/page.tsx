@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { 
   getTabButtonClassName,
@@ -14,11 +14,329 @@ import {
   getPTZPresetButtonClassName,
   getCCTVLabelClassName,
   getCCTVBadgeClassName,
-  getCCTVViewAngleClassName
+  getCCTVViewAngleClassName,
+  colorPalette,
+  fontSizes,
+  fontWeights,
+  buttonStyles as initialButtonStyles,
+  cardStyles as initialCardStyles,
+  inputStyles as initialInputStyles,
+  cctvIconStyles as initialCctvIconStyles,
+  cctvLabelStyles as initialCctvLabelStyles,
+  cctvBadgeStyles as initialCctvBadgeStyles,
+  ptzButtonStyles as initialPtzButtonStyles
 } from '@/components/shared/styles';
+
+// 스타일 타입 정의
+type ButtonStyles = typeof initialButtonStyles;
+type CardStyles = typeof initialCardStyles;
+type InputStyles = typeof initialInputStyles;
+type CctvIconStyles = typeof initialCctvIconStyles;
+type CctvLabelStyles = typeof initialCctvLabelStyles;
+type CctvBadgeStyles = typeof initialCctvBadgeStyles;
+type PtzButtonStyles = typeof initialPtzButtonStyles;
 
 export default function ComponentsStylePage() {
   const [activeSection, setActiveSection] = useState<string>('buttons');
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  
+  // 스타일 state
+  const [buttonStyles, setButtonStyles] = useState<ButtonStyles>(initialButtonStyles);
+  const [cardStyles, setCardStyles] = useState<CardStyles>(initialCardStyles);
+  const [inputStyles, setInputStyles] = useState<InputStyles>(initialInputStyles);
+  const [cctvIconStyles, setCctvIconStyles] = useState<CctvIconStyles>(initialCctvIconStyles);
+  const [cctvLabelStyles, setCctvLabelStyles] = useState<CctvLabelStyles>(initialCctvLabelStyles);
+  const [cctvBadgeStyles, setCctvBadgeStyles] = useState<CctvBadgeStyles>(initialCctvBadgeStyles);
+  const [ptzButtonStyles, setPtzButtonStyles] = useState<PtzButtonStyles>(initialPtzButtonStyles);
+
+  // 헬퍼 함수들 (동적 스타일 사용)
+  const getPrimaryButtonClassName = () => {
+    return `${buttonStyles.primary.base} ${buttonStyles.primary.active} flex items-center justify-center`.trim();
+  };
+
+  const getSecondaryButtonClassName = () => {
+    return `${buttonStyles.secondary.base} ${buttonStyles.secondary.inactive} flex items-center justify-center`.trim();
+  };
+
+  const getIconButtonClassName = (isActive: boolean = false) => {
+    const base = buttonStyles.icon.base;
+    const state = isActive ? buttonStyles.icon.active : buttonStyles.icon.inactive;
+    return `${base} ${state}`.trim();
+  };
+
+  const getCardClassName = (variant: 'default' | 'compact' = 'default') => {
+    return cardStyles[variant];
+  };
+
+  const getInputClassName = () => {
+    return inputStyles.default;
+  };
+
+  const getCCTVIconClassName = (variant: 'default' | 'active' | 'tracking' | 'warning' = 'default') => {
+    return cctvIconStyles[variant];
+  };
+
+  const getCCTVLabelClassName = (variant: 'default' | 'active' | 'tracking' | 'warning' = 'default') => {
+    const base = cctvLabelStyles.base;
+    const border = cctvLabelStyles[variant];
+    return `${base} ${border}`.trim();
+  };
+
+  const getCCTVBadgeClassName = (variant: 'default' | 'tracking' = 'default') => {
+    const base = cctvBadgeStyles.base;
+    const color = cctvBadgeStyles[variant];
+    return `${base} ${color}`.trim();
+  };
+
+  const getPTZButtonClassName = (isActive: boolean = false) => {
+    const base = ptzButtonStyles.base;
+    const state = isActive ? ptzButtonStyles.active : ptzButtonStyles.default;
+    return `${base} ${state}`.trim();
+  };
+
+  const getPTZPresetButtonClassName = (isActive: boolean = false) => {
+    const base = ptzButtonStyles.preset.base;
+    const state = isActive ? ptzButtonStyles.preset.active : ptzButtonStyles.preset.default;
+    return `${base} ${state}`.trim();
+  };
+
+  // 파일 저장 함수
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveStatus('idle');
+
+    try {
+      // 스타일 파일 내용 생성
+      const fileContent = `// 공통 컴포넌트 스타일 정의
+// 이 파일을 수정하면 모든 컴포넌트에 일괄 적용됩니다.
+
+// 컬러 팔레트
+export const colorPalette = {
+  // 배경 컬러
+  background: {
+    primary: '#161719',
+    secondary: '#0f0f0f',
+    tertiary: '#1a1a1a',
+    hover: '#2a2a2a',
+    border: '#31353a',
+    card: '#36383B',
+  },
+  // 텍스트 컬러
+  text: {
+    primary: 'white',
+    secondary: 'gray-300',
+    tertiary: 'gray-400',
+    muted: 'gray-500',
+    disabled: 'gray-600',
+  },
+  // 액센트 컬러
+  accent: {
+    blue: {
+      light: 'blue-400',
+      base: 'blue-500',
+      dark: 'blue-600',
+      darker: 'blue-700',
+    },
+    red: {
+      light: 'red-400',
+      base: 'red-500',
+      dark: 'red-600',
+    },
+    yellow: {
+      light: 'yellow-400',
+      base: 'yellow-500',
+    },
+    green: {
+      base: 'green-600',
+      dark: 'green-700',
+    },
+    purple: {
+      light: 'purple-400',
+      base: 'purple-500',
+      dark: 'purple-600',
+      darker: 'purple-700',
+    },
+    indigo: {
+      base: 'indigo-600',
+      dark: 'indigo-700',
+    },
+  },
+};
+
+// 폰트 사이즈
+export const fontSizes = {
+  xs: 'text-xs',      // 12px
+  sm: 'text-sm',      // 14px
+  base: 'text-base',   // 16px
+  lg: 'text-lg',      // 18px
+  xl: 'text-xl',      // 20px
+  '2xl': 'text-2xl',  // 24px
+  '3xl': 'text-3xl',  // 30px
+};
+
+// 폰트 웨이트
+export const fontWeights = {
+  normal: 'font-normal',
+  medium: 'font-medium',
+  semibold: 'font-semibold',
+  bold: 'font-bold',
+};
+
+export const buttonStyles = {
+  primary: {
+    base: '${buttonStyles.primary.base}',
+    active: '${buttonStyles.primary.active}',
+    inactive: '${buttonStyles.primary.inactive}',
+  },
+  secondary: {
+    base: '${buttonStyles.secondary.base}',
+    active: '${buttonStyles.secondary.active}',
+    inactive: '${buttonStyles.secondary.inactive}',
+  },
+  icon: {
+    base: '${buttonStyles.icon.base}',
+    active: '${buttonStyles.icon.active}',
+    inactive: '${buttonStyles.icon.inactive}',
+  },
+};
+
+export const cardStyles = {
+  default: '${cardStyles.default}',
+  compact: '${cardStyles.compact}',
+};
+
+export const inputStyles = {
+  default: '${inputStyles.default}',
+};
+
+export const cctvIconStyles = {
+  default: '${cctvIconStyles.default}',
+  active: '${cctvIconStyles.active}',
+  tracking: '${cctvIconStyles.tracking}',
+  warning: '${cctvIconStyles.warning}',
+};
+
+export const cctvLabelStyles = {
+  base: '${cctvLabelStyles.base}',
+  default: '${cctvLabelStyles.default}',
+  active: '${cctvLabelStyles.active}',
+  tracking: '${cctvLabelStyles.tracking}',
+  warning: '${cctvLabelStyles.warning}',
+};
+
+export const cctvBadgeStyles = {
+  base: '${cctvBadgeStyles.base}',
+  default: '${cctvBadgeStyles.default}',
+  tracking: '${cctvBadgeStyles.tracking}',
+};
+
+export const cctvViewAngleStyles = {
+  container: 'absolute pointer-events-none',
+  svg: 'absolute top-0 left-0',
+};
+
+export const ptzButtonStyles = {
+  base: '${ptzButtonStyles.base}',
+  default: '${ptzButtonStyles.default}',
+  active: '${ptzButtonStyles.active}',
+  preset: {
+    base: '${ptzButtonStyles.preset.base}',
+    default: '${ptzButtonStyles.preset.default}',
+    active: '${ptzButtonStyles.preset.active}',
+  },
+};
+
+// 헬퍼 함수들
+export const getTabButtonClassName = (isActive: boolean) => {
+  const base = buttonStyles.primary.base;
+  const state = isActive ? buttonStyles.primary.active : buttonStyles.primary.inactive;
+  const borderStyle = isActive ? '' : 'border border-[#2a2a2a]';
+  return \`\${base} \${state} \${borderStyle}\`.trim();
+};
+
+export const getPrimaryButtonClassName = () => {
+  return \`\${buttonStyles.primary.base} \${buttonStyles.primary.active} flex items-center justify-center\`.trim();
+};
+
+export const getSecondaryButtonClassName = () => {
+  return \`\${buttonStyles.secondary.base} \${buttonStyles.secondary.inactive} flex items-center justify-center\`.trim();
+};
+
+export const getIconButtonClassName = (isActive: boolean = false) => {
+  const base = buttonStyles.icon.base;
+  const state = isActive ? buttonStyles.icon.active : buttonStyles.icon.inactive;
+  return \`\${base} \${state}\`.trim();
+};
+
+export const getCardClassName = (variant: 'default' | 'compact' = 'default') => {
+  return cardStyles[variant];
+};
+
+export const getInputClassName = () => {
+  return inputStyles.default;
+};
+
+export const getCCTVIconClassName = (variant: 'default' | 'active' | 'tracking' | 'warning' = 'default') => {
+  return cctvIconStyles[variant];
+};
+
+export const getCCTVLabelClassName = (variant: 'default' | 'active' | 'tracking' | 'warning' = 'default') => {
+  const base = cctvLabelStyles.base;
+  const border = cctvLabelStyles[variant];
+  return \`\${base} \${border}\`.trim();
+};
+
+export const getCCTVBadgeClassName = (variant: 'default' | 'tracking' = 'default') => {
+  const base = cctvBadgeStyles.base;
+  const color = cctvBadgeStyles[variant];
+  return \`\${base} \${color}\`.trim();
+};
+
+export const getCCTVViewAngleClassName = () => {
+  return cctvViewAngleStyles.container;
+};
+
+export const getPTZButtonClassName = (isActive: boolean = false) => {
+  const base = ptzButtonStyles.base;
+  const state = isActive ? ptzButtonStyles.active : ptzButtonStyles.default;
+  return \`\${base} \${state}\`.trim();
+};
+
+export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
+  const base = ptzButtonStyles.preset.base;
+  const state = isActive ? ptzButtonStyles.preset.active : ptzButtonStyles.preset.default;
+  return \`\${base} \${state}\`.trim();
+};
+`;
+
+      const response = await fetch('/api/styles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ content: fileContent }),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setSaveStatus('success');
+        setTimeout(() => {
+          setSaveStatus('idle');
+          // 페이지 새로고침하여 변경사항 반영
+          window.location.reload();
+        }, 1500);
+      } else {
+        setSaveStatus('error');
+      }
+    } catch (error) {
+      console.error('Error saving styles:', error);
+      setSaveStatus('error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -31,14 +349,43 @@ export default function ComponentsStylePage() {
     { id: 'cards', name: '카드/박스', icon: 'mdi:card' },
     { id: 'inputs', name: '입력 필드', icon: 'mdi:text-box' },
     { id: 'cctv-icons', name: 'CCTV 아이콘', icon: 'mdi:cctv' },
+    { id: 'colors', name: '컬러 팔레트', icon: 'mdi:palette' },
+    { id: 'fonts', name: '폰트', icon: 'mdi:format-font' },
   ];
 
   return (
     <div className="h-screen overflow-y-auto bg-[#161719] text-white">
       <div className="container mx-auto px-6 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold mb-2">컴포넌트 스타일 관리</h1>
-          <p className="text-gray-400">중복되는 컴포넌트 스타일을 한 곳에서 관리합니다.</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">컴포넌트 스타일 관리</h1>
+            <p className="text-gray-400">중복되는 컴포넌트 스타일을 한 곳에서 관리합니다.</p>
+          </div>
+          <div className="flex items-center gap-3">
+            {saveStatus === 'success' && (
+              <span className="text-green-400 text-sm">저장 완료!</span>
+            )}
+            {saveStatus === 'error' && (
+              <span className="text-red-400 text-sm">저장 실패</span>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={isSaving}
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <Icon icon="mdi:loading" className="w-4 h-4 animate-spin" />
+                  저장 중...
+                </>
+              ) : (
+                <>
+                  <Icon icon="mdi:content-save" className="w-4 h-4" />
+                  저장
+                </>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* 섹션 네비게이션 */}
@@ -85,10 +432,44 @@ export default function ComponentsStylePage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Base</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.primary.base}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          primary: { ...buttonStyles.primary, base: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Active</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.primary.active}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          primary: { ...buttonStyles.primary, active: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Inactive</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.primary.inactive}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          primary: { ...buttonStyles.primary, inactive: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -155,10 +536,44 @@ export default function ComponentsStylePage() {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Base</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.icon.base}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          icon: { ...buttonStyles.icon, base: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Active</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.icon.active}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          icon: { ...buttonStyles.icon, active: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Inactive</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.icon.inactive}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          icon: { ...buttonStyles.icon, inactive: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -674,6 +1089,225 @@ export default function ComponentsStylePage() {
                     <p className="text-xs">경로: components/shared/styles.ts</p>
                     <p className="text-xs mt-2">사용: CCTV 시야각 표시</p>
                     <p className="text-xs mt-1">SVG는 별도로 구현 필요</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 컬러 팔레트 섹션 */}
+        {activeSection === 'colors' && (
+          <div className="space-y-8">
+            {/* 배경 컬러 */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">배경 컬러</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Object.entries(colorPalette.background).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div 
+                      className="w-full h-20 rounded mb-2"
+                      style={{ backgroundColor: value }}
+                    />
+                    <div className="text-sm">
+                      <div className="text-white font-semibold mb-1">{key}</div>
+                      <div className="text-gray-400 text-xs font-mono">{value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 텍스트 컬러 */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">텍스트 컬러</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                {Object.entries(colorPalette.text).map(([key, value]) => {
+                  const bgColor = value === 'white' ? '#ffffff' : '#1a1a1a';
+                  const textColorClass = value === 'white' ? 'text-white' : value === 'gray-300' ? 'text-gray-300' : value === 'gray-400' ? 'text-gray-400' : value === 'gray-500' ? 'text-gray-500' : 'text-gray-600';
+                  return (
+                    <div key={key} className={getCardClassName()}>
+                      <div className="w-full h-20 rounded mb-2 bg-[#1a1a1a] flex items-center justify-center border border-[#31353a]">
+                        <span className={`${textColorClass} text-sm font-semibold`}>
+                          샘플 텍스트
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        <div className="text-white font-semibold mb-1">{key}</div>
+                        <div className="text-gray-400 text-xs font-mono">{value}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 액센트 컬러 - Blue */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">액센트 컬러 - Blue</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(colorPalette.accent.blue).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className={`w-full h-20 rounded mb-2 bg-${value}`} />
+                    <div className="text-sm">
+                      <div className="text-white font-semibold mb-1">{key}</div>
+                      <div className="text-gray-400 text-xs font-mono">{value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 액센트 컬러 - Red */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">액센트 컬러 - Red</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(colorPalette.accent.red).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className={`w-full h-20 rounded mb-2 bg-${value}`} />
+                    <div className="text-sm">
+                      <div className="text-white font-semibold mb-1">{key}</div>
+                      <div className="text-gray-400 text-xs font-mono">{value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 액센트 컬러 - Yellow */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">액센트 컬러 - Yellow</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(colorPalette.accent.yellow).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className={`w-full h-20 rounded mb-2 bg-${value}`} />
+                    <div className="text-sm">
+                      <div className="text-white font-semibold mb-1">{key}</div>
+                      <div className="text-gray-400 text-xs font-mono">{value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 액센트 컬러 - Green */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">액센트 컬러 - Green</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(colorPalette.accent.green).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className={`w-full h-20 rounded mb-2 bg-${value}`} />
+                    <div className="text-sm">
+                      <div className="text-white font-semibold mb-1">{key}</div>
+                      <div className="text-gray-400 text-xs font-mono">{value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 액센트 컬러 - Purple */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">액센트 컬러 - Purple</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(colorPalette.accent.purple).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className={`w-full h-20 rounded mb-2 bg-${value}`} />
+                    <div className="text-sm">
+                      <div className="text-white font-semibold mb-1">{key}</div>
+                      <div className="text-gray-400 text-xs font-mono">{value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 액센트 컬러 - Indigo */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">액센트 컬러 - Indigo</h2>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                {Object.entries(colorPalette.accent.indigo).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className={`w-full h-20 rounded mb-2 bg-${value}`} />
+                    <div className="text-sm">
+                      <div className="text-white font-semibold mb-1">{key}</div>
+                      <div className="text-gray-400 text-xs font-mono">{value}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 폰트 섹션 */}
+        {activeSection === 'fonts' && (
+          <div className="space-y-8">
+            {/* 폰트 사이즈 */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">폰트 사이즈</h2>
+              <div className="space-y-4">
+                {Object.entries(fontSizes).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-white font-semibold mb-1">{key}</div>
+                        <div className="text-gray-400 text-xs font-mono mb-2">{value}</div>
+                        <div className={`${value} text-white`}>
+                          The quick brown fox jumps over the lazy dog
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 폰트 웨이트 */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">폰트 웨이트</h2>
+              <div className="space-y-4">
+                {Object.entries(fontWeights).map(([key, value]) => (
+                  <div key={key} className={getCardClassName()}>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="text-white font-semibold mb-1">{key}</div>
+                        <div className="text-gray-400 text-xs font-mono mb-2">{value}</div>
+                        <div className={`${value} text-white text-lg`}>
+                          The quick brown fox jumps over the lazy dog
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* 폰트 조합 예시 */}
+            <div>
+              <h2 className="text-xl font-semibold mb-4">폰트 조합 예시</h2>
+              <div className={getCardClassName()}>
+                <div className="space-y-3">
+                  <div className={`${fontSizes.xs} ${fontWeights.normal} text-white`}>
+                    Extra Small (xs) - Normal Weight
+                  </div>
+                  <div className={`${fontSizes.sm} ${fontWeights.medium} text-white`}>
+                    Small (sm) - Medium Weight
+                  </div>
+                  <div className={`${fontSizes.base} ${fontWeights.semibold} text-white`}>
+                    Base (base) - Semibold Weight
+                  </div>
+                  <div className={`${fontSizes.lg} ${fontWeights.bold} text-white`}>
+                    Large (lg) - Bold Weight
+                  </div>
+                  <div className={`${fontSizes.xl} ${fontWeights.bold} text-white`}>
+                    Extra Large (xl) - Bold Weight
+                  </div>
+                  <div className={`${fontSizes['2xl']} ${fontWeights.bold} text-white`}>
+                    2XL (2xl) - Bold Weight
+                  </div>
+                  <div className={`${fontSizes['3xl']} ${fontWeights.bold} text-white`}>
+                    3XL (3xl) - Bold Weight
                   </div>
                 </div>
               </div>

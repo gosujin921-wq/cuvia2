@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Icon } from '@iconify/react';
-import { getSecondaryButtonClassName } from '@/components/shared/styles';
+import { getSecondaryButtonClassName, getPrimaryButtonClassName } from '@/components/shared/styles';
 
 export type ClipData = {
   id: string;
@@ -229,7 +229,7 @@ export const BroadcastDraftPopup = ({
             <button
               type="button"
               onClick={onBroadcast}
-              className={`${getSecondaryButtonClassName()} bg-blue-600 hover:bg-blue-700 text-white`}
+              className={getPrimaryButtonClassName()}
             >
               즉시 전파
             </button>

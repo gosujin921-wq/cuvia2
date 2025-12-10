@@ -1,6 +1,78 @@
 // 공통 컴포넌트 스타일 정의
 // 이 파일을 수정하면 모든 컴포넌트에 일괄 적용됩니다.
 
+// 컬러 팔레트
+export const colorPalette = {
+  // 배경 컬러
+  background: {
+    primary: '#161719',
+    secondary: '#0f0f0f',
+    tertiary: '#1a1a1a',
+    hover: '#2a2a2a',
+    border: '#31353a',
+    card: '#36383B',
+  },
+  // 텍스트 컬러
+  text: {
+    primary: 'white',
+    secondary: 'gray-300',
+    tertiary: 'gray-400',
+    muted: 'gray-500',
+    disabled: 'gray-600',
+  },
+  // 액센트 컬러
+  accent: {
+    blue: {
+      light: 'blue-400',
+      base: 'blue-500',
+      dark: 'blue-600',
+      darker: 'blue-700',
+    },
+    red: {
+      light: 'red-400',
+      base: 'red-500',
+      dark: 'red-600',
+    },
+    yellow: {
+      light: 'yellow-400',
+      base: 'yellow-500',
+    },
+    green: {
+      base: 'green-600',
+      dark: 'green-700',
+    },
+    purple: {
+      light: 'purple-400',
+      base: 'purple-500',
+      dark: 'purple-600',
+      darker: 'purple-700',
+    },
+    indigo: {
+      base: 'indigo-600',
+      dark: 'indigo-700',
+    },
+  },
+};
+
+// 폰트 사이즈
+export const fontSizes = {
+  xs: 'text-xs',      // 12px
+  sm: 'text-sm',      // 14px
+  base: 'text-base',   // 16px
+  lg: 'text-lg',      // 18px
+  xl: 'text-xl',      // 20px
+  '2xl': 'text-2xl',  // 24px
+  '3xl': 'text-3xl',  // 30px
+};
+
+// 폰트 웨이트
+export const fontWeights = {
+  normal: 'font-normal',
+  medium: 'font-medium',
+  semibold: 'font-semibold',
+  bold: 'font-bold',
+};
+
 export const buttonStyles = {
   primary: {
     base: 'px-4 py-2 text-sm font-semibold transition-colors',
@@ -126,4 +198,3 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
   const state = isActive ? ptzButtonStyles.preset.active : ptzButtonStyles.preset.default;
   return `${base} ${state}`.trim();
 };
-

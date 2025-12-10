@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { Icon } from '@iconify/react';
 import { cctvInfo, cctvThumbnailMap, cctvFovMap, cctvCoordinatesMap, detectedCCTVThumbnails, movementTimeline, cctvLocationGroups } from './constants';
-import { getSecondaryButtonClassName } from '@/components/shared/styles';
+import { getSecondaryButtonClassName, getPrimaryButtonClassName, getPTZButtonClassName } from '@/components/shared/styles';
 
 interface DetectedCCTVClipPopupProps {
   isOpen: boolean;
@@ -289,14 +289,14 @@ export const DetectedCCTVClipPopup = ({
                     const newTime = Math.max(0, clipCurrentTime - 10);
                     setClipCurrentTime(newTime);
                   }}
-                  className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                  className={`${getPTZButtonClassName(false)} rounded`}
                   aria-label="10초 뒤로"
                 >
                   <Icon icon="mdi:rewind-10" className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setIsClipPlaying(!isClipPlaying)}
-                  className="p-3 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                  className={`${getPTZButtonClassName(false)} rounded p-3`}
                   aria-label={isClipPlaying ? "일시정지" : "재생"}
                 >
                   <Icon icon={isClipPlaying ? "mdi:pause" : "mdi:play"} className="w-6 h-6" />
@@ -306,7 +306,7 @@ export const DetectedCCTVClipPopup = ({
                     const newTime = Math.min(clipDuration, clipCurrentTime + 10);
                     setClipCurrentTime(newTime);
                   }}
-                  className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                  className={`${getPTZButtonClassName(false)} rounded`}
                   aria-label="10초 앞으로"
                 >
                   <Icon icon="mdi:fast-forward-10" className="w-5 h-5" />
@@ -355,7 +355,7 @@ export const DetectedCCTVClipPopup = ({
                   setIsTrackingBoxDraggable(true);
                 }
               }}
-              className={`${getSecondaryButtonClassName()} ${isTrackingBoxDraggable ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+              className={isTrackingBoxDraggable ? getPrimaryButtonClassName() : getSecondaryButtonClassName()}
             >
               {isTrackingBoxDraggable ? '추적대상 재선택 완료' : '추적대상 재추적'}
             </button>

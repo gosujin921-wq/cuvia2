@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Icon } from '@iconify/react';
 import { cctvInfo, cctvThumbnailMap, cctvFovMap, cctvCoordinatesMap, detectedCCTVThumbnails, movementTimeline, cctvLocationGroups } from './constants';
-import { getTabButtonClassName, getSecondaryButtonClassName } from '@/components/shared/styles';
+import { getTabButtonClassName, getSecondaryButtonClassName, getPrimaryButtonClassName, getPTZButtonClassName, getPTZPresetButtonClassName } from '@/components/shared/styles';
 
 interface CombinedCCTVPopupProps {
   isOpen: boolean;
@@ -449,14 +449,14 @@ export const CombinedCCTVPopup = ({
                         const newTime = Math.max(0, clipCurrentTime - 10);
                         setClipCurrentTime(newTime);
                       }}
-                      className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                      className={`${getPTZButtonClassName(false)} rounded`}
                       aria-label="10초 뒤로"
                     >
                       <Icon icon="mdi:rewind-10" className="w-5 h-5" />
                     </button>
                     <button
                       onClick={() => setIsClipPlaying(!isClipPlaying)}
-                      className="p-3 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                      className={`${getPTZButtonClassName(false)} rounded p-3`}
                       aria-label={isClipPlaying ? "일시정지" : "재생"}
                     >
                       <Icon icon={isClipPlaying ? "mdi:pause" : "mdi:play"} className="w-6 h-6" />
@@ -466,7 +466,7 @@ export const CombinedCCTVPopup = ({
                         const newTime = Math.min(clipDuration, clipCurrentTime + 10);
                         setClipCurrentTime(newTime);
                       }}
-                      className="p-2 bg-[#0f0f0f] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
+                      className={`${getPTZButtonClassName(false)} rounded`}
                       aria-label="10초 앞으로"
                     >
                       <Icon icon="mdi:fast-forward-10" className="w-5 h-5" />
@@ -626,9 +626,7 @@ export const CombinedCCTVPopup = ({
                         <div></div>
                         <button
                           onClick={handlePTZUp}
-                          className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                            pressedKey === 'up' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={`${getPTZButtonClassName(pressedKey === 'up')} rounded`}
                           aria-label="위로 이동"
                         >
                           <Icon icon="mdi:chevron-up" className="w-5 h-5 mx-auto" />
@@ -636,27 +634,21 @@ export const CombinedCCTVPopup = ({
                         <div></div>
                         <button
                           onClick={handlePTZLeft}
-                          className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                            pressedKey === 'left' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={`${getPTZButtonClassName(pressedKey === 'left')} rounded`}
                           aria-label="왼쪽으로 이동"
                         >
                           <Icon icon="mdi:chevron-left" className="w-5 h-5 mx-auto" />
                         </button>
                         <button
                           onClick={handlePTZCenter}
-                          className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                            pressedKey === 'center' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={`${getPTZButtonClassName(pressedKey === 'center')} rounded`}
                           aria-label="중앙"
                         >
                           <Icon icon="mdi:target" className="w-5 h-5 mx-auto" />
                         </button>
                         <button
                           onClick={handlePTZRight}
-                          className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                            pressedKey === 'right' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={`${getPTZButtonClassName(pressedKey === 'right')} rounded`}
                           aria-label="오른쪽으로 이동"
                         >
                           <Icon icon="mdi:chevron-right" className="w-5 h-5 mx-auto" />
@@ -664,9 +656,7 @@ export const CombinedCCTVPopup = ({
                         <div></div>
                         <button
                           onClick={handlePTZDown}
-                          className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                            pressedKey === 'down' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={`${getPTZButtonClassName(pressedKey === 'down')} rounded`}
                           aria-label="아래로 이동"
                         >
                           <Icon icon="mdi:chevron-down" className="w-5 h-5 mx-auto" />
@@ -680,9 +670,7 @@ export const CombinedCCTVPopup = ({
                       <div className="flex items-center gap-2">
                         <button
                           onClick={handleZoomOut}
-                          className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                            pressedKey === 'zoomOut' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={`${getPTZButtonClassName(pressedKey === 'zoomOut')} rounded`}
                           aria-label="줌 아웃"
                         >
                           <Icon icon="mdi:minus" className="w-5 h-5" />
@@ -692,9 +680,7 @@ export const CombinedCCTVPopup = ({
                         </div>
                         <button
                           onClick={handleZoomIn}
-                          className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                            pressedKey === 'zoomIn' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={`${getPTZButtonClassName(pressedKey === 'zoomIn')} rounded`}
                           aria-label="줌 인"
                         >
                           <Icon icon="mdi:plus" className="w-5 h-5" />
@@ -710,9 +696,7 @@ export const CombinedCCTVPopup = ({
                         <button
                           key={preset}
                           onClick={() => handlePreset(preset)}
-                          className={`w-12 h-12 border border-[#31353a] text-white transition-colors rounded-full text-xs flex items-center justify-center ${
-                            pressedKey === `preset-${preset}` ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                          }`}
+                          className={getPTZPresetButtonClassName(pressedKey === `preset-${preset}`)}
                         >
                           {preset}
                         </button>
@@ -744,7 +728,7 @@ export const CombinedCCTVPopup = ({
                       setIsTrackingBoxDraggable(true);
                     }
                   }}
-                  className={`${getSecondaryButtonClassName()} ${isTrackingBoxDraggable ? 'bg-blue-600 hover:bg-blue-700 text-white' : ''}`}
+                  className={isTrackingBoxDraggable ? getPrimaryButtonClassName() : getSecondaryButtonClassName()}
                 >
                   {isTrackingBoxDraggable ? '추적대상 재선택 완료' : '추적대상 재추적'}
                 </button>

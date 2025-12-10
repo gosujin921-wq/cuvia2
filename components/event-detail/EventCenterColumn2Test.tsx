@@ -177,11 +177,11 @@ export const EventCenterColumn2Test: React.FC<EventCenterColumn2TestProps> = ({
                     <div className="p-1.5 space-y-0.5">
                       <div className="flex items-center gap-1.5">
                         <span className="text-white text-[10px] font-semibold truncate">{detected.cctvId}</span>
-                        <span className="px-1 py-0.5 bg-purple-500/20 text-purple-400 text-[10px] flex-shrink-0">
-                          클립
-                        </span>
                       </div>
                       <div className="text-gray-400 text-[10px] truncate">{detected.location}</div>
+                      {detected.situation && (
+                        <div className="text-gray-500 text-[9px] truncate line-clamp-2">{detected.situation}</div>
+                      )}
                     </div>
                   </div>
                 ))}
