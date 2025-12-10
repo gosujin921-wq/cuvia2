@@ -7,6 +7,7 @@ import ControlEventList from '@/components/control/ControlEventList';
 import MapView from '@/components/MapView';
 import ControlRightPanel from '@/components/control/ControlRightPanel';
 import CCTVQuickView from '@/components/CCTVQuickView';
+import { ScaledLayout } from '@/components/layouts/ScaledLayout';
 import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 
@@ -171,10 +172,9 @@ export default function ControlPage() {
   }, []);
 
   return (
-    <div className="w-screen h-screen" style={{ transform: 'scale(0.8)', transformOrigin: 'top left' }}>
-      <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative" style={{ width: '125%', height: '125%' }}>
-        <div className="flex flex-1 overflow-hidden">
-          <div className="flex flex-1 overflow-hidden relative">
+    <ScaledLayout>
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0, height: '100%' }}>
+        <div className="flex flex-1 overflow-hidden relative" style={{ minHeight: 0, height: '100%' }}>
             <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: showGeneralEvents ? '1000px' : '900px' }}>
               <div className="py-4 px-3">
                 <div className="flex items-center justify-between">
@@ -231,10 +231,9 @@ export default function ControlPage() {
               </div>
               {/* 우측: ControlRightPanel */}
               <ControlRightPanel />
-            </div>
         </div>
       </div>
-    </div>
+    </ScaledLayout>
   );
 }
 

@@ -5,6 +5,7 @@ import EventSummary from '@/components/EventSummary';
 import EventList from '@/components/EventList';
 import MapView from '@/components/MapView';
 import RightPanel2 from '@/components/RightPanel2';
+import { ScaledLayout } from '@/components/layouts/ScaledLayout';
 import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 
@@ -67,32 +68,32 @@ export default function ControlPage() {
 
 
   return (
-    <div className="flex flex-col h-screen bg-[#161719] overflow-hidden relative">
-      <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 overflow-hidden relative">
-          <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '370px' }}>
-            <div className="py-4 px-3">
-              <div className="w-24 h-5 flex items-center justify-start">
-                <img 
-                  src="/logo.svg" 
-                  alt="CUVIA Logo" 
-                  className="h-5 w-auto object-contain"
+    <ScaledLayout>
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0, height: '100%' }}>
+        <div className="flex flex-1 overflow-hidden relative" style={{ minHeight: 0, height: '100%' }}>
+            <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '370px', height: '100%', minHeight: 0 }}>
+              <div className="py-4 px-3 flex-shrink-0">
+                <div className="w-24 h-5 flex items-center justify-start">
+                  <img 
+                    src="/logo.svg" 
+                    alt="CUVIA Logo" 
+                    className="h-5 w-auto object-contain"
+                  />
+                </div>
+              </div>
+              <div className="py-3 flex-shrink-0">
+                <EventSummary summary={eventSummary} />
+              </div>
+              <div className="flex-1 overflow-hidden" style={{ minHeight: 0 }}>
+                <EventList
+                  events={events}
+                  selectedEventId={selectedEventId || undefined}
+                  onEventSelect={handleEventSelect}
+                  onEventHover={handleEventHover}
                 />
               </div>
             </div>
-            <div className="py-3">
-              <EventSummary summary={eventSummary} />
-            </div>
-            <div className="flex-1 overflow-hidden">
-              <EventList
-                events={events}
-                selectedEventId={selectedEventId || undefined}
-                onEventSelect={handleEventSelect}
-                onEventHover={handleEventHover}
-              />
-            </div>
-          </div>
-          <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
+            <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
               <MapView
                 events={events}
                 highlightedEventId={highlightedEventId}
@@ -106,9 +107,9 @@ export default function ControlPage() {
             </div>
             {/* 우측: RightPanel */}
             <RightPanel2 />
-          </div>
+        </div>
       </div>
-    </div>
+    </ScaledLayout>
   );
 }
 

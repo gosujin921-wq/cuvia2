@@ -6,7 +6,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getEventById, generateAIInsight } from '@/lib/events-data';
-import { getCCTVIconClassName, getCCTVLabelClassName } from '@/components/shared/styles';
+import { getCCTVIconClassName, getCCTVLabelClassName, getCCTVBadgeClassName } from '@/components/shared/styles';
 
 interface MapViewProps {
   events: Event[];
@@ -26,28 +26,34 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
   const [currentDragPosition, setCurrentDragPosition] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [zoomLevel, setZoomLevel] = useState(0); // 0: 축소(클러스터), 1: 확대(개별)
+  
+  // 줌 레벨에 따른 지도 스케일 계산
+  const mapScale = zoomLevel === 0 ? 1 : 1.5; // 확대 시 1.5배
+  const mapTransformOrigin = 'center center'; // 확대 기준점
   // CCTV 토글 상태 (localStorage로 공유)
-  const [showCCTV, setShowCCTV] = useState(() => {
+  // Hydration 오류 방지를 위해 초기값은 항상 false로 설정하고, useEffect에서 localStorage 읽기
+  const [showCCTV, setShowCCTV] = useState(false);
+  const [showCCTVViewAngle, setShowCCTVViewAngle] = useState(false);
+  const [showCCTVName, setShowCCTVName] = useState(false);
+
+  // localStorage에서 초기값 읽기 (클라이언트에서만)
+  useEffect(() => {
     if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cctv-show-cctv');
-      return saved === 'true';
+      const savedCCTV = localStorage.getItem('cctv-show-cctv');
+      if (savedCCTV === 'true') {
+        setShowCCTV(true);
+      }
+      const savedViewAngle = localStorage.getItem('cctv-show-view-angle');
+      if (savedViewAngle === 'true') {
+        setShowCCTVViewAngle(true);
+      }
+      const savedName = localStorage.getItem('cctv-show-name');
+      if (savedName === 'true') {
+        setShowCCTVName(true);
+      }
     }
-    return false;
-  });
-  const [showCCTVViewAngle, setShowCCTVViewAngle] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cctv-show-view-angle');
-      return saved === 'true';
-    }
-    return false;
-  });
-  const [showCCTVName, setShowCCTVName] = useState(() => {
-    if (typeof window !== 'undefined') {
-      const saved = localStorage.getItem('cctv-show-name');
-      return saved === 'true';
-    }
-    return false;
-  });
+  }, []);
 
   // localStorage 동기화
   useEffect(() => {
@@ -160,27 +166,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
   const ringGap = 10;
   const maxPinsPerRing = 6;
 
-  // CCTV 위치 (20개 분산 배치)
-  const cctvPositions = useMemo(() => {
-    const locations = ['상암', '평촌', '만안', '비산', '석수', '안양', '관양', '호계', '인덕', '범계', '동안', '서안', '북안', '남안', '중앙', '신안', '신평', '신만', '신비', '신석'];
-    const positions = [];
-    for (let i = 0; i < 20; i++) {
-      const angle = (i / 20) * Math.PI * 2;
-      const radius = 12 + (i % 4) * 6; // 4개 그룹으로 나누어 반경 다르게
-      const left = centerX + (radius * Math.cos(angle));
-      const top = centerY + (radius * Math.sin(angle));
-      const viewAngle = seededRandom(`cctv-${i}-angle`) * 360; // 0도 ~ 360도 랜덤
-      const randomNum = Math.floor(seededRandom(`cctv-${i}-num`) * 99) + 1; // 1~99 랜덤
-      positions.push({
-        id: `cctv-${i + 1}`,
-        name: `${locations[i]}-${randomNum.toString().padStart(2, '0')}`,
-        left: clampPercentage(left),
-        top: clampPercentage(top),
-        viewAngle: viewAngle, // 시야각 (도)
-      });
-    }
-    return positions;
-  }, []);
 
   const positionsById = useMemo(() => {
     if (!events || events.length === 0) {
@@ -441,7 +426,39 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         }
       }}
     >
-       {/* CCTV 토글 버튼 */}
+       {/* 줌 컨트롤 버튼 - 지도 확대와 무관하게 고정 위치 */}
+       <div 
+         className="absolute top-4 left-4 flex flex-col gap-2" 
+         style={{ zIndex: 250 }}
+         onClick={(e) => e.stopPropagation()}
+       >
+         <button
+           onClick={(e) => {
+             e.stopPropagation();
+             setZoomLevel(prev => Math.min(prev + 1, 1));
+           }}
+           disabled={zoomLevel >= 1}
+           className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+           style={{ borderWidth: '1px' }}
+           aria-label="확대"
+         >
+           <Icon icon="mdi:plus" className="w-5 h-5" />
+         </button>
+         <button
+           onClick={(e) => {
+             e.stopPropagation();
+             setZoomLevel(prev => Math.max(prev - 1, 0));
+           }}
+           disabled={zoomLevel <= 0}
+           className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+           style={{ borderWidth: '1px' }}
+           aria-label="축소"
+         >
+           <Icon icon="mdi:minus" className="w-5 h-5" />
+         </button>
+       </div>
+
+       {/* CCTV 토글 버튼 - 지도 확대와 무관하게 고정 위치 */}
        <div 
          className="absolute top-4 right-4 flex flex-col gap-2" 
          style={{ zIndex: 250 }}
@@ -463,65 +480,219 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
            <Icon icon="mdi:cctv" className="w-5 h-5" />
          </button>
          
-         {/* CCTV 서브 토글 버튼들 */}
-         {showCCTV && (
-           <>
-             <button
-               onClick={(e) => {
-                 e.stopPropagation();
-                 setShowCCTVViewAngle(prev => !prev);
-               }}
-               className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                 showCCTVViewAngle 
-                   ? 'bg-green-600 hover:bg-green-700 text-white' 
-                   : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-               }`}
-               style={{ borderWidth: '1px' }}
-               aria-label="시야각 켜기"
-             >
-               <Icon icon="mdi:angle-acute" className="w-5 h-5" />
-             </button>
-             <button
-               onClick={(e) => {
-                 e.stopPropagation();
-                 setShowCCTVName(prev => !prev);
-               }}
-               className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
-                 showCCTVName 
-                   ? 'bg-purple-600 hover:bg-purple-700 text-white' 
-                   : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
-               }`}
-               style={{ borderWidth: '1px' }}
-               aria-label="CCTV 명 켜기"
-             >
-               <Icon icon="mdi:label" className="w-5 h-5" />
-             </button>
-           </>
-         )}
+         {/* CCTV 서브 토글 버튼들 - CCTV 온오프와 상관없이 항상 표시 */}
+         <button
+           onClick={(e) => {
+             e.stopPropagation();
+             setShowCCTVViewAngle(prev => !prev);
+           }}
+           className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+             showCCTVViewAngle 
+               ? 'bg-green-600 hover:bg-green-700 text-white' 
+               : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+           }`}
+           style={{ borderWidth: '1px' }}
+           aria-label="시야각 켜기"
+         >
+           <Icon icon="mdi:angle-acute" className="w-5 h-5" />
+         </button>
+         <button
+           onClick={(e) => {
+             e.stopPropagation();
+             setShowCCTVName(prev => !prev);
+           }}
+           className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+             showCCTVName 
+               ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+               : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+           }`}
+           style={{ borderWidth: '1px' }}
+           aria-label="CCTV 명 켜기"
+         >
+           <Icon icon="mdi:label" className="w-5 h-5" />
+         </button>
        </div>
 
-      {/* 지도 배경 이미지 - 가장 아래 */}
-      <div className="absolute inset-0" style={{ zIndex: 1 }}>
-        <img 
-          src="/map_anyang.png" 
-          alt="Map" 
-          className="w-full h-full object-cover"
-        />
+      {/* 지도 - 박스 밖으로 */}
+      <div
+        className="relative border border-[#31353a] bg-cover bg-center bg-no-repeat transition-transform duration-300"
+        style={{
+          borderWidth: '1px',
+          backgroundImage: 'url(/map_anyang.png)',
+          backgroundSize: 'cover',
+          height: '100%',
+          width: '100%',
+          transform: `scale(${mapScale})`,
+          transformOrigin: mapTransformOrigin,
+        }}
+      >
+        {/* 가상 CCTV 아이콘들 - 그레이 컬러 */}
+        {showCCTV && [
+          { left: 10, top: 20, count: 1, viewAngle: 45 },
+          { left: 25, top: 15, count: 3, viewAngle: 90 },
+          { left: 35, top: 30, count: 1, viewAngle: 135 },
+          { left: 55, top: 25, count: 2, viewAngle: 180 },
+          { left: 70, top: 20, count: 1, viewAngle: 225 },
+          { left: 85, top: 30, count: 4, viewAngle: 270 },
+          { left: 20, top: 50, count: 2, viewAngle: 45 },
+          { left: 40, top: 55, count: 1, viewAngle: 90 },
+          { left: 60, top: 50, count: 3, viewAngle: 135 },
+          { left: 80, top: 55, count: 1, viewAngle: 180 },
+          { left: 15, top: 75, count: 2, viewAngle: 225 },
+          { left: 30, top: 70, count: 1, viewAngle: 270 },
+          { left: 50, top: 75, count: 5, viewAngle: 45 },
+          { left: 70, top: 70, count: 2, viewAngle: 90 },
+          { left: 90, top: 75, count: 1, viewAngle: 135 },
+          { left: 10, top: 90, count: 1, viewAngle: 180 },
+          { left: 25, top: 95, count: 3, viewAngle: 225 },
+          { left: 45, top: 90, count: 2, viewAngle: 270 },
+          { left: 65, top: 95, count: 1, viewAngle: 45 },
+          { left: 85, top: 90, count: 4, viewAngle: 90 },
+        ].map((item, index) => {
+          const cctvName = `CCTV-V-${index + 1}`;
+          if (zoomLevel === 0) {
+            // 축소 모드: 클러스터 뱃지만 표시
+            return (
+              <div
+                key={`virtual-cctv-${index}`}
+                className="absolute cursor-pointer"
+                style={{ 
+                  left: `${item.left}%`, 
+                  top: `${item.top}%`, 
+                  transform: 'translate(-50%, -50%)', 
+                  zIndex: 50 
+                }}
+                onClick={() => {
+                  // 나중에 모달 띄울 예정
+                }}
+              >
+                <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative' }}>
+                  <Icon 
+                    icon="mdi:cctv" 
+                    className="text-gray-400"
+                    width="16px" 
+                    height="16px"
+                  />
+                  {/* 클러스터 뱃지 - 여러 CCTV가 있을 때 */}
+                  {item.count > 1 && (
+                    <div className={`${getCCTVBadgeClassName('default')} absolute -top-[18px] -right-[18px]`}>
+                      {item.count}
+                    </div>
+                  )}
+                </div>
+                {/* CCTV 이름 라벨 */}
+                {showCCTVName && (
+                  <div className={`${getCCTVLabelClassName('default')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                    {cctvName}
+                  </div>
+                )}
+                {/* 시야각 표시 */}
+                {showCCTVViewAngle && (
+                  <div 
+                    className="absolute"
+                    style={{
+                      width: '120px',
+                      height: '120px',
+                      left: '50%',
+                      top: '50%',
+                      transform: `translate(-50%, -50%) rotate(${item.viewAngle}deg)`,
+                      transformOrigin: 'center center',
+                      pointerEvents: 'none',
+                      zIndex: 30,
+                    }}
+                  >
+                    <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
+                      <path
+                        d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
+                        fill="rgba(156, 163, 175, 0.2)"
+                        stroke="rgba(156, 163, 175, 0.6)"
+                        strokeWidth="2"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+            );
+          } else {
+            // 확대 모드: 개별 CCTV 아이콘 표시
+            return Array.from({ length: item.count }, (_, i) => {
+              const angle = (i / item.count) * 2 * Math.PI;
+              const radius = 2;
+              const offsetLeft = Math.cos(angle) * radius;
+              const offsetTop = Math.sin(angle) * radius;
+              
+              return (
+                <div
+                  key={`virtual-cctv-${index}-${i}`}
+                  className="absolute cursor-pointer"
+                  style={{ 
+                    left: `${item.left + offsetLeft}%`, 
+                    top: `${item.top + offsetTop}%`, 
+                    transform: 'translate(-50%, -50%)', 
+                    zIndex: 50 
+                  }}
+                  onClick={() => {
+                    // 나중에 모달 띄울 예정
+                  }}
+                >
+                  <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative' }}>
+                    <Icon 
+                      icon="mdi:cctv" 
+                      className="text-gray-400"
+                      width="16px" 
+                      height="16px"
+                    />
+                  </div>
+                  {/* CCTV 이름 라벨 */}
+                  {showCCTVName && (
+                    <div className={`${getCCTVLabelClassName('default')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                      CCTV-V-{index + 1}-{i + 1}
+                    </div>
+                  )}
+                  {/* 시야각 표시 */}
+                  {showCCTVViewAngle && (
+                    <div 
+                      className="absolute"
+                      style={{
+                        width: '120px',
+                        height: '120px',
+                        left: '50%',
+                        top: '50%',
+                        transform: `translate(-50%, -50%) rotate(${item.viewAngle}deg)`,
+                        transformOrigin: 'center center',
+                        pointerEvents: 'none',
+                        zIndex: 30,
+                      }}
+                    >
+                      <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
+                        <path
+                          d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
+                          fill="rgba(156, 163, 175, 0.2)"
+                          stroke="rgba(156, 163, 175, 0.6)"
+                          strokeWidth="2"
+                        />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              );
+            });
+          }
+        })}
+
+
+        {/* SVG 오버레이 - map1.svg, map2.svg */}
+        {selectedEventId && selectedRouteType && (
+          <div className="absolute inset-0" style={{ zIndex: 3 }}>
+            <img 
+              src={selectedRouteType === 'ai' ? '/map2.svg' : '/map1.svg'} 
+              alt="Map Overlay" 
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+
       </div>
-
-      {/* SVG 오버레이 - map1.svg, map2.svg */}
-      {selectedEventId && selectedRouteType && (
-        <div className="absolute inset-0" style={{ zIndex: 2 }}>
-          <img 
-            src={selectedRouteType === 'ai' ? '/map2.svg' : '/map1.svg'} 
-            alt="Map Overlay" 
-            className="w-full h-full object-cover"
-          />
-        </div>
-      )}
-
-      {/* 오퍼시티 딤 레이어 */}
-      <div className="absolute inset-0 bg-black/15" style={{ zIndex: 3 }} />
 
       {/* 선택된 이벤트 툴팁 팝업 */}
       {selectedEventId && (() => {
@@ -682,158 +853,7 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
         );
       })()}
 
-      {/* 이벤트 핀들 */}
-      <div className="absolute inset-0" style={{ zIndex: 100, width: '100%', height: '100%' }}>
-        {(events || []).map((event) => {
-          const position = getEventPosition(event);
-          const isHighlighted = highlightedEventId === event.id;
 
-          return (
-            <div
-              key={event.id}
-              data-event-pin
-              className="absolute"
-              style={{
-                position: 'absolute',
-                left: `${position.left}%`,
-                top: `${position.top}%`,
-                transform: event.id === 'event-3' 
-                  ? 'translate(calc(-50% - 285px), calc(-50% - 150px))' 
-                  : event.id === 'event-7'
-                  ? 'translate(calc(-50% - 55px), calc(-50% - 30px))'
-                  : 'translate(-50%, -50%)',
-                zIndex: isHighlighted ? 150 : 100,
-              }}
-            >
-              {event.status === 'EVIDENCE' ? (
-                // 증거 이벤트: 작은 흰색 점
-                <div 
-                  className="w-3 h-3 bg-white rounded-full shadow-lg border border-gray-400 relative cursor-pointer"
-                  onClick={() => onEventClick?.(event.id)}
-                >
-                  <div className="absolute inset-0 bg-white/30 rounded-full animate-ping" />
-                </div>
-              ) : (
-                // 일반 이벤트: 우선순위별 크기와 색상
-                <div className="relative">
-                  <div 
-                    className={`rounded-full flex items-center justify-center shadow-2xl cursor-pointer ${
-                      generalEventIds.has(event.id)
-                        ? 'w-6 h-6 bg-gray-600 border-2 border-gray-400 opacity-80'
-                        : event.priority === '긴급' 
-                        ? 'w-8 h-8 bg-red-600 border-2 border-red-400' 
-                        : event.priority === '경계'
-                        ? 'w-7 h-7 bg-yellow-600 border-2 border-yellow-400'
-                        : 'w-6 h-6 bg-blue-600 border-2 border-blue-400 opacity-80'
-                    }`}
-                    onClick={() => onEventClick?.(event.id)}
-                  >
-                    <Icon
-                      icon={getEventIcon(event.type)}
-                      className="text-white"
-                      width={generalEventIds.has(event.id) ? '12px' : event.priority === '긴급' ? '16px' : event.priority === '경계' ? '14px' : '12px'}
-                      height={generalEventIds.has(event.id) ? '12px' : event.priority === '긴급' ? '16px' : event.priority === '경계' ? '14px' : '12px'}
-                      style={{ 
-                        filter: 'drop-shadow(0 0 4px rgba(0,0,0,0.8))',
-                      }}
-                    />
-                  </div>
-                  
-                  {/* 위험 반경 표시 */}
-                  {isHighlighted && (() => {
-                    // 우선순위에 따라 위험 반경 크기와 색상 결정
-                    let radius = 50; // 기본값 (주의/기타)
-                    let color = 'rgba(59, 130, 246, 0.3)'; // 파란색
-                    
-                    if (event.priority === '긴급') {
-                      radius = 120;
-                      color = 'rgba(239, 68, 68, 0.3)'; // 빨간색
-                    } else if (event.priority === '경계') {
-                      radius = 80;
-                      color = 'rgba(234, 179, 8, 0.3)'; // 노란색
-                    }
-                    
-                    return (
-                      <div 
-                        className="absolute rounded-full pointer-events-none"
-                        style={{
-                          left: '50%',
-                          top: '50%',
-                          transform: 'translate(-50%, -50%)',
-                          width: `${radius * 2}px`,
-                          height: `${radius * 2}px`,
-                          backgroundColor: color,
-                          border: `2px solid ${color.replace('0.3', '0.6')}`,
-                          animation: 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                        }}
-                      />
-                    );
-                  })()}
-                </div>
-              )}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* CCTV 아이콘들 */}
-      {showCCTV && cctvPositions && cctvPositions.length > 0 && (
-        <div className="absolute inset-0" style={{ zIndex: 110, width: '100%', height: '100%', pointerEvents: 'none' }}>
-          {cctvPositions.map((cctv) => (
-            <div
-              key={cctv.id}
-              className="absolute"
-              style={{
-                left: `${cctv.left}%`,
-                top: `${cctv.top}%`,
-                transform: 'translate(-50%, -50%)',
-                pointerEvents: 'auto',
-              }}
-            >
-              {/* 시야각 표시 */}
-              {showCCTVViewAngle && (
-                <div 
-                  className="absolute"
-                  style={{
-                    width: '120px',
-                    height: '120px',
-                    left: '50%',
-                    top: '50%',
-                    transform: `translate(-50%, -50%) rotate(${cctv.viewAngle}deg)`,
-                    transformOrigin: 'center center',
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <svg width="120" height="120" viewBox="0 0 120 120" style={{ position: 'absolute', top: 0, left: 0 }}>
-                    <path
-                      d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-                      fill="rgba(59, 130, 246, 0.2)"
-                      stroke="rgba(59, 130, 246, 0.6)"
-                      strokeWidth="2"
-                    />
-                  </svg>
-                </div>
-              )}
-              
-              <div className={getCCTVIconClassName('active')}>
-                <Icon 
-                  icon="mdi:cctv" 
-                  className="text-blue-400" 
-                  width="16px" 
-                  height="16px"
-                />
-              </div>
-              
-              {/* CCTV 이름 표시 */}
-              {showCCTVName && (
-                <div className={`${getCCTVLabelClassName('active')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
-                  {cctv.name}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
 
 
       {/* 플로팅 검색창 */}

@@ -5,6 +5,7 @@ import EventSummary from '@/components/EventSummary';
 import EventList from '@/components/EventList';
 import MapView from '@/components/MapView';
 import RightPanel2 from '@/components/RightPanel2';
+import { ScaledLayout } from '@/components/layouts/ScaledLayout';
 import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
 
@@ -63,27 +64,11 @@ export default function Home() {
 
 
   return (
-    <div 
-      className="flex flex-col bg-[#161719] overflow-hidden relative"
-      style={{
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
-      <div 
-        className="flex flex-col flex-1"
-        style={{
-          width: '125%',
-          height: '125%',
-          transform: 'scale(0.8)',
-          transformOrigin: 'top left',
-        }}
-      >
-        <div className="flex flex-1 overflow-hidden">
-        <div className="flex flex-1 overflow-hidden relative">
+    <ScaledLayout>
+      <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0, height: '100%' }}>
+        <div className="flex flex-1 overflow-hidden relative" style={{ minHeight: 0, height: '100%' }}>
           <div className="flex flex-col flex-shrink-0 border-r border-[#31353a] pl-4 pr-5" style={{ width: '370px' }}>
-            <div className="py-4 px-3 flex items-center justify-between flex-shrink-0">
+            <div className="py-4 px-3">
               <div className="w-24 h-5 flex items-center justify-start">
                 <img 
                   src="/logo.svg" 
@@ -91,12 +76,11 @@ export default function Home() {
                   className="h-5 w-auto object-contain"
                 />
               </div>
-              <div className="w-24"></div>
             </div>
-            <div className="py-3 flex-shrink-0">
+            <div className="py-3">
               <EventSummary summary={eventSummary} />
             </div>
-            <div className="flex-1 overflow-hidden min-h-0">
+            <div className="flex-1 overflow-hidden">
               <EventList
                 events={events}
                 selectedEventId={selectedEventId || undefined}
@@ -106,22 +90,21 @@ export default function Home() {
             </div>
           </div>
           <div className="flex-1 relative" style={{ minHeight: 0, width: '100%', height: '100%' }}>
-              <MapView
-                events={events}
-                highlightedEventId={highlightedEventId}
-                selectedEventId={selectedEventId}
-                onEventClick={handleEventClick}
-                onMapClick={() => {
-                  setSelectedEventId(null);
-                  setHighlightedEventId(null);
-                }}
-              />
-            </div>
-            {/* 우측: RightPanel */}
-            <RightPanel2 />
+            <MapView
+              events={events}
+              highlightedEventId={highlightedEventId}
+              selectedEventId={selectedEventId}
+              onEventClick={handleEventClick}
+              onMapClick={() => {
+                setSelectedEventId(null);
+                setHighlightedEventId(null);
+              }}
+            />
           </div>
+          {/* 우측: RightPanel */}
+          <RightPanel2 />
         </div>
       </div>
-    </div>
+    </ScaledLayout>
   );
 }

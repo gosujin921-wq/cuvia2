@@ -322,36 +322,33 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                   )}
                 </div>
 
-                {/* 2. 유형 / 카테고리 */}
+                {/* 2. 유형 */}
                 <div className="flex items-center gap-2 mb-2">
                   {main.eventId && (() => {
                     const baseEvent = getEventById(main.eventId);
                     if (!baseEvent) return null;
                     return (
-                      <>
-                        <span className={`px-2 py-0.5 rounded text-xs ${
-                          baseEvent.domain === 'A'
-                            ? baseEvent.type.includes('폭행') || baseEvent.type.includes('상해')
-                              ? 'bg-red-500/20 text-red-400'
-                              : baseEvent.type.includes('절도') || baseEvent.type.includes('강도')
-                                ? 'bg-yellow-500/20 text-yellow-400'
-                                : baseEvent.type.includes('차량도주') || baseEvent.type.includes('추적')
+                      <span className={`px-2 py-0.5 rounded text-xs ${
+                        baseEvent.domain === 'A'
+                          ? baseEvent.type.includes('폭행') || baseEvent.type.includes('상해')
+                            ? 'bg-red-500/20 text-red-400'
+                            : baseEvent.type.includes('절도') || baseEvent.type.includes('강도')
+                              ? 'bg-yellow-500/20 text-yellow-400'
+                              : baseEvent.type.includes('차량도주') || baseEvent.type.includes('추적')
+                                ? 'bg-orange-500/20 text-orange-400'
+                                : 'bg-blue-500/20 text-blue-400'
+                          : baseEvent.domain === 'B'
+                            ? 'bg-red-500/20 text-red-400'
+                            : baseEvent.domain === 'C'
+                              ? 'bg-purple-500/20 text-purple-400'
+                              : baseEvent.domain === 'D'
+                                ? 'bg-green-500/20 text-green-400'
+                                : baseEvent.domain === 'E'
                                   ? 'bg-orange-500/20 text-orange-400'
-                                  : 'bg-blue-500/20 text-blue-400'
-                            : baseEvent.domain === 'B'
-                              ? 'bg-red-500/20 text-red-400'
-                              : baseEvent.domain === 'C'
-                                ? 'bg-purple-500/20 text-purple-400'
-                                : baseEvent.domain === 'D'
-                                  ? 'bg-green-500/20 text-green-400'
-                                  : baseEvent.domain === 'E'
-                                    ? 'bg-orange-500/20 text-orange-400'
-                                    : 'bg-gray-500/20 text-gray-400'
-                        }`}>
-                          {baseEvent.type}
-                        </span>
-                        <span className="text-blue-300 text-[0.75rem] font-medium">{getEventCategory(baseEvent)}</span>
-                      </>
+                                  : 'bg-gray-500/20 text-gray-400'
+                      }`}>
+                        {baseEvent.type}
+                      </span>
                     );
                   })()}
                 </div>
@@ -362,35 +359,6 @@ const EventList = ({ events, selectedEventId, onEventSelect, onEventHover }: Eve
                 {/* 4. 장소 (정확한 주소) */}
                 <div className="text-gray-200 text-xs mb-2">{main.location.name}</div>
 
-                {/* 5. AI 핵심 키워드 */}
-                {main.eventId && (() => {
-                  const baseEvent = getEventById(main.eventId);
-                  if (!baseEvent) return null;
-                  
-                  const keywords = getAIInsightKeywords(baseEvent);
-                  if (keywords.length === 0) return null;
-
-                  return (
-                    <div className="flex flex-wrap gap-1.5 mb-2">
-                      {keywords.map((keyword, idx) => (
-                        <span
-                          key={idx}
-                          className="px-3 py-0.5 text-[0.65rem] text-white tracking-tight rounded-full"
-                          style={{ backgroundColor: '#36383B' }}
-                        >
-                          {keyword}
-                        </span>
-                      ))}
-                    </div>
-                  );
-                })()}
-
-                {/* 이벤트 처리 현황 */}
-                <div className="flex items-center gap-2 mb-2 text-[0.7rem] text-gray-300">
-                  <span>이벤트 상태</span>
-                  <span className="text-gray-500">|</span>
-                  <span className="text-white">{main.processingStage}</span>
-                </div>
 
               </div>
 

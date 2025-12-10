@@ -14,6 +14,7 @@ import { MapCCTVPopup } from '@/components/event-detail/MapCCTVPopup';
 import { CombinedCCTVPopup } from '@/components/event-detail/CombinedCCTVPopup';
 import { EventData, RiskFactor, ChatMessage, SavedClip } from '@/components/event-detail/types';
 import { behaviorHighlights, movementTimeline, cctvInfo, cctvThumbnailMap, cctvFovMap, detectedCCTVThumbnails } from '@/components/event-detail/constants';
+import { ScaledLayout } from '@/components/layouts/ScaledLayout';
 
 
 const EventDetailPageContent = () => {
@@ -726,24 +727,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
     : '위험 요인 정보가 충분하지 않습니다.';
 
   return (
-    <div 
-      className="flex flex-col bg-[#161719] overflow-hidden relative"
-      style={{
-        width: '100vw',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
-      <div 
-        className="flex flex-col"
-        style={{
-          width: '125%',
-          height: '125vh',
-          minHeight: '125vh',
-          transform: 'scale(0.8)',
-          transformOrigin: 'top left',
-        }}
-      >
+    <ScaledLayout>
         <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0, height: '100%' }}>
         <div className="flex flex-1 overflow-hidden relative" style={{ minHeight: 0, height: '100%' }}>
         {/* Left Panel - 대시보드 스타일 적용 */}
@@ -851,11 +835,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             <Icon icon="mdi:sparkles" className="w-6 h-6" />
           </button>
         )}
-
-        </div>
       </div>
-
-
       {/* 포착된 CCTV 상세 모달 */}
       <DetectedCCTVClipPopup
         isOpen={showDetectedCCTVPopup}
@@ -1622,7 +1602,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             </div>
           </div>
       )}
-    </div>
+    </ScaledLayout>
   );
 };
 
