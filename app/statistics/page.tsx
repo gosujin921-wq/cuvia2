@@ -428,13 +428,13 @@ const StatisticsPageContent = () => {
                       <div
                         className={`max-w-[70%] px-4 py-2 rounded-2xl border text-sm ${
                           message.role === 'user'
-                            ? 'bg-blue-600 text-white border-blue-500'
+                            ? 'bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] text-white border-transparent'
                             : 'bg-gray-100 text-gray-900 border-gray-200'
                         }`}
                         style={{ borderWidth: '1px' }}
                       >
                         <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                        <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+                        <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-purple-100' : 'text-gray-500'}`}>
                           {message.timestamp}
                         </div>
                       </div>
@@ -579,10 +579,13 @@ const StatisticsPageContent = () => {
               <button
                 onClick={() => handleSendMessage()}
                 disabled={isResponding}
-                className={`px-4 py-2 rounded-full text-sm transition-colors ${
-                  isResponding ? 'bg-blue-300 text-blue-700 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
+                className={`px-4 py-2 rounded-full text-sm transition-colors flex items-center justify-center gap-2 ${
+                  isResponding 
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                    : 'bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] text-white'
                 }`}
               >
+                <Icon icon="mdi:sparkles" className="w-4 h-4" />
                 전송
               </button>
             </div>

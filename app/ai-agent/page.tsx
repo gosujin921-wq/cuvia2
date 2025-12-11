@@ -120,7 +120,9 @@ const AIAgentPageContent = () => {
       <div className="flex-1 overflow-y-auto p-6">
         {messages.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-gray-400">
-            <Icon icon="mdi:robot" className="w-16 h-16 text-blue-400 mb-4" />
+            <div className="w-16 h-16 bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] rounded-full flex items-center justify-center mb-4">
+              <Icon icon="mdi:sparkles" className="w-8 h-8 text-white" />
+            </div>
             <h2 className="text-2xl font-semibold text-white mb-2">AI Agent와 대화하기</h2>
             <p className="text-sm text-center max-w-md">
               자연어로 질문하거나 명령을 입력하면 AI Agent가 도와드립니다.
@@ -138,14 +140,14 @@ const AIAgentPageContent = () => {
                 }`}
               >
                 {message.role === 'assistant' && (
-                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Icon icon="mdi:robot" className="w-5 h-5 text-white" />
+                  <div className="w-8 h-8 bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] rounded-full flex items-center justify-center flex-shrink-0">
+                    <Icon icon="mdi:sparkles" className="w-5 h-5 text-white" />
                   </div>
                 )}
                 <div
                   className={`max-w-[80%] px-4 py-3 ${
                     message.role === 'user'
-                      ? 'bg-blue-600 text-white'
+                      ? 'bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] text-white'
                       : 'bg-[#1a1a1a] border border-[#2a2a2a] text-white'
                   }`}
                   style={{ borderWidth: '1px' }}
@@ -153,7 +155,7 @@ const AIAgentPageContent = () => {
                   <div className="whitespace-pre-wrap">{message.content}</div>
                   <div
                     className={`text-xs mt-1 ${
-                      message.role === 'user' ? 'text-blue-200' : 'text-gray-400'
+                      message.role === 'user' ? 'text-purple-100' : 'text-gray-400'
                     }`}
                   >
                     {message.timestamp}
@@ -203,10 +205,10 @@ const AIAgentPageContent = () => {
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-[#2a2a2a] disabled:text-gray-500 text-white transition-colors font-medium flex items-center gap-2"
+            className="px-6 py-3 bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] disabled:bg-[#2a2a2a] disabled:text-gray-500 text-white transition-colors font-medium flex items-center gap-2"
             aria-label="전송"
           >
-            <Icon icon="mdi:send" className="w-5 h-5" />
+            <Icon icon="mdi:sparkles" className="w-5 h-5" />
             <span>전송</span>
           </button>
         </div>

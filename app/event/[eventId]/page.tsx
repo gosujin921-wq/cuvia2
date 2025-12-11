@@ -320,6 +320,7 @@ const EventDetailPageContent = () => {
   const [isDragging, setIsDragging] = useState(false);
   const [dragStartY, setDragStartY] = useState(0);
   const [dragStartHeight, setDragStartHeight] = useState(0);
+  const [showAdditionalDataPopup, setShowAdditionalDataPopup] = useState(false);
 
   // 클라이언트 마운트 후 localStorage에서 값 읽기 (이벤트 상세 페이지에서는 초기값 false 유지)
   useEffect(() => {
@@ -364,6 +365,24 @@ const EventDetailPageContent = () => {
     window.addEventListener('storage', handleStorageChange);
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [isMounted]);
+
+  // 키보드 0 누르면 추가 자료 팝업 표시 (나중에 삭제할 기능)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 입력 필드에 포커스가 있으면 무시
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === '0') {
+        e.preventDefault();
+        setShowAdditionalDataPopup(true);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
   const addClipsToBroadcastRef = useRef<((clips: Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>) => void) | null>(null);
   const openBroadcastModalRef = useRef<(() => void) | null>(null);
   const lastBroadcastConfirmHandledRef = useRef<number | null>(null);
@@ -760,6 +779,18 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setSelectedDetectedCCTV={setSelectedDetectedCCTV}
                 setShowCombinedCCTVPopup={setShowCombinedCCTVPopup}
                 setSelectedCombinedCCTV={setSelectedCombinedCCTV}
+                additionalDataNotification={{
+                  isOpen: showAdditionalDataPopup,
+                  time: '2024-01-15 14:30:25',
+                  sender: '경찰서',
+                  content: '추가 자료를 보내드립니다.\n\n용의자 관련 추가 정보:\n- 차량번호: 경기 12가 3456\n- 최근 목격 시각: 14:25\n- 이동 방향: 동쪽',
+                  onClose: () => setShowAdditionalDataPopup(false),
+                  onSendToAgent: () => {
+                    const popupContent = `시간: 2024-01-15 14:30:25\n발신 기관: 경찰서\n내용: 추가 자료를 보내드립니다.\n\n용의자 관련 추가 정보:\n- 차량번호: 경기 12가 3456\n- 최근 목격 시각: 14:25\n- 이동 방향: 동쪽`;
+                    setChatInput(popupContent);
+                    setShowAdditionalDataPopup(false);
+                  },
+                }}
               />
 
               {/* 2열: CCTV, 인물 분석, 행동 요약 */}

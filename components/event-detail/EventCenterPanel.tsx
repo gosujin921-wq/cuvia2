@@ -32,12 +32,25 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
 }) => {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
   }, [chatMessages, isResponding]);
+
+  // textarea 자동 높이 조절
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const lineHeight = 24; // 대략적인 line-height (text-sm 기준)
+      const maxHeight = lineHeight * 4; // 최대 4줄
+      const newHeight = Math.min(scrollHeight, maxHeight);
+      textareaRef.current.style.height = `${newHeight}px`;
+    }
+  }, [chatInput]);
 
   return (
     <main className="flex-1 flex flex-col min-w-0 bg-white overflow-hidden h-full">
@@ -99,13 +112,13 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
                   <div
                     className={`max-w-[70%] px-4 py-2 rounded-2xl border text-sm ${
                       message.role === 'user'
-                        ? 'bg-blue-600 text-white border-blue-500'
+                        ? 'bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] text-white border-transparent'
                         : 'bg-gray-100 text-gray-900 border-gray-200'
                     }`}
                     style={{ borderWidth: '1px' }}
                   >
                     <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
-                    <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-blue-200' : 'text-gray-500'}`}>
+                    <div className={`text-xs mt-1 ${message.role === 'user' ? 'text-purple-100' : 'text-gray-500'}`}>
                       {message.timestamp}
                     </div>
                   </div>
@@ -142,7 +155,7 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
         </div>
 
         {/* 스크롤 앵커 - 항상 하단에 고정 */}
-        <div ref={bottomRef} style={{ height: '150px' }} />
+        <div ref={bottomRef} style={{ height: '75px' }} />
       </div>
 
       {/* 빠른 명령 + 자연어 입력 */}
@@ -159,9 +172,9 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
             </button>
           ))}
         </div>
-        <div className="flex items-center gap-3">
-          <input
-            type="text"
+        <div className="flex items-end gap-3">
+          <textarea
+            ref={textareaRef}
             value={chatInput}
             onChange={(e) => setChatInput(e.target.value)}
             onKeyDown={(e) => {
@@ -170,17 +183,26 @@ export const EventCenterPanel: React.FC<EventCenterPanelProps> = ({
                 handleSendMessage();
               }
             }}
-            placeholder="자연어로 질문하세요... (예: '이 사람 다시 보여줘', '관련 CCTV 더 추천해줘')"
-            className="flex-1 bg-gray-50 border border-gray-300 rounded-full px-4 py-3 text-gray-900 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:bg-white"
-            style={{ borderWidth: '1px' }}
+            placeholder="자연어로 질문하세요... (예:관련 CCTV 더 추천해줘.)"
+            className="flex-1 bg-gray-50 border border-gray-300 rounded-2xl px-4 py-3 text-gray-900 text-sm placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:bg-white resize-none overflow-hidden"
+            style={{ 
+              borderWidth: '1px',
+              minHeight: '48px',
+              maxHeight: '96px',
+              lineHeight: '24px'
+            }}
+            rows={1}
           />
           <button
             onClick={() => handleSendMessage()}
             disabled={isResponding}
-            className={`px-4 py-2 rounded-full text-sm transition-colors ${
-              isResponding ? 'bg-blue-300 text-blue-700 cursor-not-allowed' : 'bg-blue-600 hover:bg-blue-700 text-white'
+            className={`px-4 py-2 rounded-full text-sm transition-colors flex-shrink-0 flex items-center justify-center gap-2 ${
+              isResponding 
+                ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                : 'bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] text-white'
             }`}
           >
+            <Icon icon="mdi:sparkles" className="w-4 h-4" />
             전송
           </button>
         </div>

@@ -113,7 +113,8 @@ const AgentPanel = ({
           </div>
 
           <div className="border-t border-[#31353a] p-4 space-y-2">
-            <button className="w-full py-2 px-4 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium transition-colors">
+            <button className="w-full py-2 px-4 bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] text-white text-sm font-medium transition-colors flex items-center justify-center gap-2">
+              <Icon icon="mdi:sparkles" className="w-4 h-4" />
               Agent에게 요약 요청
             </button>
             {messages.length > 0 && (

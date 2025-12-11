@@ -6,9 +6,9 @@ import { movementTimeline } from './constants';
 import { 
   getCCTVIconClassName, 
   getCCTVLabelClassName, 
-  getCCTVBadgeClassName,
-  getIconButtonClassName
+  getCCTVBadgeClassName 
 } from '@/components/shared/styles';
+import { AdditionalDataNotificationPopup } from './AdditionalDataNotificationPopup';
 
 interface EventCenterColumn1Props {
   isRightPanelCollapsed: boolean;
@@ -25,6 +25,14 @@ interface EventCenterColumn1Props {
   setSelectedDetectedCCTV: (value: string | null) => void;
   setShowCombinedCCTVPopup: (value: boolean) => void;
   setSelectedCombinedCCTV: (value: string | null) => void;
+  additionalDataNotification?: {
+    isOpen: boolean;
+    time: string;
+    sender: string;
+    content: string;
+    onClose: () => void;
+    onSendToAgent: () => void;
+  };
 }
 
 export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
@@ -42,6 +50,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   setSelectedDetectedCCTV,
   setShowCombinedCCTVPopup,
   setSelectedCombinedCCTV,
+  additionalDataNotification,
 }) => {
   const [zoomLevel, setZoomLevel] = React.useState(0); // 0: 축소(클러스터), 1: 확대(개별)
   
@@ -291,7 +300,8 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               setZoomLevel(prev => Math.min(prev + 1, 1));
             }}
             disabled={zoomLevel >= 1}
-            className={`${getIconButtonClassName(false)} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ borderWidth: '1px' }}
             aria-label="확대"
           >
             <Icon icon="mdi:plus" className="w-5 h-5" />
@@ -302,7 +312,8 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               setZoomLevel(prev => Math.max(prev - 1, 0));
             }}
             disabled={zoomLevel <= 0}
-            className={`${getIconButtonClassName(false)} rounded-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+            className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ borderWidth: '1px' }}
             aria-label="축소"
           >
             <Icon icon="mdi:minus" className="w-5 h-5" />
@@ -330,7 +341,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                 setShowCCTVName(false);
               }
             }}
-            className={`${getIconButtonClassName(showCCTV)} rounded-lg`}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+              showCCTV 
+                ? 'bg-blue-600 hover:bg-blue-700 text-white' 
+                : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+            }`}
+            style={{ borderWidth: '1px' }}
             aria-label="CCTV"
           >
             <Icon icon="mdi:cctv" className="w-5 h-5" />
@@ -342,7 +358,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               e.stopPropagation();
               setShowCCTVViewAngle(prev => !prev);
             }}
-            className={`${getIconButtonClassName(showCCTVViewAngle)} rounded-lg ${showCCTVViewAngle ? 'bg-green-600 hover:bg-green-700' : ''}`}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+              showCCTVViewAngle 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+            }`}
+            style={{ borderWidth: '1px' }}
             aria-label="시야각 켜기"
           >
             <Icon icon="mdi:angle-acute" className="w-5 h-5" />
@@ -352,7 +373,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               e.stopPropagation();
               setShowCCTVName(prev => !prev);
             }}
-            className={`${getIconButtonClassName(showCCTVName)} rounded-lg ${showCCTVName ? 'bg-purple-600 hover:bg-purple-700' : ''}`}
+            className={`w-10 h-10 rounded-lg flex items-center justify-center transition-colors ${
+              showCCTVName 
+                ? 'bg-purple-600 hover:bg-purple-700 text-white' 
+                : 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]'
+            }`}
+            style={{ borderWidth: '1px' }}
             aria-label="CCTV 명 켜기"
           >
             <Icon icon="mdi:label" className="w-5 h-5" />
@@ -675,6 +701,18 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             )}
           </div>
         </div>
+
+        {/* 추가 자료 알림 팝업 - 맵 우측 하단 */}
+        {additionalDataNotification && (
+          <AdditionalDataNotificationPopup
+            isOpen={additionalDataNotification.isOpen}
+            time={additionalDataNotification.time}
+            sender={additionalDataNotification.sender}
+            content={additionalDataNotification.content}
+            onClose={additionalDataNotification.onClose}
+            onSendToAgent={additionalDataNotification.onSendToAgent}
+          />
+        )}
       </div>
 
     </div>

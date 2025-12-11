@@ -144,7 +144,7 @@ export default function AgentHubPage() {
         <div className="w-full max-w-2xl mb-8">
           <div className="relative">
             <div className="absolute left-4 top-1/2 -translate-y-1/2 z-10">
-              <Icon icon="mdi:magnify" className="w-5 h-5 text-gray-400" />
+              <Icon icon="mdi:sparkles" className="w-5 h-5 text-gray-400" />
             </div>
             <input
               type="text"

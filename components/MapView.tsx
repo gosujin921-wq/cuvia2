@@ -996,20 +996,17 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
       <div
         className="absolute group"
         style={{
-          bottom: '20px',
-          right: '20px',
+          bottom: '24px',
+          right: '24px',
           zIndex: 200,
         }}
       >
         <Link
           href="/agent-hub"
-          className="w-16 h-16 rounded-full bg-blue-600 hover:bg-blue-700 flex items-center justify-center transition-colors shadow-lg"
-          style={{
-            boxShadow: '0 6px 18px rgba(0, 0, 0, 0.25)',
-          }}
+          className="w-14 h-14 rounded-full bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] flex items-center justify-center text-white shadow-lg hover:shadow-xl transition-all duration-300"
           aria-label="Agent Hub"
         >
-          <Icon icon="mdi:robot" className="w-6 h-6 text-white" />
+          <Icon icon="mdi:sparkles" className="w-6 h-6 text-white" />
         </Link>
         {/* 툴팁 */}
         <div className="absolute right-full mr-3 top-1/2 -translate-y-1/2 px-3 py-2 bg-[#1a1a1a] text-white text-sm rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none border border-[#31353a]">
