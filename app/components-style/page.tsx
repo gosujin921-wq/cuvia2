@@ -185,50 +185,50 @@ export const fontWeights = {
 
 export const buttonStyles = {
   primary: {
-    base: '${buttonStyles.primary.base}',
-    active: '${buttonStyles.primary.active}',
-    inactive: '${buttonStyles.primary.inactive}',
+    base: ${JSON.stringify(buttonStyles.primary.base)},
+    active: ${JSON.stringify(buttonStyles.primary.active)},
+    inactive: ${JSON.stringify(buttonStyles.primary.inactive)},
   },
   secondary: {
-    base: '${buttonStyles.secondary.base}',
-    active: '${buttonStyles.secondary.active}',
-    inactive: '${buttonStyles.secondary.inactive}',
+    base: ${JSON.stringify(buttonStyles.secondary.base)},
+    active: ${JSON.stringify(buttonStyles.secondary.active)},
+    inactive: ${JSON.stringify(buttonStyles.secondary.inactive)},
   },
   icon: {
-    base: '${buttonStyles.icon.base}',
-    active: '${buttonStyles.icon.active}',
-    inactive: '${buttonStyles.icon.inactive}',
+    base: ${JSON.stringify(buttonStyles.icon.base)},
+    active: ${JSON.stringify(buttonStyles.icon.active)},
+    inactive: ${JSON.stringify(buttonStyles.icon.inactive)},
   },
 };
 
 export const cardStyles = {
-  default: '${cardStyles.default}',
-  compact: '${cardStyles.compact}',
+  default: ${JSON.stringify(cardStyles.default)},
+  compact: ${JSON.stringify(cardStyles.compact)},
 };
 
 export const inputStyles = {
-  default: '${inputStyles.default}',
+  default: ${JSON.stringify(inputStyles.default)},
 };
 
 export const cctvIconStyles = {
-  default: '${cctvIconStyles.default}',
-  active: '${cctvIconStyles.active}',
-  tracking: '${cctvIconStyles.tracking}',
-  warning: '${cctvIconStyles.warning}',
+  default: ${JSON.stringify(cctvIconStyles.default)},
+  active: ${JSON.stringify(cctvIconStyles.active)},
+  tracking: ${JSON.stringify(cctvIconStyles.tracking)},
+  warning: ${JSON.stringify(cctvIconStyles.warning)},
 };
 
 export const cctvLabelStyles = {
-  base: '${cctvLabelStyles.base}',
-  default: '${cctvLabelStyles.default}',
-  active: '${cctvLabelStyles.active}',
-  tracking: '${cctvLabelStyles.tracking}',
-  warning: '${cctvLabelStyles.warning}',
+  base: ${JSON.stringify(cctvLabelStyles.base)},
+  default: ${JSON.stringify(cctvLabelStyles.default)},
+  active: ${JSON.stringify(cctvLabelStyles.active)},
+  tracking: ${JSON.stringify(cctvLabelStyles.tracking)},
+  warning: ${JSON.stringify(cctvLabelStyles.warning)},
 };
 
 export const cctvBadgeStyles = {
-  base: '${cctvBadgeStyles.base}',
-  default: '${cctvBadgeStyles.default}',
-  tracking: '${cctvBadgeStyles.tracking}',
+  base: ${JSON.stringify(cctvBadgeStyles.base)},
+  default: ${JSON.stringify(cctvBadgeStyles.default)},
+  tracking: ${JSON.stringify(cctvBadgeStyles.tracking)},
 };
 
 export const cctvViewAngleStyles = {
@@ -237,13 +237,13 @@ export const cctvViewAngleStyles = {
 };
 
 export const ptzButtonStyles = {
-  base: '${ptzButtonStyles.base}',
-  default: '${ptzButtonStyles.default}',
-  active: '${ptzButtonStyles.active}',
+  base: ${JSON.stringify(ptzButtonStyles.base)},
+  default: ${JSON.stringify(ptzButtonStyles.default)},
+  active: ${JSON.stringify(ptzButtonStyles.active)},
   preset: {
-    base: '${ptzButtonStyles.preset.base}',
-    default: '${ptzButtonStyles.preset.default}',
-    active: '${ptzButtonStyles.preset.active}',
+    base: ${JSON.stringify(ptzButtonStyles.preset.base)},
+    default: ${JSON.stringify(ptzButtonStyles.preset.default)},
+    active: ${JSON.stringify(ptzButtonStyles.preset.active)},
   },
 };
 
@@ -501,10 +501,44 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Base</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.secondary.base}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          secondary: { ...buttonStyles.secondary, base: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Active</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.secondary.active}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          secondary: { ...buttonStyles.secondary, active: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Inactive</label>
+                      <input
+                        type="text"
+                        value={buttonStyles.secondary.inactive}
+                        onChange={(e) => setButtonStyles({
+                          ...buttonStyles,
+                          secondary: { ...buttonStyles.secondary, inactive: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -611,11 +645,44 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: PTZ 제어 버튼 (기본 상태)</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Base</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.base}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          base: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Default</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.default}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          default: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Active</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.active}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          active: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -648,11 +715,44 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: PTZ 제어 버튼 (활성/누름 상태)</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Base</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.base}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          base: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Default</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.default}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          default: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Active</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.active}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          active: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -694,11 +794,44 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: PTZ 프리셋 버튼 (원형)</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집 (Preset)</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Preset Base</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.preset.base}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          preset: { ...ptzButtonStyles.preset, base: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Preset Default</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.preset.default}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          preset: { ...ptzButtonStyles.preset, default: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Preset Active</label>
+                      <input
+                        type="text"
+                        value={ptzButtonStyles.preset.active}
+                        onChange={(e) => setPtzButtonStyles({
+                          ...ptzButtonStyles,
+                          preset: { ...ptzButtonStyles.preset, active: e.target.value }
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -736,10 +869,32 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Default</label>
+                      <input
+                        type="text"
+                        value={cardStyles.default}
+                        onChange={(e) => setCardStyles({
+                          ...cardStyles,
+                          default: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Compact</label>
+                      <input
+                        type="text"
+                        value={cardStyles.compact}
+                        onChange={(e) => setCardStyles({
+                          ...cardStyles,
+                          compact: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -780,10 +935,20 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Default</label>
+                      <input
+                        type="text"
+                        value={inputStyles.default}
+                        onChange={(e) => setInputStyles({
+                          ...inputStyles,
+                          default: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -821,122 +986,56 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: 기본 CCTV 아이콘</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 활성 (Blue) CCTV 아이콘 */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">활성 CCTV 아이콘 (Blue)</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="mb-4">
-                    <div className={getCCTVIconClassName('active')}>
-                      <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Default</label>
+                      <input
+                        type="text"
+                        value={cctvIconStyles.default}
+                        onChange={(e) => setCctvIconStyles({
+                          ...cctvIconStyles,
+                          default: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
                     </div>
-                  </div>
-                  <div className={getCardClassName()}>
-                    <pre className="text-xs text-gray-300 overflow-x-auto">
-                      <code>{`import { getCCTVIconClassName } from '@/components/shared/styles';
-
-<div className={getCCTVIconClassName('active')}>
-  <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
-</div>`}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(`import { getCCTVIconClassName } from '@/components/shared/styles';\n\n<div className={getCCTVIconClassName('active')}>\n  <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />\n</div>`)}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                    >
-                      코드 복사
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: 선택된/활성 CCTV 아이콘</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 추적 (Red) CCTV 아이콘 */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">추적 CCTV 아이콘 (Red)</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="mb-4">
-                    <div className={getCCTVIconClassName('tracking')}>
-                      <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Active</label>
+                      <input
+                        type="text"
+                        value={cctvIconStyles.active}
+                        onChange={(e) => setCctvIconStyles({
+                          ...cctvIconStyles,
+                          active: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
                     </div>
-                  </div>
-                  <div className={getCardClassName()}>
-                    <pre className="text-xs text-gray-300 overflow-x-auto">
-                      <code>{`import { getCCTVIconClassName } from '@/components/shared/styles';
-
-<div className={getCCTVIconClassName('tracking')}>
-  <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />
-</div>`}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(`import { getCCTVIconClassName } from '@/components/shared/styles';\n\n<div className={getCCTVIconClassName('tracking')}>\n  <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />\n</div>`)}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                    >
-                      코드 복사
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: 추적 중인 CCTV 아이콘</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 경고 (Yellow) CCTV 아이콘 */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">경고 CCTV 아이콘 (Yellow)</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="mb-4">
-                    <div className={getCCTVIconClassName('warning')}>
-                      <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Tracking</label>
+                      <input
+                        type="text"
+                        value={cctvIconStyles.tracking}
+                        onChange={(e) => setCctvIconStyles({
+                          ...cctvIconStyles,
+                          tracking: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
                     </div>
-                  </div>
-                  <div className={getCardClassName()}>
-                    <pre className="text-xs text-gray-300 overflow-x-auto">
-                      <code>{`import { getCCTVIconClassName } from '@/components/shared/styles';
-
-<div className={getCCTVIconClassName('warning')}>
-  <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />
-</div>`}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(`import { getCCTVIconClassName } from '@/components/shared/styles';\n\n<div className={getCCTVIconClassName('warning')}>\n  <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />\n</div>`)}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                    >
-                      코드 복사
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: 경고/주의 CCTV 아이콘</p>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Warning</label>
+                      <input
+                        type="text"
+                        value={cctvIconStyles.warning}
+                        onChange={(e) => setCctvIconStyles({
+                          ...cctvIconStyles,
+                          warning: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -972,12 +1071,68 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
                   </div>
                 </div>
                 <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: CCTV 이름 라벨</p>
-                    <p className="text-xs mt-1">Variant: default, active, tracking, warning</p>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Base</label>
+                      <input
+                        type="text"
+                        value={cctvLabelStyles.base}
+                        onChange={(e) => setCctvLabelStyles({
+                          ...cctvLabelStyles,
+                          base: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Default</label>
+                      <input
+                        type="text"
+                        value={cctvLabelStyles.default}
+                        onChange={(e) => setCctvLabelStyles({
+                          ...cctvLabelStyles,
+                          default: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Active</label>
+                      <input
+                        type="text"
+                        value={cctvLabelStyles.active}
+                        onChange={(e) => setCctvLabelStyles({
+                          ...cctvLabelStyles,
+                          active: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Tracking</label>
+                      <input
+                        type="text"
+                        value={cctvLabelStyles.tracking}
+                        onChange={(e) => setCctvLabelStyles({
+                          ...cctvLabelStyles,
+                          tracking: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-400 mb-1">Warning</label>
+                      <input
+                        type="text"
+                        value={cctvLabelStyles.warning}
+                        onChange={(e) => setCctvLabelStyles({
+                          ...cctvLabelStyles,
+                          warning: e.target.value
+                        })}
+                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

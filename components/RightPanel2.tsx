@@ -86,7 +86,7 @@ const buildThumbnails = (identifier: string, count = 3) => {
   });
 };
 
-const RightPanel2 = () => {
+const RightPanel = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [currentStreamIndex, setCurrentStreamIndex] = useState(0);
   const [spotThumbnailIndices, setSpotThumbnailIndices] = useState<Record<string, number>>({});
@@ -1041,4 +1041,4 @@ const RightPanel2 = () => {
   );
 };
 
-export default RightPanel2;
+export default RightPanel;

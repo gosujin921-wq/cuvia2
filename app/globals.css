@@ -104,7 +104,7 @@ body {
 }
 
 .animate-circle-pulse {
-  animation: circle-pulse 1s ease-out infinite;
+  animation: circle-pulse 1.5s ease-out infinite;
 }
 
 /* Tailwind pulse 애니메이션 */

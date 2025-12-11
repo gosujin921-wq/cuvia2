@@ -25,6 +25,8 @@ interface EventCenterColumn1Props {
   setSelectedDetectedCCTV: (value: string | null) => void;
   setShowCombinedCCTVPopup: (value: boolean) => void;
   setSelectedCombinedCCTV: (value: string | null) => void;
+  zoomLevel?: number;
+  setZoomLevel?: (value: number | ((prev: number) => number)) => void;
   isTrackingPinVisible?: boolean;
   isTrackingProgress?: boolean;
   trackingProgress?: number;
@@ -59,13 +61,19 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   isTrackingProgress = false,
   trackingProgress = 0,
   trackingPinPosition = { left: 85, top: 45 },
+  zoomLevel: propZoomLevel,
+  setZoomLevel: propSetZoomLevel,
   additionalDataNotification,
 }) => {
-  const [zoomLevel, setZoomLevel] = React.useState(0); // 0: 축소(클러스터), 1: 확대(개별)
+  // 줌 레벨 기본값 (prop이 없으면 내부 상태 사용)
+  const [internalZoomLevel, setInternalZoomLevel] = React.useState(0);
+  const currentZoomLevel = propZoomLevel !== undefined ? propZoomLevel : internalZoomLevel;
+  const currentSetZoomLevel = propSetZoomLevel || setInternalZoomLevel;
   
   // 줌 레벨에 따른 지도 스케일 계산
-  const mapScale = zoomLevel === 0 ? 1 : 1.5; // 확대 시 1.5배
+  const mapScale = currentZoomLevel === 0 ? 1 : 1.5; // 확대 시 1.5배
   const mapTransformOrigin = 'center center'; // 확대 기준점
+  const pinScale = mapScale; // 핀도 맵과 동일한 스케일 적용
   // CCTV 위치 정보 (맵 좌표 기준) - 같은 위치에 여러 CCTV가 있을 수 있음
   const cctvLocationGroups: Record<string, { position: { left: number; top: number }; cctvs: string[] }> = {
     'location-1': {
@@ -162,7 +170,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
     timelineTitle: string,
     viewAngleRotation: number = 0
   ) => {
-    if (zoomLevel === 0) {
+    if (currentZoomLevel === 0) {
       // 축소 모드: 클러스터 뱃지만 표시
       return (
         <div 
@@ -172,7 +180,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             handleCCTVClick(cctvIds[0], borderColor);
           }}
         >
-          <div className={getCCTVIconClassName(getCCTVVariant(borderColor))} style={{ zIndex: 110, position: 'relative' }}>
+          <div className={getCCTVIconClassName(getCCTVVariant(borderColor))} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
             <Icon 
               icon="mdi:cctv" 
               className={iconColor}
@@ -245,7 +253,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               handleCCTVClick(cctvId, borderColor);
             }}
           >
-            <div className={getCCTVIconClassName(getCCTVVariant(borderColor))} style={{ zIndex: 110, position: 'relative' }}>
+            <div className={getCCTVIconClassName(getCCTVVariant(borderColor))} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
               <Icon 
                 icon="mdi:cctv" 
                 className={iconColor}
@@ -306,9 +314,9 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setZoomLevel(prev => Math.min(prev + 1, 1));
+              currentSetZoomLevel((prev: number) => Math.min(prev + 1, 1));
             }}
-            disabled={zoomLevel >= 1}
+            disabled={currentZoomLevel >= 1}
             className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ borderWidth: '1px' }}
             aria-label="확대"
@@ -318,9 +326,9 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              setZoomLevel(prev => Math.max(prev - 1, 0));
+              currentSetZoomLevel((prev: number) => Math.max(prev - 1, 0));
             }}
-            disabled={zoomLevel <= 0}
+            disabled={currentZoomLevel <= 0}
             className="w-10 h-10 rounded-lg flex items-center justify-center transition-colors bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a] disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ borderWidth: '1px' }}
             aria-label="축소"
@@ -434,7 +442,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           { left: 85, top: 90, count: 4, viewAngle: 90 },
         ].map((item, index) => {
           const cctvName = `CCTV-V-${index + 1}`;
-          if (zoomLevel === 0) {
+          if (currentZoomLevel === 0) {
             // 축소 모드: 클러스터 뱃지만 표시
             return (
               <div
@@ -450,7 +458,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   // 나중에 모달 띄울 예정
                 }}
               >
-                <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative' }}>
+                <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative', transform: `scale(${pinScale})` }}>
                   <Icon 
                     icon="mdi:cctv" 
                     className="text-gray-400"
@@ -506,26 +514,26 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               const offsetTop = Math.sin(angle) * radius;
               
               return (
-                <div
-                  key={`virtual-cctv-${index}-${i}`}
-                  className="absolute cursor-pointer"
-                  style={{ 
-                    left: `${item.left + offsetLeft}%`, 
-                    top: `${item.top + offsetTop}%`, 
-                    transform: 'translate(-50%, -50%)', 
-                    zIndex: 50 
-                  }}
-                  onClick={() => {
-                    // 나중에 모달 띄울 예정
-                  }}
-                >
-                  <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative' }}>
-                    <Icon 
-                      icon="mdi:cctv" 
-                      className="text-gray-400"
-                      width="16px" 
-                      height="16px"
-                    />
+                  <div
+                    key={`virtual-cctv-${index}-${i}`}
+                    className="absolute cursor-pointer"
+                    style={{ 
+                      left: `${item.left + offsetLeft}%`, 
+                      top: `${item.top + offsetTop}%`, 
+                      transform: 'translate(-50%, -50%)', 
+                      zIndex: 50 
+                    }}
+                    onClick={() => {
+                      // 나중에 모달 띄울 예정
+                    }}
+                  >
+                    <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative', transform: `scale(${pinScale})` }}>
+                      <Icon 
+                        icon="mdi:cctv" 
+                        className="text-gray-400"
+                        width="16px" 
+                        height="16px"
+                      />
                   </div>
                   {/* CCTV 이름 라벨 */}
                   {showCCTVName && (
@@ -575,7 +583,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               points={`30,160 140,130 80,120 ${trackingPinPosition.left * 2},${trackingPinPosition.top * 2}`}
               fill="none" 
               stroke="#5390ff" 
-              strokeWidth="1" 
+              strokeWidth="0.5" 
               strokeDasharray="2 2"
               className="animate-dash"
             />
@@ -620,18 +628,36 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             className="absolute flex items-center justify-center" 
             style={{ left: `${trackingPinPosition.left}%`, top: `${trackingPinPosition.top}%`, transform: 'translate(-50%, -50%)', zIndex: 120, width: '80px', height: '80px' }}
           >
-            {/* 대쉬 원 - 위험 상황 알람 펄스 애니메이션 (여러 레이어) */}
+            {/* 고정된 대쉬 스트로크 원 (제일 큰 원, 애니메이션 없음) - 추적 범위 표시 */}
+            <div className="absolute" style={{ width: '176px', height: '176px', zIndex: 75, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
+              <svg width="176" height="176" viewBox="0 0 176 176" style={{ position: 'absolute', top: 0, left: 0 }}>
+                <circle
+                  cx="88"
+                  cy="88"
+                  r="88"
+                  fill="none"
+                  stroke="rgba(59, 130, 246, 0.6)"
+                  strokeWidth="2"
+                  strokeDasharray="4 4"
+                />
+              </svg>
+              {/* 범위 라벨 */}
+              <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', marginTop: '100px', zIndex: 76 }}>
+                <span className="text-blue-400 text-xs font-semibold whitespace-nowrap">추적 범위 : 500m</span>
+              </div>
+            </div>
+            {/* 펄스 애니메이션 원들 (blue 컬러) */}
             <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80, animationDelay: '0s' }}>
-              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
+              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.5)' }}></div>
             </div>
             <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 79, animationDelay: '0.3s' }}>
-              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.4)' }}></div>
+              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.4)' }}></div>
             </div>
             <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 78, animationDelay: '0.6s' }}>
-              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}></div>
+              <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.3)' }}></div>
             </div>
             {/* CCTV 아이콘들 */}
-            {zoomLevel === 0 ? (
+            {currentZoomLevel === 0 ? (
               // 축소 모드: 클러스터 뱃지만 표시
               <div 
                 className="absolute cursor-pointer" 
@@ -640,7 +666,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   handleCCTVClick(location5CCTVs[0] || 'CCTV-16', 'border-red-500');
                 }}
               >
-                <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative' }}>
+                <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
                   <Icon 
                     icon="mdi:cctv" 
                     className="text-red-400" 
@@ -686,7 +712,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                       handleCCTVClick(cctvId, 'border-red-500');
                     }}
                   >
-                    <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative' }}>
+                    <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
                       <Icon 
                         icon="mdi:cctv" 
                         className="text-red-400" 
@@ -737,6 +763,57 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             onSendToAgent={additionalDataNotification.onSendToAgent}
           />
         )}
+
+        {/* 카메라 범례 - 맵 우측 하단 */}
+        <div 
+          className="absolute bottom-4 right-4 bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4 space-y-2"
+          style={{ zIndex: 250, borderWidth: '1px' }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5">
+              <div className="w-5 h-5 border-2 border-yellow-500 rounded flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
+                <Icon icon="mdi:cctv" className="text-yellow-400" style={{ width: '14px', height: '14px' }} />
+              </div>
+              <span className="text-gray-300" style={{ fontSize: '14.4px' }}>초기 포착</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-5 h-5 border-2 border-blue-500 rounded flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
+                <Icon icon="mdi:cctv" className="text-blue-400" style={{ width: '14px', height: '14px' }} />
+              </div>
+              <span className="text-gray-300" style={{ fontSize: '14.4px' }}>과거 동선</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-5 h-5 border-2 border-red-500 rounded flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
+                <Icon icon="mdi:cctv" className="text-red-400" style={{ width: '14px', height: '14px' }} />
+              </div>
+              <span className="text-gray-300" style={{ fontSize: '14.4px' }}>추적 동선</span>
+            </div>
+            <div className="flex items-center gap-2.5">
+              <div className="w-5 h-5 border-2 border-gray-500 rounded flex items-center justify-center" style={{ width: '20px', height: '20px' }}>
+                <Icon icon="mdi:cctv" className="text-gray-400" style={{ width: '14px', height: '14px' }} />
+              </div>
+              <span className="text-gray-300" style={{ fontSize: '14.4px' }}>일반 CCTV</span>
+            </div>
+            {/* 추적 범위 범례 */}
+            <div className="flex items-center gap-2.5 pt-2 border-t border-[#31353a]">
+              <div className="flex items-center justify-center relative" style={{ width: '20px', height: '20px' }}>
+                <svg width="20" height="20" viewBox="0 0 20 20" style={{ position: 'absolute' }}>
+                  <circle
+                    cx="10"
+                    cy="10"
+                    r="9"
+                    fill="none"
+                    stroke="rgba(59, 130, 246, 0.6)"
+                    strokeWidth="1.8"
+                    strokeDasharray="2.4 2.4"
+                  />
+                </svg>
+              </div>
+              <span className="text-gray-300" style={{ fontSize: '14.4px' }}>추적 범위</span>
+            </div>
+          </div>
+        </div>
       </div>
 
     </div>

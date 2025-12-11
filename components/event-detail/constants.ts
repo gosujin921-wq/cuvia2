@@ -172,6 +172,11 @@ export const cctvThumbnailMap: Record<string, string> = {
   'CCTV-15': '/cctv_img/003.jpg',
   'CCTV-9': '/cctv_img/004.jpg',
   'CCTV-11': '/cctv_img/005.jpg',
+  'CCTV-3': '/cctv_img/001.jpg',
+  'CCTV-5': '/cctv_img/002.jpg',
+  'CCTV-8': '/cctv_img/003.jpg',
+  'CCTV-13': '/cctv_img/004.jpg',
+  'CCTV-16': '/cctv_img/005.jpg',
 };
 
 export const cctvFovMap: Record<string, string> = {

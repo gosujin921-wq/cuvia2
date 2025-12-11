@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import { getTabButtonClassName } from '@/components/shared/styles';
 
 interface EventCenterColumn2Props {
   isRightPanelCollapsed: boolean;
@@ -9,8 +10,11 @@ interface EventCenterColumn2Props {
   handleDragStart: (e: React.MouseEvent) => void;
   monitoringCCTVs: string[];
   handleRemoveFromMonitoring: (cctvKey: string) => void;
-  setSelectedCCTV: (cctv: string | null) => void;
-  setShowCCTVPopup: (show: boolean) => void;
+  setSelectedDetectedCCTV: (id: string | null) => void;
+  setShowDetectedCCTVPopup: (show: boolean) => void;
+  setSelectedMapCCTV?: (cctvId: string | null) => void;
+  setShowMapCCTVPopup?: (show: boolean) => void;
+  zoomLevel?: number;
   detectedCCTVThumbnails: Array<{
     id: string;
     cctvId: string;
@@ -20,6 +24,9 @@ interface EventCenterColumn2Props {
     thumbnail: string;
     location: string;
     description: string;
+    aiAnalysis?: string;
+    suspectReason?: string;
+    situation?: string;
   }>;
   cctvInfo: Record<string, {
     id: string;
@@ -29,6 +36,19 @@ interface EventCenterColumn2Props {
   }>;
   cctvThumbnailMap: Record<string, string>;
   behaviorHighlights: string[];
+  showMapCCTVPopup?: boolean;
+  showDetectedCCTVPopup?: boolean;
+  showCombinedCCTVPopup?: boolean;
+  showAdditionalDataPopup?: boolean;
+  showBroadcastDraftPopup?: boolean;
+  movementTimeline: Array<{
+    time: string;
+    title: string;
+    subtitle: string;
+    cctvName: string | null;
+    color: string;
+    cctvId: string | null;
+  }>;
 }
 
 export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
@@ -37,76 +57,120 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
   handleDragStart,
   monitoringCCTVs,
   handleRemoveFromMonitoring,
-  setSelectedCCTV,
-  setShowCCTVPopup,
+  setSelectedDetectedCCTV,
+  setShowDetectedCCTVPopup,
+  setSelectedMapCCTV,
+  setShowMapCCTVPopup,
   detectedCCTVThumbnails,
   cctvInfo,
   cctvThumbnailMap,
   behaviorHighlights,
+  showMapCCTVPopup = false,
+  showDetectedCCTVPopup = false,
+  showCombinedCCTVPopup = false,
+  showAdditionalDataPopup = false,
+  showBroadcastDraftPopup = false,
+  zoomLevel = 0,
+  movementTimeline,
 }) => {
+  const [activeTab, setActiveTab] = useState<'cctv' | 'movement' | 'analysis'>('cctv');
+
+  // 줌 레벨에 따른 아이콘 스케일 계산
+  const iconScale = zoomLevel === 0 ? 1 : 1.5; // 확대 시 1.5배
+
+  // 키보드 단축키 (1: CCTV, 2: 위치 및 동선, 3: 분석 요약) - 팝업이 열려있으면 동작하지 않음
+  useEffect(() => {
+    if (showMapCCTVPopup || showDetectedCCTVPopup || showCombinedCCTVPopup || showAdditionalDataPopup || showBroadcastDraftPopup) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 입력 필드에 포커스가 있으면 무시
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === '1') {
+        e.preventDefault();
+        setActiveTab('cctv');
+      } else if (e.key === '2') {
+        e.preventDefault();
+        setActiveTab('movement');
+      } else if (e.key === '3') {
+        e.preventDefault();
+        setActiveTab('analysis');
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [showMapCCTVPopup, showDetectedCCTVPopup, showCombinedCCTVPopup, showAdditionalDataPopup, showBroadcastDraftPopup]);
   return (
-    <div className="flex flex-col pt-4 pr-4 flex-1 min-w-0 overflow-hidden" data-section-container style={{ minHeight: 0, height: '100%' }}>
-      {/* CCTV 묶음 영역 */}
-      <div 
-        className="flex flex-col flex-shrink-0 min-h-0" 
-        style={{ 
-          flexBasis: cctvSectionHeight !== null ? `${cctvSectionHeight}%` : '50%',
-          flexGrow: 1,
-          flexShrink: 1
-        }}
-      >
-        <div className="flex flex-col space-y-6 h-full min-h-0">
-          {/* 포착된 CCTV 썸네일 */}
+    <div className="flex flex-col pt-4 pr-4 flex-1 min-w-0 min-h-0 overflow-hidden" data-section-container style={{ minHeight: 0, height: '100%' }}>
+      {/* 탭 버튼 */}
+      <div className="flex gap-2 mb-4 flex-shrink-0">
+        <button
+          onClick={() => setActiveTab('cctv')}
+          className={getTabButtonClassName(activeTab === 'cctv')}
+          style={{ borderWidth: activeTab === 'cctv' ? '0' : '1px' }}
+        >
+          CCTV
+        </button>
+        <button
+          onClick={() => setActiveTab('movement')}
+          className={getTabButtonClassName(activeTab === 'movement')}
+          style={{ borderWidth: activeTab === 'movement' ? '0' : '1px' }}
+        >
+          위치 및 동선
+        </button>
+        <button
+          onClick={() => setActiveTab('analysis')}
+          className={getTabButtonClassName(activeTab === 'analysis')}
+          style={{ borderWidth: activeTab === 'analysis' ? '0' : '1px' }}
+        >
+          분석 요약
+        </button>
+      </div>
+
+      {/* 탭 컨텐츠 */}
+      <div className="flex-1 overflow-y-auto min-h-0 flex flex-col">
+        {activeTab === 'cctv' && (
           <div className="flex flex-col flex-1 min-h-0">
+          {/* 포착된 CCTV 클립 */}
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden" style={{ flexBasis: '50%', flexGrow: 1, flexShrink: 1 }}>
             <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
-              <Icon icon="mdi:image-multiple" className="w-4 h-4 text-purple-300" />
-              포착된 CCTV 썸네일
+              <Icon icon="mdi:video-stabilization" className="w-4 h-4 text-purple-300" />
+              포착된 CCTV 클립
             </div>
             <div className="overflow-y-auto flex-1">
               <div className={`grid gap-3`} style={{ 
                 gridTemplateColumns: isRightPanelCollapsed ? `repeat(auto-fill, minmax(160px, 1fr))` : `repeat(4, minmax(0, 1fr))`,
-                gridTemplateRows: 'repeat(2, minmax(0, 1fr))', 
-                gridAutoRows: 'minmax(0, 1fr)',
-                minHeight: 'fit-content'
               }}>
-                {[...detectedCCTVThumbnails].sort((a, b) => {
-                  // 시간을 비교하여 최신순으로 정렬 (내림차순)
-                  const timeA = a.timestamp.split(':').map(Number);
-                  const timeB = b.timestamp.split(':').map(Number);
-                  const secondsA = timeA[0] * 3600 + timeA[1] * 60 + timeA[2];
-                  const secondsB = timeB[0] * 3600 + timeB[1] * 60 + timeB[2];
-                  return secondsB - secondsA; // 최신순 (내림차순)
-                }).map((detected) => (
+                {detectedCCTVThumbnails.map((detected) => (
                   <div
                     key={detected.id}
-                    className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-purple-500/50 transition-colors overflow-hidden group"
+                    className="bg-[#0f0f0f] border border-[#31353a] rounded-lg overflow-hidden cursor-pointer hover:border-purple-500 transition-colors"
                     style={{ borderWidth: '1px' }}
                     onClick={() => {
-                      setSelectedCCTV(detected.cctvName);
-                      setShowCCTVPopup(true);
+                      setSelectedDetectedCCTV(detected.cctvId);
+                      setShowDetectedCCTVPopup(true);
                     }}
                   >
                     <div className="relative aspect-video bg-black">
                       <img
                         src={detected.thumbnail}
                         alt={detected.cctvName}
-                        className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                        className="w-full h-full object-cover"
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
                         }}
                       />
-                      <div className="absolute top-1 left-1 px-1.5 py-0.5 bg-black/70 rounded text-white text-[10px] font-semibold">
-                        {detected.timestamp}
-                      </div>
-                      <div className="absolute top-1 right-1 px-1.5 py-0.5 bg-purple-600/80 rounded text-white text-[10px] font-semibold">
-                        {detected.confidence}%
-                      </div>
                     </div>
                     <div className="p-1.5 space-y-0.5">
-                      <div className="text-white text-[10px] font-semibold truncate">{detected.cctvId}</div>
-                      <div className="text-gray-400 text-[10px] truncate">{detected.location}</div>
-                      <div className="text-gray-400 text-[10px] truncate">{detected.description}</div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-white text-xs font-semibold truncate">{detected.cctvId}</span>
+                      </div>
+                      <div className="text-gray-400 text-xs truncate">{detected.location}</div>
+                      <div className="text-gray-500 text-xs truncate">{detected.situation}</div>
                     </div>
                   </div>
                 ))}
@@ -115,17 +179,14 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
           </div>
 
           {/* CCTV 모니터링 */}
-          <div className="flex flex-col flex-1 min-h-0">
+          <div className="flex flex-col flex-1 min-h-0 overflow-hidden" style={{ flexBasis: '50%', flexGrow: 1, flexShrink: 1 }}>
             <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3">
               <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-300" />
-              주변 cctv
+              CCTV 모니터링
             </div>
             <div className="overflow-y-auto flex-1">
               <div className={`grid gap-3`} style={{ 
                 gridTemplateColumns: isRightPanelCollapsed ? `repeat(auto-fill, minmax(160px, 1fr))` : `repeat(4, minmax(0, 1fr))`,
-                gridTemplateRows: 'repeat(2, minmax(0, 1fr))', 
-                gridAutoRows: 'minmax(0, 1fr)',
-                minHeight: 'fit-content'
               }}>
                 {monitoringCCTVs.length === 0 ? (
                   <div className="col-span-4 text-center py-8">
@@ -133,65 +194,48 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
                     <p className="text-gray-500 text-xs">모니터링 중인 CCTV가 없습니다</p>
                   </div>
                 ) : (
-                  [...monitoringCCTVs].sort((a, b) => {
-                    const cctvA = cctvInfo[a];
-                    const cctvB = cctvInfo[b];
-                    if (!cctvA || !cctvB) return 0;
-                    // 추적중이 먼저 오도록 정렬
-                    if (cctvA.status === '추적중' && cctvB.status !== '추적중') return -1;
-                    if (cctvA.status !== '추적중' && cctvB.status === '추적중') return 1;
-                    return 0;
-                  }).map((cctvKey) => {
+                  monitoringCCTVs.map((cctvKey) => {
                     const cctv = cctvInfo[cctvKey];
                     if (!cctv) return null;
-                    const isTracking = cctv.status === '추적중';
+                    
                     return (
                       <div
-                        key={cctvKey}
-                        className="bg-[#0f0f0f] border border-[#31353a] rounded cursor-pointer hover:border-blue-500/50 transition-colors overflow-hidden group relative"
-                        style={{ borderWidth: isTracking ? '2px' : '1px', borderColor: isTracking ? 'rgba(234, 179, 8, 0.5)' : undefined }}
+                        key={cctv.id}
+                        className="bg-[#0f0f0f] border border-[#31353a] rounded-lg overflow-hidden relative group"
+                        style={{ borderWidth: '1px' }}
                         onClick={() => {
-                          setSelectedCCTV(cctvKey);
-                          setShowCCTVPopup(true);
+                          if (setSelectedMapCCTV && setShowMapCCTVPopup) {
+                            setSelectedMapCCTV(cctv.id);
+                            setShowMapCCTVPopup(true);
+                          }
                         }}
                       >
                         <div className="relative aspect-video bg-black">
                           <img
                             src={cctvThumbnailMap[cctv.id] || '/cctv_img/001.jpg'}
-                            alt={`${cctv.id} 썸네일`}
-                            className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+                            alt={cctv.name}
+                            className="w-full h-full object-cover"
                             onError={(e) => {
                               const target = e.target as HTMLImageElement;
                               target.src = '/cctv_img/001.jpg';
                             }}
                           />
-                          <div className="absolute top-1 right-1">
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleRemoveFromMonitoring(cctvKey);
-                              }}
-                              className="text-white bg-black/70 hover:bg-red-600/80 rounded-full p-1 transition-colors"
-                              aria-label="모니터링에서 제거"
-                            >
-                              <Icon icon="mdi:close" className="w-3 h-3" />
-                            </button>
-                          </div>
+                          <button
+                            className="absolute top-1 right-1 w-5 h-5 bg-black/70 hover:bg-black/90 rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveFromMonitoring(cctvKey);
+                            }}
+                            aria-label="모니터링에서 제거"
+                          >
+                            <Icon icon="mdi:close" className="w-3 h-3" />
+                          </button>
                         </div>
                         <div className="p-1.5 space-y-0.5">
                           <div className="flex items-center gap-1.5">
-                            <span className="text-white text-[10px] font-semibold truncate">{cctv.id}</span>
-                            <span className={`px-1 py-0.5 text-[10px] flex-shrink-0 ${
-                              cctv.status === '활성' 
-                                ? 'bg-green-500/20 text-green-400'
-                                : cctv.status === '추적중'
-                                  ? 'bg-yellow-500/20 text-yellow-400'
-                                  : 'bg-gray-500/20 text-gray-400'
-                            }`}>
-                              {cctv.status}
-                            </span>
+                            <span className="text-white text-xs font-semibold truncate">{cctv.id}</span>
                           </div>
-                          <div className="text-gray-400 text-[10px] truncate">{cctv.location}</div>
+                          <div className="text-gray-400 text-xs truncate">{cctv.location}</div>
                         </div>
                       </div>
                     );
@@ -200,34 +244,38 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
               </div>
             </div>
           </div>
-        </div>
-      </div>
+          </div>
+        )}
 
-      {/* 드래그 가능한 구분선 */}
-      <div
-        onMouseDown={handleDragStart}
-        className="flex-shrink-0 h-1 bg-[#31353a] hover:bg-[#4a4f56] cursor-row-resize transition-colors relative group"
-        style={{ borderTop: '1px solid #31353a', borderBottom: '1px solid #31353a' }}
-      >
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-12 h-0.5 bg-gray-500 group-hover:bg-gray-400 rounded-full transition-colors" />
-        </div>
-      </div>
+        {activeTab === 'movement' && (
+          <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+            <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3 flex-shrink-0">
+              <Icon icon="mdi:map-marker" className="text-green-300" style={{ width: `${4 * iconScale}px`, height: `${4 * iconScale}px` }} />
+              위치 및 동선
+            </div>
+            <div className="space-y-2 text-sm overflow-y-auto flex-1 min-h-0">
+              {[...movementTimeline].reverse().map((entry, index) => (
+                <div key={index} className="flex gap-3">
+                  <div className="text-xs text-gray-500 w-16 flex-shrink-0">{entry.time}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className={`font-semibold ${entry.color} mb-0.5`}>{entry.title}</p>
+                    <p className="text-gray-400 text-xs mb-1">{entry.subtitle}</p>
+                    {entry.cctvName && (
+                      <p className="text-gray-500 text-xs">{entry.cctvName}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-      {/* 분석 요약 묶음 영역 */}
-      <div 
-        className="flex flex-col overflow-y-auto flex-shrink-0 min-h-0" 
-        style={{ 
-          flexBasis: cctvSectionHeight !== null ? `${100 - cctvSectionHeight}%` : '50%',
-          flexGrow: 1,
-          flexShrink: 1
-        }}
-      >
-        <div className="flex flex-col space-y-6 pt-4">
+        {activeTab === 'analysis' && (
+          <div className="flex flex-col space-y-6 pt-4 flex-1 min-h-0 overflow-y-auto">
           {/* 인물 분석 & 차량 분석 */}
           <div className="grid grid-cols-2 gap-6">
             {/* 인물 분석 */}
-            <div>
+            <div className="flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-sm text-white font-semibold">
                   <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
@@ -236,37 +284,23 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
                 <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
               </div>
               <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
-                <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">성별/연령</p>
-                    <p>남성, 30대 초반 추정</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">상의</p>
-                    <p>검은색 후드티</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">하의</p>
-                    <p>청바지</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">신발</p>
-                    <p>흰색 운동화</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">체격</p>
-                    <p>170cm 추정, 중간 체격</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">ReID 신뢰도</p>
-                    <p className="text-green-400 font-semibold">89%</p>
-                  </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">용의자 특징</div>
+                  <div className="text-white text-sm">검은색 후드티, 파란 가방</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">최근 목격</div>
+                  <div className="text-white text-sm">15:22:45 - 세 번째 CCTV</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">이동 경로</div>
+                  <div className="text-white text-sm">놀이터 → 산책로 → 차량 탑승</div>
                 </div>
               </div>
             </div>
 
             {/* 차량 분석 */}
-            <div>
+            <div className="flex flex-col">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-sm text-white font-semibold">
                   <Icon icon="mdi:car" className="w-4 h-4 text-blue-300" />
@@ -275,31 +309,17 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
                 <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
               </div>
               <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
-                <div className="grid gap-3 text-sm text-gray-300 grid-cols-1">
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">차종</p>
-                    <p>소형 승용차</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">색상</p>
-                    <p>흰색</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">번호판</p>
-                    <p>12가3456</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">방향</p>
-                    <p>북쪽으로 이동</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">속도</p>
-                    <p>약 60km/h</p>
-                  </div>
-                  <div>
-                    <p className="text-gray-500 text-xs mb-0.5">인식 신뢰도</p>
-                    <p className="text-green-400 font-semibold">92%</p>
-                  </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">차량 정보</div>
+                  <div className="text-white text-sm">차량번호 미확인, 검은색 승용차</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">최근 목격</div>
+                  <div className="text-white text-sm">15:22:45 - 세 번째 CCTV</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">이동 방향</div>
+                  <div className="text-white text-sm">동쪽 방향 도주</div>
                 </div>
               </div>
             </div>
@@ -314,14 +334,17 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
             <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
               <ul className="text-sm text-red-100 space-y-1">
                 {behaviorHighlights.map((item) => (
-                  <li key={item}>• {item}</li>
+                  <li key={item} className="flex items-start gap-2">
+                    <span className="text-red-400 mt-0.5">•</span>
+                    <span>{item}</span>
+                  </li>
                 ))}
               </ul>
             </div>
           </div>
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
 };
-

@@ -8,7 +8,6 @@ import { EventLeftPanel } from '@/components/event-detail/EventLeftPanel';
 import { EventCenterPanel } from '@/components/event-detail/EventCenterPanel';
 import { EventCenterColumn1 } from '@/components/event-detail/EventCenterColumn1';
 import { EventCenterColumn2 } from '@/components/event-detail/EventCenterColumn2';
-import { EventCenterColumn2Test } from '@/components/event-detail/EventCenterColumn2Test';
 import { DetectedCCTVClipPopup } from '@/components/event-detail/DetectedCCTVClipPopup';
 import { MapCCTVPopup } from '@/components/event-detail/MapCCTVPopup';
 import { CombinedCCTVPopup } from '@/components/event-detail/CombinedCCTVPopup';
@@ -232,6 +231,9 @@ const EventDetailPageContent = () => {
   const [showAdditionalDataPopup, setShowAdditionalDataPopup] = useState(false);
   const [showBroadcastDraftPopup, setShowBroadcastDraftPopup] = useState(false);
   
+  // 맵 확대 상태
+  const [zoomLevel, setZoomLevel] = useState(0); // 0: 축소(클러스터), 1: 확대(개별)
+
   // 추적 핀 관련 상태
   const [isTrackingPinVisible, setIsTrackingPinVisible] = useState(true);
   const [isTrackingProgress, setIsTrackingProgress] = useState(false);
@@ -746,6 +748,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setSelectedDetectedCCTV={setSelectedDetectedCCTV}
                 setShowCombinedCCTVPopup={setShowCombinedCCTVPopup}
                 setSelectedCombinedCCTV={setSelectedCombinedCCTV}
+                zoomLevel={zoomLevel}
+                setZoomLevel={setZoomLevel}
                 isTrackingPinVisible={isTrackingPinVisible}
                 isTrackingProgress={isTrackingProgress}
                 trackingProgress={trackingProgress}
@@ -769,7 +773,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
               />
 
               {/* 2열: CCTV, 인물 분석, 행동 요약 */}
-              <EventCenterColumn2Test
+              <EventCenterColumn2
                 isRightPanelCollapsed={isRightPanelCollapsed}
                 cctvSectionHeight={cctvSectionHeight}
                 handleDragStart={handleDragStart}
@@ -789,6 +793,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 cctvThumbnailMap={cctvThumbnailMap}
                 behaviorHighlights={behaviorHighlights}
                 movementTimeline={movementTimeline}
+                zoomLevel={zoomLevel}
               />
             </div>
           </div>

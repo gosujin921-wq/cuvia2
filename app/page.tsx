@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import EventSummary from '@/components/EventSummary';
 import EventList from '@/components/EventList';
 import MapView from '@/components/MapView';
-import RightPanel2 from '@/components/RightPanel2';
+import RightPanel from '@/components/RightPanel';
 import { ScaledLayout } from '@/components/layouts/ScaledLayout';
 import { Event, EventSummary as EventSummaryType } from '@/types';
 import { allEvents, convertToDashboardEvent } from '@/lib/events-data';
@@ -138,7 +138,7 @@ export default function Home() {
             />
           </div>
           {/* 우측: RightPanel */}
-          <RightPanel2 />
+          <RightPanel />
         </div>
       </div>
     </ScaledLayout>

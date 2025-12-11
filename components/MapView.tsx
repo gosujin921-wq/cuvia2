@@ -505,6 +505,11 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
           transformOrigin: mapTransformOrigin,
         }}
       >
+        {/* 미세한 딤 오버레이 */}
+        <div 
+          className="absolute inset-0 bg-black/5" 
+          style={{ zIndex: 2 }}
+        ></div>
         {/* 가상 CCTV 아이콘들 - 그레이 컬러 */}
         {showCCTV && [
           { left: 10, top: 20, count: 1, viewAngle: 45 },
