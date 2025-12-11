@@ -19,6 +19,7 @@ export type BroadcastControlsProps = {
   riskSummary: string;
   onAddClipsRef?: React.MutableRefObject<((clips: ClipData[]) => void) | null>;
   onOpenModalRef?: React.MutableRefObject<(() => void) | null>;
+  onModalStateChange?: (isOpen: boolean) => void;
 };
 
 type AttachmentStatus = 'ready' | 'saved';
@@ -48,8 +49,16 @@ const BroadcastControls: React.FC<BroadcastControlsProps> = ({
   riskSummary,
   onAddClipsRef,
   onOpenModalRef,
+  onModalStateChange,
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // 모달 상태 변경 시 상위 컴포넌트에 알림
+  useEffect(() => {
+    if (onModalStateChange) {
+      onModalStateChange(isModalOpen);
+    }
+  }, [isModalOpen, onModalStateChange]);
   const defaultMessage = useMemo(() => {
     const safeSummary = aiSummary?.trim() || '';
     const safeRisk = riskSummary?.trim() || '';

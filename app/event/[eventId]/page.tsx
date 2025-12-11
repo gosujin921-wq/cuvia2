@@ -200,98 +200,7 @@ const EventDetailPageContent = () => {
     // TODO: 실제 PTZ 제어 API 호출
   };
 
-  // PTZ 키보드 pressed 상태
-  const [pressedKey, setPressedKey] = useState<string | null>(null);
 
-  // 키보드 이벤트 핸들러
-  useEffect(() => {
-    if (!showMapCCTVPopup) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // 입력 필드에 포커스가 있으면 무시
-      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
-        return;
-      }
-
-      let key: string | null = null;
-
-      switch (e.key) {
-        case 'ArrowUp':
-        case 'w':
-        case 'W':
-          e.preventDefault();
-          key = 'up';
-          handlePTZUp();
-          break;
-        case 'ArrowDown':
-        case 's':
-        case 'S':
-          e.preventDefault();
-          key = 'down';
-          handlePTZDown();
-          break;
-        case 'ArrowLeft':
-        case 'a':
-        case 'A':
-          e.preventDefault();
-          key = 'left';
-          handlePTZLeft();
-          break;
-        case 'ArrowRight':
-        case 'd':
-        case 'D':
-          e.preventDefault();
-          key = 'right';
-          handlePTZRight();
-          break;
-        case 'Home':
-        case '0':
-          e.preventDefault();
-          key = 'center';
-          handlePTZCenter();
-          break;
-        case '+':
-        case '=':
-        case 'PageUp':
-          e.preventDefault();
-          key = 'zoomIn';
-          handleZoomIn();
-          break;
-        case '-':
-        case '_':
-        case 'PageDown':
-          e.preventDefault();
-          key = 'zoomOut';
-          handleZoomOut();
-          break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-          e.preventDefault();
-          key = `preset-${e.key}`;
-          handlePreset(parseInt(e.key));
-          break;
-      }
-
-      if (key) {
-        setPressedKey(key);
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      setPressedKey(null);
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
-    };
-  }, [showMapCCTVPopup]);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(332); // 5분 32초
@@ -299,8 +208,8 @@ const EventDetailPageContent = () => {
   const [showTrackingOverlay, setShowTrackingOverlay] = useState(false);
   const [monitoringCCTVs, setMonitoringCCTVs] = useState<string[]>([
     'CCTV-7 (현장)', 
-    'CCTV-12 (북쪽 50m)', 
-    'CCTV-15 (골목길)',
+    'CCTV-12 (산책로 방향)', 
+    'CCTV-15 (차량 탑승 지점)',
     'CCTV-9 (동쪽 100m)',
     'CCTV-11 (서쪽 80m)',
     'CCTV-3 (남쪽 120m)',
@@ -321,6 +230,7 @@ const EventDetailPageContent = () => {
   const [dragStartY, setDragStartY] = useState(0);
   const [dragStartHeight, setDragStartHeight] = useState(0);
   const [showAdditionalDataPopup, setShowAdditionalDataPopup] = useState(false);
+  const [showBroadcastDraftPopup, setShowBroadcastDraftPopup] = useState(false);
 
   // 클라이언트 마운트 후 localStorage에서 값 읽기 (이벤트 상세 페이지에서는 초기값 false 유지)
   useEffect(() => {
@@ -368,6 +278,11 @@ const EventDetailPageContent = () => {
 
   // 키보드 0 누르면 추가 자료 팝업 표시 (나중에 삭제할 기능)
   useEffect(() => {
+    // 팝업이 열려있으면 키보드 이벤트 무시
+    if (showMapCCTVPopup || showDetectedCCTVPopup || showCombinedCCTVPopup || showAdditionalDataPopup || showBroadcastDraftPopup) {
+      return;
+    }
+
     const handleKeyDown = (e: KeyboardEvent) => {
       // 입력 필드에 포커스가 있으면 무시
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
@@ -382,7 +297,7 @@ const EventDetailPageContent = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
+  }, [showMapCCTVPopup, showDetectedCCTVPopup, showCombinedCCTVPopup, showAdditionalDataPopup, showBroadcastDraftPopup]);
   const addClipsToBroadcastRef = useRef<((clips: Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>) => void) | null>(null);
   const openBroadcastModalRef = useRef<(() => void) | null>(null);
   const lastBroadcastConfirmHandledRef = useRef<number | null>(null);
@@ -502,31 +417,31 @@ ${insight}`;
       return `👤 용의자 특징 상세 정보
 
 **기본 정보**
-• 성별/연령: 남성, 30대 초반 추정
+• 성별/연령: 남성, 30대 추정
 • 체격: 170cm 추정, 중간 체격
-• ReID 신뢰도: 89%
+• ReID 신뢰도: 96%
 
 **착의 정보**
 • 상의: 검은색 후드티
-• 하의: 청바지
-• 신발: 흰색 운동화
+• 특징: 파란 가방 멘 아이를 억지로 끌고 감
 
 **행동 패턴**
-• 폭행 지속 시간: 약 2분 15초
-• 공격 유형: 주먹, 발차기
-• 도주 방향: 북쪽 골목길로 이동
-• 현재 상태: 추적 중`;
+• 유괴 의심 행위: 아이를 억지로 끌고 이동
+• 이동 경로: 놀이터 → 산책로 → 차량 탑승
+• 도주 수단: 차량 이용
+• 현재 상태: 차량 도주 추적 중`;
     } else if (prompt.includes('추적') || prompt.includes('경로')) {
       return `🗺️ 추적 경로 및 동선 분석
 
 **이동 타임라인**
-• 00:10:15 - CCTV-7 현장에서 폭행 발생
-• 00:12:34 - CCTV-12 포착 (북쪽으로 50m 이동)
-• 00:13:02 - CCTV-15 포착 (골목길 진입)
-• 00:13:30 - 현재 추적 위치 (반경 200m 내)
+• 15:20:00 - 유괴 의심 신고 접수 (관양초등학교 앞 놀이터)
+• 15:20:15 - CCTV-7에서 유괴범과 아동 함께 이동 포착
+• 15:21:30 - 시민 신고: 산책로 쪽으로 뛰어감
+• 15:22:45 - CCTV-15에서 용의자가 차량에 아이 태우는 장면 포착
+• 15:23:00 - 차량 도주 추적 중
 
 **예상 이동 경로**
-현장(CCTV-7) → 북쪽 골목길(CCTV-12) → 골목길 내부(CCTV-15) → 현재 추적 중`;
+놀이터(CCTV-7) → 산책로 방향 → 차량 탑승(CCTV-15) → 차량 도주 추적 중`;
     } else if (prompt.includes('전파문') || prompt.includes('초안')) {
       return `📄 전파문 초안
 
@@ -570,18 +485,18 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
 
 **현재 추천 CCTV**
 1. **CCTV-7 (현장)**
-   • 위치: 평촌대로 사거리
+   • 위치: 관양초등학교 앞 놀이터
    • 신뢰도: 96%
    • 상태: 활성
 
-2. **CCTV-12 (북쪽 50m)**
-   • 위치: 비산동 주택가
+2. **CCTV-12 (산책로 방향)**
+   • 위치: 산책로 입구
    • 신뢰도: 88%
    • 상태: 추적중
 
-3. **CCTV-15 (골목길)**
-   • 위치: 안양중앙시장 입구
-   • 신뢰도: 73%
+3. **CCTV-15 (차량 탑승 지점)**
+   • 위치: 산책로 인근
+   • 신뢰도: 95%
    • 상태: 추적중`;
     } else {
       return `"${prompt}" 요청에 대해 ${title} 사건 기준으로 정보를 정리했습니다. 필요한 세부 데이터가 있다면 추가로 지시해주세요.`;
@@ -707,12 +622,12 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
     const factors: RiskFactor[] = [];
     
     // 이벤트 ID 기반 구체적인 위험 요인 분석
-    if (event.id.includes('003') || (event.type.includes('차량도주') || event.type.includes('용의차량'))) {
+    if (event.id.includes('003') || (event.type.includes('유괴') || event.type.includes('납치'))) {
       factors.push(
-        { label: '도주 속도', value: '85km/h', reason: '해당 구간 제한속도 초과, 고속 도주 패턴', level: 'high' },
-        { label: '행동 패턴', value: '신호 위반 3회 / 급차선 변경 반복', reason: '추적 회피 패턴', level: 'high' },
-        { label: '시간대', value: `야간(${event.time})`, reason: '시야 확보 어려움, 위험도 증가', level: 'medium' },
-        { label: '연관 이벤트', value: '은행 강도 신고(5분 전)', reason: '동일 시간대 + 동일 도주 방향', level: 'strong' },
+        { label: '사건 성격', value: '아동 유괴 의심', reason: '아동 납치 가능성, 즉시 대응 필요', level: 'high' },
+        { label: 'CCTV 포착', value: '유괴범과 아동 함께 이동 확인', reason: '인접 CCTV에서 유괴범과 아동이 함께 이동하는 장면 포착', level: 'strong' },
+        { label: '도주 수단', value: '차량 이용', reason: '용의자가 차량에 아이를 태우는 장면 포착, 차량 도주 추적 중', level: 'high' },
+        { label: '시민 신고', value: '산책로 쪽으로 뛰어감', reason: '다른 시민의 추가 신고로 이동 경로 확인', level: 'medium' },
       );
     } else if (event.type.includes('폭행') || event.type.includes('상해') || event.id.includes('001')) {
       factors.push(
@@ -757,6 +672,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
           dashboardEvent={dashboardEvent}
           onAddClipsRef={addClipsToBroadcastRef}
           onOpenModalRef={openBroadcastModalRef}
+          onModalStateChange={setShowBroadcastDraftPopup}
         />
 
         {/* Center Panel - 2컬럼 레이아웃 */}
@@ -788,6 +704,10 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   onSendToAgent: () => {
                     const popupContent = `시간: 2024-01-15 14:30:25\n발신 기관: 경찰서\n내용: 추가 자료를 보내드립니다.\n\n용의자 관련 추가 정보:\n- 차량번호: 경기 12가 3456\n- 최근 목격 시각: 14:25\n- 이동 방향: 동쪽`;
                     setChatInput(popupContent);
+                    // 우측 패널이 접혀있으면 열기
+                    if (isRightPanelCollapsed) {
+                      setIsRightPanelCollapsed(false);
+                    }
                     setShowAdditionalDataPopup(false);
                   },
                 }}
@@ -806,6 +726,10 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setShowMapCCTVPopup={setShowMapCCTVPopup}
                 detectedCCTVThumbnails={detectedCCTVThumbnails}
                 showMapCCTVPopup={showMapCCTVPopup}
+                showDetectedCCTVPopup={showDetectedCCTVPopup}
+                showCombinedCCTVPopup={showCombinedCCTVPopup}
+                showAdditionalDataPopup={showAdditionalDataPopup}
+                showBroadcastDraftPopup={showBroadcastDraftPopup}
                 cctvInfo={cctvInfo}
                 cctvThumbnailMap={cctvThumbnailMap}
                 behaviorHighlights={behaviorHighlights}
@@ -1246,7 +1170,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         handlePrevCCTV={handlePrevCCTV}
         handleNextCCTV={handleNextCCTV}
       />
-      {false && showMapCCTVPopup && selectedMapCCTV && (
+      {/* 사용되지 않는 코드 블록 - MapCCTVPopup 컴포넌트로 대체됨 */}
+      {false && false && (
         <div
           className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
           onClick={() => {
@@ -1453,9 +1378,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <div></div>
                             <button
                               onClick={handlePTZUp}
-                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                                pressedKey === 'up' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="위로 이동"
                             >
                               <Icon icon="mdi:chevron-up" className="w-5 h-5 mx-auto" />
@@ -1463,27 +1386,21 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <div></div>
                             <button
                               onClick={handlePTZLeft}
-                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                                pressedKey === 'left' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="왼쪽으로 이동"
                             >
                               <Icon icon="mdi:chevron-left" className="w-5 h-5 mx-auto" />
                             </button>
                             <button
                               onClick={handlePTZCenter}
-                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                                pressedKey === 'center' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="중앙"
                             >
                               <Icon icon="mdi:target" className="w-5 h-5 mx-auto" />
                             </button>
                             <button
                               onClick={handlePTZRight}
-                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                                pressedKey === 'right' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="오른쪽으로 이동"
                             >
                               <Icon icon="mdi:chevron-right" className="w-5 h-5 mx-auto" />
@@ -1491,9 +1408,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <div></div>
                             <button
                               onClick={handlePTZDown}
-                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                                pressedKey === 'down' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="아래로 이동"
                             >
                               <Icon icon="mdi:chevron-down" className="w-5 h-5 mx-auto" />
@@ -1507,9 +1422,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                           <div className="flex items-center gap-2">
                             <button
                               onClick={handleZoomOut}
-                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                                pressedKey === 'zoomOut' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="줌 아웃"
                             >
                               <Icon icon="mdi:minus" className="w-5 h-5" />
@@ -1519,9 +1432,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             </div>
                             <button
                               onClick={handleZoomIn}
-                              className={`p-2 border border-[#31353a] text-white transition-colors rounded ${
-                                pressedKey === 'zoomIn' ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="줌 인"
                             >
                               <Icon icon="mdi:plus" className="w-5 h-5" />
@@ -1537,9 +1448,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <button
                               key={preset}
                               onClick={() => handlePreset(preset)}
-                              className={`w-12 h-12 border border-[#31353a] text-white transition-colors rounded-full text-xs flex items-center justify-center ${
-                                pressedKey === `preset-${preset}` ? 'bg-blue-600' : 'bg-[#0f0f0f] hover:bg-[#2a2a2a]'
-                              }`}
+                              className="w-12 h-12 border border-[#31353a] text-white transition-colors rounded-full text-xs flex items-center justify-center bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                             >
                               {preset}
                             </button>

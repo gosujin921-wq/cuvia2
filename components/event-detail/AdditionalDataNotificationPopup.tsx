@@ -1,7 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Icon } from '@iconify/react';
+import { getGradientButtonClassName, getSecondaryButtonClassName } from '@/components/shared/styles';
 
 interface AdditionalDataNotificationPopupProps {
   isOpen: boolean;
@@ -20,6 +21,23 @@ export const AdditionalDataNotificationPopup: React.FC<AdditionalDataNotificatio
   onClose,
   onSendToAgent,
 }) => {
+  // ESC 키로 팝업 닫기
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   return (
@@ -67,15 +85,14 @@ export const AdditionalDataNotificationPopup: React.FC<AdditionalDataNotificatio
       <div className="flex gap-2 p-4 border-t border-[#31353a]" style={{ borderTopWidth: '1px' }}>
         <button
           onClick={onSendToAgent}
-          className="flex-1 px-4 py-2 bg-gradient-to-r from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] text-white rounded transition-colors text-sm font-medium flex items-center justify-center gap-2"
+          className={`flex-1 ${getGradientButtonClassName()}`}
         >
           <Icon icon="mdi:sparkles" className="w-4 h-4" />
           AI 에이전트에 전달
         </button>
         <button
           onClick={onClose}
-          className="flex-1 px-4 py-2 bg-[#0f0f0f] border border-[#31353a] text-gray-300 hover:text-white hover:border-gray-500 rounded transition-colors text-sm font-medium"
-          style={{ borderWidth: '1px' }}
+          className={`flex-1 ${getSecondaryButtonClassName()}`}
         >
           닫기
         </button>

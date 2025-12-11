@@ -185,6 +185,8 @@ export const convertToDashboardEvent = (event: BaseEvent, index: number) => {
     '주취자 소란': '112-치안',
     '실종': '112-미아',
     '미아': '112-미아',
+    '유괴': '112-미아',
+    '납치': '112-미아',
     '위험행동': '112-치안',
     '배회(치안 관점)': '112-치안',
     '차량도주': '112-치안',
@@ -274,8 +276,8 @@ export const convertToDashboardEvent = (event: BaseEvent, index: number) => {
   // 특정 이벤트 우선순위 강제 설정
   let finalPriority: '긴급' | '경계' | '주의' = priorityMap[event.risk];
   
-  // "오토바이 도주, 은행 강도 연관 의심" 이벤트는 항상 긴급
-  if (event.title.includes('오토바이 도주') && event.title.includes('은행 강도 연관 의심')) {
+  // "유괴 의심 신고, 아동 납치 추정" 이벤트는 항상 긴급
+  if (event.title.includes('유괴 의심') && event.title.includes('아동 납치')) {
     finalPriority = '긴급';
   }
   // 우선순위별 개수 조정: 긴급 < 경계 < 주의 순서로
@@ -283,7 +285,7 @@ export const convertToDashboardEvent = (event: BaseEvent, index: number) => {
   const eventPriorityOverrides: Record<string, '긴급' | '경계' | '주의'> = {
     // 긴급 (5개) - 가장 적게
     'event-1': '긴급', // 흉기 소지 남성 위협 행동
-    'event-3': '긴급', // 오토바이 도주, 은행 강도 연관 의심
+    'event-3': '긴급', // 유괴 의심 신고, 아동 납치 추정
     'event-5': '긴급', // 8세 남아 실종
     'event-6': '긴급', // 흉기 소지 위험 행동
     'event-7': '긴급', // 주택 2층 연기 발생
@@ -363,6 +365,8 @@ export const generateAIInsight = (event: BaseEvent): string => {
       return `절도 사건 발생. ${description || title}. ${location}에서 절도 의심 행위가 AI에 의해 감지되었습니다. 위험도 ${risk} (위험도 수치: ${riskScore}%)입니다. 현장 CCTV 분석 결과, 용의자 동선 반복 및 급가속 구간이 확인되었습니다. 즉시 경찰 출동 및 현장 보전이 필요합니다.`;
     } else if (type.includes('차량도주') || type.includes('추적')) {
       return `차량도주 사건 발생. ${description || title}. ${location}에서 차량도주가 감지되었습니다. 위험도 ${risk} (위험도 수치: ${riskScore}%)입니다. 도주 차량/인물과 추격자의 이동 경로가 CCTV로 추적 중입니다. 즉시 경찰 출동 및 도로 차단이 필요할 수 있습니다.`;
+    } else if (type.includes('유괴') || type.includes('납치')) {
+      return `유괴 의심 사건 발생. ${description || title}. ${location}에서 유괴 의심 신고가 접수되었습니다. 위험도 ${risk} (위험도 수치: ${riskScore}%)입니다. 인접 CCTV에서 유괴범과 아동이 함께 이동하는 장면이 포착되었으며, 용의자가 차량에 아이를 태우는 장면도 확인되었습니다. 차량 도주 추적 중입니다. 즉시 경찰 출동 및 전방 차단이 필요합니다.`;
     } else if (type.includes('실종') || type.includes('미아')) {
       return `실종 사건 발생. ${description || title}. ${location}에서 실종 신고가 접수되었습니다. 위험도 ${risk} (위험도 수치: ${riskScore}%)입니다. 마지막 목격 좌표 기준 반경 300m 내에서 배회 행동이 감지되었습니다. 즉시 수색대 출동이 필요합니다.`;
     } else if (type.includes('위험행동') || type.includes('흉기')) {
@@ -493,6 +497,8 @@ export const getAIInsightKeywords = (event: BaseEvent): string[] => {
       keywords.push('흉기소지', '도주중', 'CCTV추적');
     } else if (type.includes('절도') || type.includes('강도')) {
       keywords.push('AI감지', '현금절도', '동선반복');
+    } else if (type.includes('유괴') || type.includes('납치')) {
+      keywords.push('유괴의심', '아동납치', '차량도주추적');
     } else if (type.includes('차량도주') || type.includes('추적')) {
       keywords.push('도주차량', '추적중', '은행강도연관');
     } else if (type.includes('실종') || type.includes('미아')) {

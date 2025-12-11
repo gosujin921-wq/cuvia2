@@ -50,7 +50,7 @@ export const MapCCTVPopup = ({
   handlePrevCCTV,
   handleNextCCTV,
 }: MapCCTVPopupProps) => {
-  const [pressedKey, setPressedKey] = useState<string | null>(null);
+  const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isTrackingBoxDraggable, setIsTrackingBoxDraggable] = useState(false);
   const [trackingBoxPosition, setTrackingBoxPosition] = useState({ top: 30, left: 40 }); // 퍼센트 기준
   const [isDragging, setIsDragging] = useState(false);
@@ -60,12 +60,28 @@ export const MapCCTVPopup = ({
     if (!isOpen) return;
 
     const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC 키로 팝업 닫기
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+
       // 입력 필드에 포커스가 있으면 무시
       if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
         return;
       }
 
       let key: string | null = null;
+
+      // 프리셋: Ctrl/Cmd + 숫자
+      if ((e.ctrlKey || e.metaKey) && ['1', '2', '3', '4', '5', '6'].includes(e.key)) {
+        e.preventDefault();
+        key = `preset-${e.key}`;
+        handlePreset(parseInt(e.key));
+        setActiveKey(key);
+        return;
+      }
 
       switch (e.key) {
         case 'ArrowUp':
@@ -74,6 +90,7 @@ export const MapCCTVPopup = ({
           e.preventDefault();
           key = 'up';
           handlePTZUp();
+          setActiveKey(key);
           break;
         case 'ArrowDown':
         case 's':
@@ -81,6 +98,7 @@ export const MapCCTVPopup = ({
           e.preventDefault();
           key = 'down';
           handlePTZDown();
+          setActiveKey(key);
           break;
         case 'ArrowLeft':
         case 'a':
@@ -88,6 +106,7 @@ export const MapCCTVPopup = ({
           e.preventDefault();
           key = 'left';
           handlePTZLeft();
+          setActiveKey(key);
           break;
         case 'ArrowRight':
         case 'd':
@@ -95,12 +114,14 @@ export const MapCCTVPopup = ({
           e.preventDefault();
           key = 'right';
           handlePTZRight();
+          setActiveKey(key);
           break;
         case 'Home':
         case '0':
           e.preventDefault();
           key = 'center';
           handlePTZCenter();
+          setActiveKey(key);
           break;
         case '+':
         case '=':
@@ -108,6 +129,7 @@ export const MapCCTVPopup = ({
           e.preventDefault();
           key = 'zoomIn';
           handleZoomIn();
+          setActiveKey(key);
           break;
         case '-':
         case '_':
@@ -115,35 +137,17 @@ export const MapCCTVPopup = ({
           e.preventDefault();
           key = 'zoomOut';
           handleZoomOut();
-          break;
-        case '1':
-        case '2':
-        case '3':
-        case '4':
-        case '5':
-        case '6':
-          e.preventDefault();
-          key = `preset-${e.key}`;
-          handlePreset(parseInt(e.key));
+          setActiveKey(key);
           break;
       }
-
-      if (key) {
-        setPressedKey(key);
-      }
-    };
-
-    const handleKeyUp = (e: KeyboardEvent) => {
-      setPressedKey(null);
     };
 
     window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('keyup', handleKeyUp);
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('keyup', handleKeyUp);
+      setActiveKey(null);
     };
-  }, [isOpen, handlePTZUp, handlePTZDown, handlePTZLeft, handlePTZRight, handlePTZCenter, handleZoomIn, handleZoomOut, handlePreset]);
+  }, [isOpen, handlePTZUp, handlePTZDown, handlePTZLeft, handlePTZRight, handlePTZCenter, handleZoomIn, handleZoomOut, handlePreset, onClose]);
 
   if (!isOpen || !selectedMapCCTV) return null;
 
@@ -409,7 +413,7 @@ export const MapCCTVPopup = ({
                     <div></div>
                     <button
                       onClick={handlePTZUp}
-                      className={`${getPTZButtonClassName(pressedKey === 'up')} rounded`}
+                      className={`${getPTZButtonClassName(activeKey === 'up')} rounded`}
                       aria-label="위로 이동"
                     >
                       <Icon icon="mdi:chevron-up" className="w-5 h-5 mx-auto" />
@@ -417,21 +421,21 @@ export const MapCCTVPopup = ({
                     <div></div>
                     <button
                       onClick={handlePTZLeft}
-                      className={`${getPTZButtonClassName(pressedKey === 'left')} rounded`}
+                      className={`${getPTZButtonClassName(activeKey === 'left')} rounded`}
                       aria-label="왼쪽으로 이동"
                     >
                       <Icon icon="mdi:chevron-left" className="w-5 h-5 mx-auto" />
                     </button>
                     <button
                       onClick={handlePTZCenter}
-                      className={`${getPTZButtonClassName(pressedKey === 'center')} rounded`}
+                      className={`${getPTZButtonClassName(activeKey === 'center')} rounded`}
                       aria-label="중앙"
                     >
                       <Icon icon="mdi:target" className="w-5 h-5 mx-auto" />
                     </button>
                     <button
                       onClick={handlePTZRight}
-                      className={`${getPTZButtonClassName(pressedKey === 'right')} rounded`}
+                      className={`${getPTZButtonClassName(activeKey === 'right')} rounded`}
                       aria-label="오른쪽으로 이동"
                     >
                       <Icon icon="mdi:chevron-right" className="w-5 h-5 mx-auto" />
@@ -439,7 +443,7 @@ export const MapCCTVPopup = ({
                     <div></div>
                     <button
                       onClick={handlePTZDown}
-                      className={`${getPTZButtonClassName(pressedKey === 'down')} rounded`}
+                      className={`${getPTZButtonClassName(activeKey === 'down')} rounded`}
                       aria-label="아래로 이동"
                     >
                       <Icon icon="mdi:chevron-down" className="w-5 h-5 mx-auto" />
@@ -453,7 +457,7 @@ export const MapCCTVPopup = ({
                   <div className="flex items-center gap-2">
                     <button
                       onClick={handleZoomOut}
-                      className={`${getPTZButtonClassName(pressedKey === 'zoomOut')} rounded`}
+                      className={`${getPTZButtonClassName(activeKey === 'zoomOut')} rounded`}
                       aria-label="줌 아웃"
                     >
                       <Icon icon="mdi:minus" className="w-5 h-5" />
@@ -463,7 +467,7 @@ export const MapCCTVPopup = ({
                     </div>
                     <button
                       onClick={handleZoomIn}
-                      className={`${getPTZButtonClassName(pressedKey === 'zoomIn')} rounded`}
+                      className={`${getPTZButtonClassName(activeKey === 'zoomIn')} rounded`}
                       aria-label="줌 인"
                     >
                       <Icon icon="mdi:plus" className="w-5 h-5" />
@@ -479,7 +483,7 @@ export const MapCCTVPopup = ({
                     <button
                       key={preset}
                       onClick={() => handlePreset(preset)}
-                      className={getPTZPresetButtonClassName(pressedKey === `preset-${preset}`)}
+                      className={getPTZPresetButtonClassName(activeKey === `preset-${preset}`)}
                     >
                       {preset}
                     </button>

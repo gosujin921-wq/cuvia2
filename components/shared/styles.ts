@@ -89,6 +89,15 @@ export const buttonStyles = {
     active: 'bg-blue-600 hover:bg-blue-700 text-white',
     inactive: 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]',
   },
+  gradient: {
+    base: 'px-4 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2',
+    default: 'bg-gradient-to-r from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] text-white rounded',
+  },
+  recipient: {
+    base: 'px-3 py-1 text-xs border transition-colors',
+    active: 'bg-[#155DFC] text-white border-[#155DFC]',
+    inactive: 'bg-[#0f0f0f] border-[#31353a] text-gray-300 hover:bg-[#2a2a2a]',
+  },
 };
 
 export const cardStyles = {
@@ -196,5 +205,15 @@ export const getPTZButtonClassName = (isActive: boolean = false) => {
 export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
   const base = ptzButtonStyles.preset.base;
   const state = isActive ? ptzButtonStyles.preset.active : ptzButtonStyles.preset.default;
+  return `${base} ${state}`.trim();
+};
+
+export const getGradientButtonClassName = () => {
+  return `${buttonStyles.gradient.base} ${buttonStyles.gradient.default}`.trim();
+};
+
+export const getRecipientButtonClassName = (isSelected: boolean) => {
+  const base = buttonStyles.recipient.base;
+  const state = isSelected ? buttonStyles.recipient.active : buttonStyles.recipient.inactive;
   return `${base} ${state}`.trim();
 };

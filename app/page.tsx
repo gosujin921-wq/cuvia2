@@ -63,7 +63,7 @@ export default function Home() {
     setHighlightedEventId(eventId);
   };
 
-  // 숫자 1 키를 누르면 오토바이 도주 이벤트로 확대 및 팝업 표시
+  // 숫자 1 키를 누르면 유괴 의심 사건으로 이동
   useEffect(() => {
     const handleKeyPress = (e: KeyboardEvent) => {
       // 입력 필드에 포커스가 있으면 무시
@@ -72,17 +72,22 @@ export default function Home() {
       }
       
       if (e.key === '1') {
-        // 오토바이 도주 이벤트 찾기
-        const motorcycleEvent = events.find(event => 
-          event.title.includes('오토바이 도주') || 
-          (event.eventId && event.eventId === 'event-3')
+        // 유괴 의심 사건 찾기
+        const abductionEvent = events.find(event => 
+          event.title.includes('유괴 의심') || 
+          (event.eventId && event.eventId === 'A-20251210-003')
         );
         
-        if (motorcycleEvent) {
-          setSelectedEventId(motorcycleEvent.id);
-          setHighlightedEventId(motorcycleEvent.id);
+        if (abductionEvent) {
+          setSelectedEventId(abductionEvent.id);
+          setHighlightedEventId(abductionEvent.id);
           setMapZoomLevel(1); // 확대
         }
+      } else if (e.key === 'Escape') {
+        // ESC 키로 선택 해제
+        setSelectedEventId(null);
+        setHighlightedEventId(null);
+        setMapZoomLevel(0);
       }
     };
 

@@ -22,6 +22,7 @@ interface EventLeftPanelProps {
   dashboardEvent: ReturnType<typeof import('@/lib/events-data').convertToDashboardEvent> | null;
   onAddClipsRef: React.MutableRefObject<((clips: Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>) => void) | null>;
   onOpenModalRef: React.MutableRefObject<(() => void) | null>;
+  onModalStateChange?: (isOpen: boolean) => void;
 }
 
 export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
@@ -38,6 +39,7 @@ export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
   dashboardEvent,
   onAddClipsRef,
   onOpenModalRef,
+  onModalStateChange,
 }) => {
   return (
     <aside className="flex flex-col flex-shrink-0 w-[370px] pl-4 pr-5 h-full overflow-hidden">
@@ -127,6 +129,7 @@ export const EventLeftPanel: React.FC<EventLeftPanelProps> = ({
                 riskSummary={riskReasonSummary}
                 onAddClipsRef={onAddClipsRef}
                 onOpenModalRef={onOpenModalRef}
+                onModalStateChange={onModalStateChange}
               />
             </div>
             {/* 기본 정보 */}

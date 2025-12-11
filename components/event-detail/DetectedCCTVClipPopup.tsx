@@ -1,9 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Icon } from '@iconify/react';
 import { cctvInfo, cctvThumbnailMap, cctvFovMap, cctvCoordinatesMap, detectedCCTVThumbnails, movementTimeline, cctvLocationGroups } from './constants';
-import { getSecondaryButtonClassName, getPrimaryButtonClassName, getPTZButtonClassName } from '@/components/shared/styles';
+import { getSecondaryButtonClassName, getPrimaryButtonClassName } from '@/components/shared/styles';
+import { PlaybackControls } from './PlaybackControls';
 
 interface DetectedCCTVClipPopupProps {
   isOpen: boolean;
@@ -16,11 +17,6 @@ interface DetectedCCTVClipPopupProps {
   setClipCurrentTime: (time: number) => void;
 }
 
-const formatTime = (seconds: number) => {
-  const mins = Math.floor(seconds / 60);
-  const secs = Math.floor(seconds % 60);
-  return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
-};
 
 export const DetectedCCTVClipPopup = ({
   isOpen,
@@ -35,6 +31,53 @@ export const DetectedCCTVClipPopup = ({
   const [isTrackingBoxDraggable, setIsTrackingBoxDraggable] = useState(false);
   const [trackingBoxPosition, setTrackingBoxPosition] = useState({ top: 30, left: 40 }); // 퍼센트 기준
   const [isDragging, setIsDragging] = useState(false);
+
+  // 키보드 이벤트 핸들러
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // ESC 키로 팝업 닫기
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+        return;
+      }
+
+      // 입력 필드에 포커스가 있으면 무시
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      // 스페이스바로 재생/일시정지
+      if (e.key === ' ') {
+        e.preventDefault();
+        setIsClipPlaying(!isClipPlaying);
+        return;
+      }
+
+      // 화살표 왼쪽: 10초 뒤로
+      if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        const newTime = Math.max(0, clipCurrentTime - 10);
+        setClipCurrentTime(newTime);
+        return;
+      }
+
+      // 화살표 오른쪽: 10초 앞으로
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        const newTime = Math.min(clipDuration, clipCurrentTime + 10);
+        setClipCurrentTime(newTime);
+        return;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose, isClipPlaying, setIsClipPlaying, clipCurrentTime, clipDuration, setClipCurrentTime]);
 
   if (!isOpen || !selectedDetectedCCTV) return null;
 
@@ -281,61 +324,21 @@ export const DetectedCCTVClipPopup = ({
 
           {/* 오른쪽: 클립 제어 (원래 CCTV 정보가 있던 공간) */}
           <div className="w-[400px] bg-[#0f0f0f] pl-4 flex flex-col gap-4">
-            {/* 재생 컨트롤 버튼 */}
-            <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2">
-                <button
-                  onClick={() => {
-                    const newTime = Math.max(0, clipCurrentTime - 10);
-                    setClipCurrentTime(newTime);
-                  }}
-                  className={`${getPTZButtonClassName(false)} rounded`}
-                  aria-label="10초 뒤로"
-                >
-                  <Icon icon="mdi:rewind-10" className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setIsClipPlaying(!isClipPlaying)}
-                  className={`${getPTZButtonClassName(false)} rounded p-3`}
-                  aria-label={isClipPlaying ? "일시정지" : "재생"}
-                >
-                  <Icon icon={isClipPlaying ? "mdi:pause" : "mdi:play"} className="w-6 h-6" />
-                </button>
-                <button
-                  onClick={() => {
-                    const newTime = Math.min(clipDuration, clipCurrentTime + 10);
-                    setClipCurrentTime(newTime);
-                  }}
-                  className={`${getPTZButtonClassName(false)} rounded`}
-                  aria-label="10초 앞으로"
-                >
-                  <Icon icon="mdi:fast-forward-10" className="w-5 h-5" />
-                </button>
-              </div>
-            </div>
-
-            {/* 재생 타임라인 */}
-            <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs text-gray-400">
-                  <span>{formatTime(clipCurrentTime)}</span>
-                  <span>{formatTime(clipDuration)}</span>
-                </div>
-                <div className="relative">
-                  <input
-                    type="range"
-                    min="0"
-                    max={clipDuration || 100}
-                    value={clipCurrentTime}
-                    onChange={(e) => setClipCurrentTime(Number(e.target.value))}
-                    className="w-full h-2 bg-[#0f0f0f] rounded-full appearance-none cursor-pointer slider"
-                    style={{
-                      background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(clipCurrentTime / (clipDuration || 1)) * 100}%, #0f0f0f ${(clipCurrentTime / (clipDuration || 1)) * 100}%, #0f0f0f 100%)`
-                    }}
-                  />
-                </div>
-              </div>
-            </div>
+            <PlaybackControls
+              isPlaying={isClipPlaying}
+              currentTime={clipCurrentTime}
+              duration={clipDuration}
+              onRewind={() => {
+                const newTime = Math.max(0, clipCurrentTime - 10);
+                setClipCurrentTime(newTime);
+              }}
+              onPlayPause={() => setIsClipPlaying(!isClipPlaying)}
+              onFastForward={() => {
+                const newTime = Math.min(clipDuration, clipCurrentTime + 10);
+                setClipCurrentTime(newTime);
+              }}
+              onTimeChange={setClipCurrentTime}
+            />
           </div>
         </div>
 

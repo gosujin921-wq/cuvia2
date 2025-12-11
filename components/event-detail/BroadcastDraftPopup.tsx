@@ -1,8 +1,8 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Icon } from '@iconify/react';
-import { getSecondaryButtonClassName, getPrimaryButtonClassName } from '@/components/shared/styles';
+import { getSecondaryButtonClassName, getPrimaryButtonClassName, getRecipientButtonClassName } from '@/components/shared/styles';
 
 export type ClipData = {
   id: string;
@@ -72,6 +72,22 @@ export const BroadcastDraftPopup = ({
   onBroadcast,
   onSaveDraft,
 }: BroadcastDraftPopupProps) => {
+  // ESC 키로 팝업 닫기
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isOpen, onClose]);
   if (!isOpen) return null;
 
   const priorityBadgeClass =
@@ -152,9 +168,7 @@ export const BroadcastDraftPopup = ({
                       key={recipient}
                       type="button"
                       onClick={() => toggleRecipient(recipient)}
-                      className={`px-3 py-1 text-xs border transition-colors ${
-                        isSelected ? 'bg-[#155DFC] text-white border-[#155DFC]' : 'bg-[#0f0f0f] border-[#31353a] text-gray-300 hover:bg-[#2a2a2a]'
-                      }`}
+                      className={getRecipientButtonClassName(isSelected)}
                     >
                       {recipient}
                     </button>
