@@ -231,6 +231,57 @@ const EventDetailPageContent = () => {
   const [dragStartHeight, setDragStartHeight] = useState(0);
   const [showAdditionalDataPopup, setShowAdditionalDataPopup] = useState(false);
   const [showBroadcastDraftPopup, setShowBroadcastDraftPopup] = useState(false);
+  
+  // 추적 핀 관련 상태
+  const [isTrackingPinVisible, setIsTrackingPinVisible] = useState(true);
+  const [isTrackingProgress, setIsTrackingProgress] = useState(false);
+  const [trackingProgress, setTrackingProgress] = useState(0);
+  const [trackingPinPosition, setTrackingPinPosition] = useState({ left: 85, top: 45 }); // 기본 위치
+
+  // 추적대상 재선택 완료 핸들러
+  const handleTrackingReselectComplete = () => {
+    const confirmed = window.confirm('추적대상 재선택이 완료되었습니다. AI가 추적대상을 재 분석합니다.');
+    if (!confirmed) return;
+
+    // 1. 추적 핀 숨기기
+    setIsTrackingPinVisible(false);
+    
+    // 2. 프로그레스바 시작
+    setIsTrackingProgress(true);
+    setTrackingProgress(0);
+
+    // 3. 프로그레스바 애니메이션 (2초)
+    const duration = 2000; // 2초
+    const interval = 50; // 50ms마다 업데이트
+    const increment = 100 / (duration / interval);
+    
+    let currentProgress = 0;
+    const progressInterval = setInterval(() => {
+      currentProgress += increment;
+      if (currentProgress >= 100) {
+        setTrackingProgress(100);
+        clearInterval(progressInterval);
+        
+        // 4. 프로그레스 완료 후 핀 위치 업데이트 (약간 이동)
+        setTimeout(() => {
+          // 랜덤하게 약간 이동 (예: ±5% 범위 내)
+          const offsetX = (Math.random() - 0.5) * 10; // -5 ~ +5
+          const offsetY = (Math.random() - 0.5) * 10; // -5 ~ +5
+          setTrackingPinPosition({
+            left: Math.max(10, Math.min(90, trackingPinPosition.left + offsetX)),
+            top: Math.max(10, Math.min(90, trackingPinPosition.top + offsetY))
+          });
+          
+          // 5. 추적 핀 다시 표시
+          setIsTrackingPinVisible(true);
+          setIsTrackingProgress(false);
+          setTrackingProgress(0);
+        }, 300);
+      } else {
+        setTrackingProgress(currentProgress);
+      }
+    }, interval);
+  };
 
   // 클라이언트 마운트 후 localStorage에서 값 읽기 (이벤트 상세 페이지에서는 초기값 false 유지)
   useEffect(() => {
@@ -695,6 +746,10 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setSelectedDetectedCCTV={setSelectedDetectedCCTV}
                 setShowCombinedCCTVPopup={setShowCombinedCCTVPopup}
                 setSelectedCombinedCCTV={setSelectedCombinedCCTV}
+                isTrackingPinVisible={isTrackingPinVisible}
+                isTrackingProgress={isTrackingProgress}
+                trackingProgress={trackingProgress}
+                trackingPinPosition={trackingPinPosition}
                 additionalDataNotification={{
                   isOpen: showAdditionalDataPopup,
                   time: '2024-01-15 14:30:25',
@@ -797,6 +852,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         }}
         setIsClipPlaying={setIsClipPlaying}
         setClipCurrentTime={setClipCurrentTime}
+        onTrackingReselectComplete={handleTrackingReselectComplete}
       />
       {false && showDetectedCCTVPopup && selectedDetectedCCTV && (() => {
         const detected = detectedCCTVThumbnails.find(d => d.cctvId === selectedDetectedCCTV);
@@ -1136,6 +1192,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         handlePreset={handlePreset}
         handlePrevCCTV={handlePrevCCTV}
         handleNextCCTV={handleNextCCTV}
+        onTrackingReselectComplete={handleTrackingReselectComplete}
       />
 
       {/* 맵 CCTV 팝업 모달 (추적 아이콘 클릭 시) */}
@@ -1146,11 +1203,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
           monitoringCCTVs={monitoringCCTVs}
           handleAddToMonitoring={handleAddToMonitoring}
           handleRemoveFromMonitoring={handleRemoveFromMonitoring}
-          popupTitle={(() => {
-          if (!selectedMapCCTV) return 'CCTV 팝업';
-          const timelineEntry = movementTimeline.find(item => item.cctvId === selectedMapCCTV);
-          return timelineEntry?.title || 'CCTV 팝업';
-        })()}
+          popupTitle="CCTV 모니터링"
         onClose={() => {
           setShowMapCCTVPopup(false);
           setSelectedMapCCTV(null);
@@ -1169,6 +1222,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         handlePreset={handlePreset}
         handlePrevCCTV={handlePrevCCTV}
         handleNextCCTV={handleNextCCTV}
+        onTrackingReselectComplete={handleTrackingReselectComplete}
       />
       {/* 사용되지 않는 코드 블록 - MapCCTVPopup 컴포넌트로 대체됨 */}
       {false && false && (

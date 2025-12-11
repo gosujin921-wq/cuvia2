@@ -31,6 +31,8 @@ interface CombinedCCTVPopupProps {
   handlePreset: (preset: number) => void;
   handlePrevCCTV: () => void;
   handleNextCCTV: () => void;
+  onTrackingReselectComplete?: () => void;
+  onTrackingReselectStart?: () => void;
 }
 
 
@@ -59,6 +61,8 @@ export const CombinedCCTVPopup = ({
   handlePreset,
   handlePrevCCTV,
   handleNextCCTV,
+  onTrackingReselectComplete,
+  onTrackingReselectStart,
 }: CombinedCCTVPopupProps) => {
   const [activeTab, setActiveTab] = useState<'clip' | 'live'>('clip');
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -267,7 +271,7 @@ export const CombinedCCTVPopup = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-6"
       onClick={onClose}
     >
       <div
@@ -522,11 +526,11 @@ export const CombinedCCTVPopup = ({
               </div>
 
               {/* Divider */}
-              {hasMultiple && <div className="w-px bg-[#31353a]"></div>}
+              <div className="w-px bg-[#31353a]"></div>
 
               {/* 오른쪽: 클러스터 CCTV (영상 높이에 맞춤, 2컬럼) */}
-              {hasMultiple && (
-                <div className="w-[400px] pl-4 overflow-hidden">
+              <div className="w-[400px] pl-4 overflow-hidden">
+                {hasMultiple && currentCluster.length > 0 ? (
                   <div className="grid grid-cols-2 gap-2">
                     {currentCluster.map((cctvId: string, index: number) => {
                       const isActive = cctvId === selectedCCTV;
@@ -556,8 +560,12 @@ export const CombinedCCTVPopup = ({
                       );
                     })}
                   </div>
-                </div>
-              )}
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500 text-sm">
+                    클러스터 CCTV 없음
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* 하단 영역: CCTV 정보 (2컬럼) + PTZ 제어 */}
@@ -708,6 +716,13 @@ export const CombinedCCTVPopup = ({
 
         {/* 하단 버튼 */}
         <div className="flex justify-between items-center gap-2 p-4 border-t border-[#31353a] flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className={getSecondaryButtonClassName()}
+          >
+            닫기
+          </button>
           <div className="flex gap-2">
             {activeTab === 'clip' ? (
               <>
@@ -716,11 +731,16 @@ export const CombinedCCTVPopup = ({
                   onClick={() => {
                     if (isTrackingBoxDraggable) {
                       // 추적대상 재선택 완료
-                      alert('추적대상 재선택이 완료되었습니다. AI가 추적대상을 재 분석합니다.');
+                      if (onTrackingReselectComplete) {
+                        onTrackingReselectComplete();
+                      }
                       setIsTrackingBoxDraggable(false);
                       onClose();
                     } else {
                       setIsTrackingBoxDraggable(true);
+                      if (onTrackingReselectStart) {
+                        onTrackingReselectStart();
+                      }
                     }
                   }}
                   className={isTrackingBoxDraggable ? getPrimaryButtonClassName() : getSecondaryButtonClassName()}
@@ -751,13 +771,6 @@ export const CombinedCCTVPopup = ({
               </button>
             )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={getSecondaryButtonClassName()}
-          >
-            닫기
-          </button>
         </div>
       </div>
     </div>

@@ -42,7 +42,7 @@ export const AdditionalDataNotificationPopup: React.FC<AdditionalDataNotificatio
 
   return (
     <div
-      className="absolute bottom-6 right-6 bg-[#1a1a1a] border border-[#31353a] rounded-lg shadow-xl w-[420px] flex flex-col z-50"
+      className="absolute bottom-6 right-6 bg-[#1a1a1a] border border-[#31353a] rounded-lg shadow-xl w-[420px] flex flex-col z-[9999]"
       style={{ borderWidth: '1px' }}
       onClick={(e) => e.stopPropagation()}
     >

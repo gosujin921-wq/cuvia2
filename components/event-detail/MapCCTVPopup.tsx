@@ -26,6 +26,8 @@ interface MapCCTVPopupProps {
   handlePreset: (preset: number) => void;
   handlePrevCCTV: () => void;
   handleNextCCTV: () => void;
+  onTrackingReselectComplete?: () => void;
+  onTrackingReselectStart?: () => void;
 }
 
 export const MapCCTVPopup = ({
@@ -49,6 +51,8 @@ export const MapCCTVPopup = ({
   handlePreset,
   handlePrevCCTV,
   handleNextCCTV,
+  onTrackingReselectComplete,
+  onTrackingReselectStart,
 }: MapCCTVPopupProps) => {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isTrackingBoxDraggable, setIsTrackingBoxDraggable] = useState(false);
@@ -215,7 +219,7 @@ export const MapCCTVPopup = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-6"
       onClick={onClose}
     >
       <div
@@ -497,17 +501,29 @@ export const MapCCTVPopup = ({
 
         {/* 하단 버튼 */}
         <div className="flex justify-between items-center gap-2 p-4 border-t border-[#31353a] flex-shrink-0">
+          <button
+            type="button"
+            onClick={onClose}
+            className={getSecondaryButtonClassName()}
+          >
+            닫기
+          </button>
           <div className="flex gap-2">
             <button
               type="button"
               onClick={() => {
                 if (isTrackingBoxDraggable) {
                   // 추적대상 재선택 완료
-                  alert('추적대상 재선택이 완료되었습니다. AI가 추적대상을 재 분석합니다.');
+                  if (onTrackingReselectComplete) {
+                    onTrackingReselectComplete();
+                  }
                   setIsTrackingBoxDraggable(false);
                   onClose();
                 } else {
                   setIsTrackingBoxDraggable(true);
+                  if (onTrackingReselectStart) {
+                    onTrackingReselectStart();
+                  }
                 }
               }}
               className={isTrackingBoxDraggable ? getPrimaryButtonClassName() : getSecondaryButtonClassName()}
@@ -544,13 +560,6 @@ export const MapCCTVPopup = ({
             </>
           )}
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            className={getSecondaryButtonClassName()}
-          >
-            닫기
-          </button>
         </div>
       </div>
     </div>

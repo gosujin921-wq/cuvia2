@@ -25,6 +25,11 @@ interface EventCenterColumn1Props {
   setSelectedDetectedCCTV: (value: string | null) => void;
   setShowCombinedCCTVPopup: (value: boolean) => void;
   setSelectedCombinedCCTV: (value: string | null) => void;
+  isTrackingPinVisible?: boolean;
+  isTrackingProgress?: boolean;
+  trackingProgress?: number;
+  trackingPinPosition?: { left: number; top: number };
+  isTrackingReselectActive?: boolean; // 재추적 버튼 활성화 상태
   additionalDataNotification?: {
     isOpen: boolean;
     time: string;
@@ -50,6 +55,10 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   setSelectedDetectedCCTV,
   setShowCombinedCCTVPopup,
   setSelectedCombinedCCTV,
+  isTrackingPinVisible = true,
+  isTrackingProgress = false,
+  trackingProgress = 0,
+  trackingPinPosition = { left: 85, top: 45 },
   additionalDataNotification,
 }) => {
   const [zoomLevel, setZoomLevel] = React.useState(0); // 0: 축소(클러스터), 1: 확대(개별)
@@ -99,13 +108,13 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
 
   // 타임라인에서 CCTV별 title (감지 이유) 찾기
   const getTimelineTitle = (cctvId: string) => {
+    if (cctvId === '현재 위치') {
+      // 현재 위치는 마지막 항목의 title 사용
+      const lastEntry = movementTimeline[movementTimeline.length - 1];
+      return lastEntry?.title || '';
+    }
     const entry = movementTimeline.find((item) => {
-      if (cctvId === 'CCTV-7') return item.cctvId === 'CCTV-7';
-      if (cctvId === 'CCTV-12') return item.cctvId === 'CCTV-12';
-      if (cctvId === 'CCTV-15') return item.cctvId === 'CCTV-15';
-      if (cctvId === 'CCTV-3') return item.cctvId === 'CCTV-3';
-      if (cctvId === '현재 위치') return item.cctvId === null;
-      return false;
+      return item.cctvId === cctvId;
     });
     return entry?.title || '';
   };
@@ -555,21 +564,27 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           }
         })}
 
+        </div>
+
         {/* 지도 이미지 위에 SVG 오버레이 - 동선은 항상 표시 */}
-        <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-          {/* 동선 경로 - 타임라인 순서대로: CCTV-7 → CCTV-12 → CCTV-15 → CCTV-3 → 현재 위치 */}
-          <polyline 
-            points="30,160 80,120 140,130 100,80 170,90" 
-            fill="none" 
-            stroke="#5390ff" 
-            strokeWidth="1" 
-            strokeDasharray="2 2"
-            className="animate-dash"
-          />
-        </svg>
+        {/* 프로그레스바가 표시될 때는 동선 숨김 (추적 핀과 동일하게) */}
+        {!isTrackingProgress && (
+          <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
+            {/* 동선 경로 - 타임라인 순서대로: CCTV-7 (노란색) → CCTV-15 → CCTV-12 → 현재 위치 (빨간색) */}
+            <polyline 
+              points={`30,160 140,130 80,120 ${trackingPinPosition.left * 2},${trackingPinPosition.top * 2}`}
+              fill="none" 
+              stroke="#5390ff" 
+              strokeWidth="1" 
+              strokeDasharray="2 2"
+              className="animate-dash"
+            />
+          </svg>
+        )}
 
         {/* CCTV 아이콘들로 핀 대체 - 컬러 CCTV는 항상 표시 */}
-        {/* 시작 지점 CCTV */}
+        {/* 타임라인 순서: CCTV-7 (노란색) → CCTV-15 → CCTV-12 → 현재 위치 (빨간색) */}
+        {/* 1. CCTV-7 (노란색) - 유괴범과 아동 함께 이동 포착 */}
         {renderCCTVIcons(
           location1CCTVs,
           { left: 15, top: 80 },
@@ -579,39 +594,32 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           45
         )}
         
-        {/* 중간 지점 CCTV들 */}
-        <>
-          {renderCCTVIcons(
-            location2CCTVs,
-            { left: 40, top: 60 },
-            'border-blue-500',
-            'text-blue-400',
-            getTimelineTitle('CCTV-12'),
-            90
-          )}
-          {renderCCTVIcons(
-            location3CCTVs,
-            { left: 70, top: 65 },
-            'border-blue-500',
-            'text-blue-400',
-            getTimelineTitle('CCTV-15'),
-            135
-          )}
-          {renderCCTVIcons(
-            location4CCTVs,
-            { left: 50, top: 40 },
-            'border-blue-500',
-            'text-blue-400',
-            getTimelineTitle('CCTV-3'),
-            180
-          )}
-        </>
+        {/* 2. CCTV-15 - 용의자가 차량에 아이 태우는 장면 포착 */}
+        {renderCCTVIcons(
+          location3CCTVs,
+          { left: 70, top: 65 },
+          'border-red-500',
+          'text-red-400',
+          getTimelineTitle('CCTV-15'),
+          135
+        )}
+        
+        {/* 3. CCTV-12 - 차량 도주 추적 중 */}
+        {renderCCTVIcons(
+          location2CCTVs,
+          { left: 40, top: 60 },
+          'border-blue-500',
+          'text-blue-400',
+          getTimelineTitle('CCTV-12'),
+          90
+        )}
         
         {/* 현재 위치 CCTV - 모든 요소를 하나의 컨테이너에 중앙 정렬 */}
-        <div 
-          className="absolute flex items-center justify-center" 
-          style={{ left: '85%', top: '45%', transform: 'translate(-50%, -50%)', zIndex: 120, width: '80px', height: '80px' }}
-        >
+        {isTrackingPinVisible && (
+          <div 
+            className="absolute flex items-center justify-center" 
+            style={{ left: `${trackingPinPosition.left}%`, top: `${trackingPinPosition.top}%`, transform: 'translate(-50%, -50%)', zIndex: 120, width: '80px', height: '80px' }}
+          >
             {/* 대쉬 원 - 위험 상황 알람 펄스 애니메이션 (여러 레이어) */}
             <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80, animationDelay: '0s' }}>
               <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
@@ -700,7 +708,23 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               })
             )}
           </div>
-        </div>
+        )}
+
+        {/* 프로그레스바 오버레이 */}
+        {isTrackingProgress && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center z-[200]">
+            <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-6 min-w-[400px]">
+              <div className="text-white text-sm font-semibold mb-4 text-center">AI가 추적대상을 재 분석 중입니다...</div>
+              <div className="w-full h-2 bg-[#0f0f0f] rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-blue-600 transition-all duration-50 ease-linear"
+                  style={{ width: `${trackingProgress}%` }}
+                ></div>
+              </div>
+              <div className="text-gray-400 text-xs mt-2 text-center">{Math.round(trackingProgress)}%</div>
+            </div>
+          </div>
+        )}
 
         {/* 추가 자료 알림 팝업 - 맵 우측 하단 */}
         {additionalDataNotification && (

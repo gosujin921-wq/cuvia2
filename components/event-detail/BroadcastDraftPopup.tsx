@@ -105,7 +105,7 @@ export const BroadcastDraftPopup = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-[9999] px-6"
       role="dialog"
       aria-modal="true"
       aria-label="전파 모달"
