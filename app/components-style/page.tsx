@@ -24,7 +24,8 @@ import {
   cctvIconStyles as initialCctvIconStyles,
   cctvLabelStyles as initialCctvLabelStyles,
   cctvBadgeStyles as initialCctvBadgeStyles,
-  ptzButtonStyles as initialPtzButtonStyles
+  ptzButtonStyles as initialPtzButtonStyles,
+  timelineTitleStyles as initialTimelineTitleStyles
 } from '@/components/shared/styles';
 
 // 스타일 타입 정의
@@ -35,6 +36,7 @@ type CctvIconStyles = typeof initialCctvIconStyles;
 type CctvLabelStyles = typeof initialCctvLabelStyles;
 type CctvBadgeStyles = typeof initialCctvBadgeStyles;
 type PtzButtonStyles = typeof initialPtzButtonStyles;
+type TimelineTitleStyles = typeof initialTimelineTitleStyles;
 
 export default function ComponentsStylePage() {
   const [activeSection, setActiveSection] = useState<string>('buttons');
@@ -49,6 +51,7 @@ export default function ComponentsStylePage() {
   const [cctvLabelStyles, setCctvLabelStyles] = useState<CctvLabelStyles>(initialCctvLabelStyles);
   const [cctvBadgeStyles, setCctvBadgeStyles] = useState<CctvBadgeStyles>(initialCctvBadgeStyles);
   const [ptzButtonStyles, setPtzButtonStyles] = useState<PtzButtonStyles>(initialPtzButtonStyles);
+  const [timelineTitleStyles, setTimelineTitleStyles] = useState<TimelineTitleStyles>(initialTimelineTitleStyles);
 
   // 헬퍼 함수들 (동적 스타일 사용)
   const getPrimaryButtonClassName = () => {
@@ -184,17 +187,17 @@ export const fontWeights = {
 };
 
 export const buttonStyles = {
-  primary: {
+    primary: {
     base: ${JSON.stringify(buttonStyles.primary.base)},
     active: ${JSON.stringify(buttonStyles.primary.active)},
     inactive: ${JSON.stringify(buttonStyles.primary.inactive)},
-  },
-  secondary: {
+    },
+    secondary: {
     base: ${JSON.stringify(buttonStyles.secondary.base)},
     active: ${JSON.stringify(buttonStyles.secondary.active)},
     inactive: ${JSON.stringify(buttonStyles.secondary.inactive)},
-  },
-  icon: {
+    },
+    icon: {
     base: ${JSON.stringify(buttonStyles.icon.base)},
     active: ${JSON.stringify(buttonStyles.icon.active)},
     inactive: ${JSON.stringify(buttonStyles.icon.inactive)},
@@ -229,6 +232,14 @@ export const cctvBadgeStyles = {
   base: ${JSON.stringify(cctvBadgeStyles.base)},
   default: ${JSON.stringify(cctvBadgeStyles.default)},
   tracking: ${JSON.stringify(cctvBadgeStyles.tracking)},
+};
+
+export const timelineTitleStyles = {
+  base: ${JSON.stringify(timelineTitleStyles.base)},
+  default: ${JSON.stringify(timelineTitleStyles.default)},
+  active: ${JSON.stringify(timelineTitleStyles.active)},
+  tracking: ${JSON.stringify(timelineTitleStyles.tracking)},
+  warning: ${JSON.stringify(timelineTitleStyles.warning)},
 };
 
 export const cctvViewAngleStyles = {
@@ -297,6 +308,13 @@ export const getCCTVViewAngleClassName = () => {
   return cctvViewAngleStyles.container;
 };
 
+export const getTimelineTitleClassName = (variant: 'default' | 'active' | 'tracking' | 'warning' = 'default', showCCTVName: boolean = false) => {
+  const base = timelineTitleStyles.base;
+  const border = timelineTitleStyles[variant];
+  const marginClass = showCCTVName ? 'mt-8' : 'mt-1';
+  return \`\${base} \${border} \${marginClass}\`.trim();
+};
+
 export const getPTZButtonClassName = (isActive: boolean = false) => {
   const base = ptzButtonStyles.base;
   const state = isActive ? ptzButtonStyles.active : ptzButtonStyles.default;
@@ -358,8 +376,8 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
       <div className="container mx-auto px-6 py-8">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold mb-2">컴포넌트 스타일 관리</h1>
-            <p className="text-gray-400">중복되는 컴포넌트 스타일을 한 곳에서 관리합니다.</p>
+          <h1 className="text-3xl font-bold mb-2">컴포넌트 스타일 관리</h1>
+          <p className="text-gray-400">중복되는 컴포넌트 스타일을 한 곳에서 관리합니다.</p>
           </div>
           <div className="flex items-center gap-3">
             {saveStatus === 'success' && (
@@ -958,292 +976,477 @@ export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
 
         {/* CCTV 아이콘 섹션 */}
         {activeSection === 'cctv-icons' && (
-          <div className="space-y-8">
-            {/* 기본 (Gray) CCTV 아이콘 */}
+          <div className="space-y-12">
+            {/* 구조 설명 */}
+            <div className={getCardClassName()}>
+              <h2 className="text-xl font-semibold mb-4">CCTV 아이콘 구조</h2>
+              <div className="space-y-3 text-sm text-gray-300">
+                <p><span className="font-semibold text-white">1. CCTV 아이콘 박스:</span> 아이콘 + 개수 (2개 이상일 때)</p>
+                <p><span className="font-semibold text-white">2. CCTV 이름 라벨:</span> showCCTVName이 true일 때 표시 (1개: "CCTV-7", 2개 이상: "CCTV-7-1")</p>
+                <p><span className="font-semibold text-white">3. 타임라인 타이틀:</span> 항상 표시 (CCTV 이름 없을 때: mt-1, 있을 때: mt-8)</p>
+                <p className="text-xs text-gray-400 mt-2">컬러: default (gray), active (blue), tracking (red), warning (yellow)</p>
+              </div>
+            </div>
+
+            {/* CCTV 아이콘 스타일 편집 */}
             <div>
-              <h2 className="text-xl font-semibold mb-4">기본 CCTV 아이콘 (Gray)</h2>
+              <h2 className="text-xl font-semibold mb-4">CCTV 아이콘 스타일</h2>
               <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-6">
+                  {/* Default */}
                 <div>
+                    <h3 className="text-sm font-semibold mb-3 text-gray-400">Default (Gray)</h3>
                   <div className="mb-4">
-                    <div className={getCCTVIconClassName('default')}>
-                      <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
+                      <div className={getCCTVIconClassName('default')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
                     </div>
                   </div>
-                  <div className={getCardClassName()}>
-                    <pre className="text-xs text-gray-300 overflow-x-auto">
-                      <code>{`import { getCCTVIconClassName } from '@/components/shared/styles';
+                    <input
+                      type="text"
+                      value={cctvIconStyles.default}
+                      onChange={(e) => setCctvIconStyles({
+                        ...cctvIconStyles,
+                        default: e.target.value
+                      })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  {/* Active */}
+                  <div>
+                    <h3 className="text-sm font-semibold mb-3 text-gray-400">Active (Blue)</h3>
+                    <div className="mb-4">
+                      <div className={getCCTVIconClassName('active')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
+                </div>
+                    </div>
+                    <input
+                      type="text"
+                      value={cctvIconStyles.active}
+                      onChange={(e) => setCctvIconStyles({
+                        ...cctvIconStyles,
+                        active: e.target.value
+                      })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  {/* Tracking */}
+                <div>
+                    <h3 className="text-sm font-semibold mb-3 text-gray-400">Tracking (Red)</h3>
+                    <div className="mb-4">
+                      <div className={getCCTVIconClassName('tracking')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />
+                      </div>
+                    </div>
+                      <input
+                        type="text"
+                      value={cctvIconStyles.tracking}
+                        onChange={(e) => setCctvIconStyles({
+                          ...cctvIconStyles,
+                        tracking: e.target.value
+                        })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  {/* Warning */}
+                    <div>
+                    <h3 className="text-sm font-semibold mb-3 text-gray-400">Warning (Yellow)</h3>
+                    <div className="mb-4">
+                      <div className={getCCTVIconClassName('warning')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />
+                      </div>
+                    </div>
+                      <input
+                        type="text"
+                      value={cctvIconStyles.warning}
+                        onChange={(e) => setCctvIconStyles({
+                          ...cctvIconStyles,
+                        warning: e.target.value
+                        })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </div>
+                <div className={getCardClassName()}>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">사용 예시</h3>
+                  <pre className="text-xs text-gray-300 overflow-x-auto">
+                    <code>{`import { getCCTVIconClassName } from '@/components/shared/styles';
 
 <div className={getCCTVIconClassName('default')}>
   <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
 </div>`}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(`import { getCCTVIconClassName } from '@/components/shared/styles';\n\n<div className={getCCTVIconClassName('default')}>\n  <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />\n</div>`)}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                    >
-                      코드 복사
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Default</label>
-                      <input
-                        type="text"
-                        value={cctvIconStyles.default}
-                        onChange={(e) => setCctvIconStyles({
-                          ...cctvIconStyles,
-                          default: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Active</label>
-                      <input
-                        type="text"
-                        value={cctvIconStyles.active}
-                        onChange={(e) => setCctvIconStyles({
-                          ...cctvIconStyles,
-                          active: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Tracking</label>
-                      <input
-                        type="text"
-                        value={cctvIconStyles.tracking}
-                        onChange={(e) => setCctvIconStyles({
-                          ...cctvIconStyles,
-                          tracking: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Warning</label>
-                      <input
-                        type="text"
-                        value={cctvIconStyles.warning}
-                        onChange={(e) => setCctvIconStyles({
-                          ...cctvIconStyles,
-                          warning: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
+                  </pre>
                 </div>
               </div>
             </div>
 
-            {/* CCTV 라벨 */}
+            {/* CCTV 라벨 스타일 편집 */}
             <div>
-              <h2 className="text-xl font-semibold mb-4">CCTV 라벨</h2>
+              <h2 className="text-xl font-semibold mb-4">CCTV 라벨 스타일</h2>
               <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="mb-4 relative">
-                    <div className={getCCTVIconClassName('default')}>
-                      <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
-                    </div>
-                    <div className={getCCTVLabelClassName('default')}>
-                      CCTV-7
-                    </div>
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Base (공통)</label>
+                    <input
+                      type="text"
+                      value={cctvLabelStyles.base}
+                      onChange={(e) => setCctvLabelStyles({
+                        ...cctvLabelStyles,
+                        base: e.target.value
+                      })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
                   </div>
-                  <div className={getCardClassName()}>
-                    <pre className="text-xs text-gray-300 overflow-x-auto">
-                      <code>{`import { getCCTVLabelClassName } from '@/components/shared/styles';
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Default Border</label>
+                    <input
+                      type="text"
+                      value={cctvLabelStyles.default}
+                      onChange={(e) => setCctvLabelStyles({
+                        ...cctvLabelStyles,
+                        default: e.target.value
+                      })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Active Border</label>
+                    <input
+                      type="text"
+                      value={cctvLabelStyles.active}
+                      onChange={(e) => setCctvLabelStyles({
+                        ...cctvLabelStyles,
+                        active: e.target.value
+                      })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Tracking Border</label>
+                    <input
+                      type="text"
+                      value={cctvLabelStyles.tracking}
+                      onChange={(e) => setCctvLabelStyles({
+                        ...cctvLabelStyles,
+                        tracking: e.target.value
+                      })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-gray-400 mb-1">Warning Border</label>
+                    <input
+                      type="text"
+                      value={cctvLabelStyles.warning}
+                      onChange={(e) => setCctvLabelStyles({
+                        ...cctvLabelStyles,
+                        warning: e.target.value
+                      })}
+                      className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+                <div className={getCardClassName()}>
+                  <h3 className="text-sm font-semibold mb-4 text-gray-400">사용 예시</h3>
+                  <pre className="text-xs text-gray-300 overflow-x-auto">
+                    <code>{`import { getCCTVLabelClassName } from '@/components/shared/styles';
 
 <div className={getCCTVLabelClassName('default')}>
   CCTV-7
 </div>`}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(`import { getCCTVLabelClassName } from '@/components/shared/styles';\n\n<div className={getCCTVLabelClassName('default')}>\n  CCTV-7\n</div>`)}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                    >
-                      코드 복사
-                    </button>
-                  </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-4 text-gray-400">스타일 편집</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Base</label>
-                      <input
-                        type="text"
-                        value={cctvLabelStyles.base}
-                        onChange={(e) => setCctvLabelStyles({
-                          ...cctvLabelStyles,
-                          base: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Default</label>
-                      <input
-                        type="text"
-                        value={cctvLabelStyles.default}
-                        onChange={(e) => setCctvLabelStyles({
-                          ...cctvLabelStyles,
-                          default: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Active</label>
-                      <input
-                        type="text"
-                        value={cctvLabelStyles.active}
-                        onChange={(e) => setCctvLabelStyles({
-                          ...cctvLabelStyles,
-                          active: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Tracking</label>
-                      <input
-                        type="text"
-                        value={cctvLabelStyles.tracking}
-                        onChange={(e) => setCctvLabelStyles({
-                          ...cctvLabelStyles,
-                          tracking: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs text-gray-400 mb-1">Warning</label>
-                      <input
-                        type="text"
-                        value={cctvLabelStyles.warning}
-                        onChange={(e) => setCctvLabelStyles({
-                          ...cctvLabelStyles,
-                          warning: e.target.value
-                        })}
-                        className="w-full px-3 py-2 bg-[#0f0f0f] border border-[#2a2a2a] text-white text-sm focus:outline-none focus:border-blue-500"
-                      />
-                    </div>
-                  </div>
+                  </pre>
                 </div>
               </div>
             </div>
 
-            {/* CCTV 뱃지 */}
+            {/* 모든 경우의 수 시각화 */}
             <div>
-              <h2 className="text-xl font-semibold mb-4">CCTV 뱃지 (클러스터)</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="mb-4 relative inline-block">
-                    <div className={getCCTVIconClassName('default')}>
-                      <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
-                    </div>
-                    <div className={`${getCCTVBadgeClassName('default')} absolute -top-[18px] -right-[18px]`}>
-                      3
-                    </div>
-                  </div>
+              <h2 className="text-xl font-semibold mb-4">CCTV 아이콘 + 라벨 조합 (모든 경우의 수)</h2>
+              
+              {/* Default (Gray) */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4 text-gray-300">Default (Gray) - 일반 CCTV</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+                  {/* 1개 - 이름 없음 */}
                   <div className={getCardClassName()}>
-                    <pre className="text-xs text-gray-300 overflow-x-auto">
-                      <code>{`import { getCCTVBadgeClassName } from '@/components/shared/styles';
-
-<div className="relative">
-  <div className={getCCTVIconClassName('default')}>
-    <Icon icon="mdi:cctv" />
-  </div>
-  <div className={\`\${getCCTVBadgeClassName('default')} absolute -top-[18px] -right-[18px]\`}>
-    3
-  </div>
-</div>`}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(`import { getCCTVBadgeClassName, getCCTVIconClassName } from '@/components/shared/styles';\n\n<div className="relative">\n  <div className={getCCTVIconClassName('default')}>\n    <Icon icon="mdi:cctv" />\n  </div>\n  <div className={\`\${getCCTVBadgeClassName('default')} absolute -top-[18px] -right-[18px]\`}>\n    3\n  </div>\n</div>`)}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                    >
-                      코드 복사
-                    </button>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('default')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#9ca3af' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: 클러스터 뱃지 (여러 CCTV 표시)</p>
-                    <p className="text-xs mt-1">Variant: default, tracking</p>
+                  {/* 1개 - 이름 있음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('default')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-7
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#9ca3af' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 없음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('default')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
+                        <span className="text-xs font-semibold text-gray-400 ml-1">3</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#9ca3af' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 있음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('default')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
+                        <span className="text-xs font-semibold text-gray-400 ml-1">3</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-7
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#9ca3af' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
 
-            {/* CCTV 각도 (시야각) */}
-            <div>
-              <h2 className="text-xl font-semibold mb-4">CCTV 각도 (시야각)</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <div className="mb-4 relative" style={{ width: '120px', height: '120px' }}>
-                    <div className={getCCTVIconClassName('default')} style={{ position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
-                      <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
-                    </div>
-                    <div className={getCCTVViewAngleClassName()} style={{ width: '120px', height: '120px', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 90 }}>
-                      <svg width="120" height="120" viewBox="0 0 120 120" className="absolute top-0 left-0">
-                        <path
-                          d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-                          fill="rgba(59, 130, 246, 0.2)"
-                          stroke="rgba(59, 130, 246, 0.6)"
-                          strokeWidth="2"
-                        />
-                      </svg>
+              {/* Active (Blue) */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4 text-gray-300">Active (Blue) - 과거 동선</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+                  {/* 1개 - 이름 없음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('active')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#60a5fa' }}>
+                        용의자가 차량에 아이 태우는 장면 포착
+                      </div>
                     </div>
                   </div>
+                  {/* 1개 - 이름 있음 */}
                   <div className={getCardClassName()}>
-                    <pre className="text-xs text-gray-300 overflow-x-auto">
-                      <code>{`import { getCCTVViewAngleClassName } from '@/components/shared/styles';
-
-<div 
-  className={getCCTVViewAngleClassName()}
-  style={{ 
-    width: '120px', 
-    height: '120px', 
-    left: '50%', 
-    top: '50%', 
-    transform: 'translate(-50%, -50%)',
-    zIndex: 90 
-  }}
->
-  <svg width="120" height="120" viewBox="0 0 120 120" className="absolute top-0 left-0">
-    <path
-      d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"
-      fill="rgba(59, 130, 246, 0.2)"
-      stroke="rgba(59, 130, 246, 0.6)"
-      strokeWidth="2"
-    />
-  </svg>
-</div>`}</code>
-                    </pre>
-                    <button
-                      onClick={() => copyToClipboard(`import { getCCTVViewAngleClassName } from '@/components/shared/styles';\n\n<div \n  className={getCCTVViewAngleClassName()}\n  style={{ \n    width: '120px', \n    height: '120px', \n    left: '50%', \n    top: '50%', \n    transform: 'translate(-50%, -50%)',\n    zIndex: 90 \n  }}\n>\n  <svg width="120" height="120" viewBox="0 0 120 120" className="absolute top-0 left-0">\n    <path\n      d="M 60 60 L 60 10 A 50 50 0 0 1 110 60 Z"\n      fill="rgba(59, 130, 246, 0.2)"\n      stroke="rgba(59, 130, 246, 0.6)"\n      strokeWidth="2"\n    />\n  </svg>\n</div>`)}
-                      className="mt-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs"
-                    >
-                      코드 복사
-                    </button>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('active')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-15
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#60a5fa' }}>
+                        용의자가 차량에 아이 태우는 장면 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 없음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('active')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs font-semibold text-blue-400 ml-1">5</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#60a5fa' }}>
+                        용의자가 차량에 아이 태우는 장면 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 있음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('active')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
+                        <span className="text-xs font-semibold text-blue-400 ml-1">5</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-15
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#60a5fa' }}>
+                        용의자가 차량에 아이 태우는 장면 포착
+                      </div>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <h3 className="text-sm font-semibold mb-2 text-gray-400">스타일 정보</h3>
-                  <div className="space-y-2 text-sm text-gray-400">
-                    <p>공통 스타일 파일에서 관리됩니다.</p>
-                    <p className="text-xs">경로: components/shared/styles.ts</p>
-                    <p className="text-xs mt-2">사용: CCTV 시야각 표시</p>
-                    <p className="text-xs mt-1">SVG는 별도로 구현 필요</p>
+              </div>
+
+              {/* Tracking (Red) */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4 text-gray-300">Tracking (Red) - 추적 동선</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+                  {/* 1개 - 이름 없음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('tracking')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('tracking').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#f87171' }}>
+                        차량 도주 추적 중
+                      </div>
+                    </div>
+                  </div>
+                  {/* 1개 - 이름 있음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('tracking')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('tracking')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        현재 위치
+                      </div>
+                      <div className={`${getCCTVLabelClassName('tracking').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8 text-red-400`} style={{ color: '#f87171' }}>
+                        차량 도주 추적 중
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 없음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('tracking')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />
+                        <span className="text-xs font-semibold text-red-400 ml-1">999+</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('tracking').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#f87171' }}>
+                        차량 도주 추적 중
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 있음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('tracking')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-red-400" />
+                        <span className="text-xs font-semibold text-red-400 ml-1">999+</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('tracking')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        현재 위치
+                      </div>
+                      <div className={`${getCCTVLabelClassName('tracking').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8 text-red-400`} style={{ color: '#f87171' }}>
+                        차량 도주 추적 중
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Warning (Yellow) */}
+              <div className="mb-8">
+                <h3 className="text-lg font-semibold mb-4 text-gray-300">Warning (Yellow) - 초기 포착</h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+                  {/* 1개 - 이름 없음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('warning')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('warning').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#facc15' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* 1개 - 이름 있음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">1개, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('warning')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('warning')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-7
+                      </div>
+                      <div className={`${getCCTVLabelClassName('warning').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#facc15' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 없음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 숨김</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('warning')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />
+                        <span className="text-xs font-semibold text-yellow-400 ml-1">2</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('warning').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ color: '#facc15' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* 2개 이상 - 이름 있음 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">2개 이상, 이름 표시</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={`${getCCTVIconClassName('warning')} flex items-center justify-center w-auto min-w-[28px]`} style={{ paddingLeft: '4px', paddingRight: '4px' }}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-yellow-400" />
+                        <span className="text-xs font-semibold text-yellow-400 ml-1">2</span>
+                      </div>
+                      <div className={`${getCCTVLabelClassName('warning')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-7
+                      </div>
+                      <div className={`${getCCTVLabelClassName('warning').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#facc15' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* 확대 모드 - 개별 아이콘 */}
+              <div>
+                <h3 className="text-lg font-semibold mb-4 text-gray-300">확대 모드 - 개별 아이콘 (2개 이상일 때)</h3>
+                <div className="grid grid-cols-2 gap-8">
+                  {/* Default - 개별 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">Default - CCTV-7-1, CCTV-7-2</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('default')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-gray-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-7-1
+                      </div>
+                      <div className={`${getCCTVLabelClassName('default').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#9ca3af' }}>
+                        유괴범과 아동 함께 이동 포착
+                      </div>
+                    </div>
+                  </div>
+                  {/* Active - 개별 */}
+                  <div className={getCardClassName()}>
+                    <div className="text-xs text-gray-400 mb-3">Active - CCTV-15-1, CCTV-15-2</div>
+                    <div className="relative inline-block mb-4">
+                      <div className={getCCTVIconClassName('active')}>
+                        <Icon icon="mdi:cctv" className="w-4 h-4 text-blue-400" />
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                        CCTV-15-1
+                      </div>
+                      <div className={`${getCCTVLabelClassName('active').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 mt-8`} style={{ color: '#60a5fa' }}>
+                        용의자가 차량에 아이 태우는 장면 포착
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

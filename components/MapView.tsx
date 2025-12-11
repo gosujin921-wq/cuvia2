@@ -6,7 +6,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { getEventById, generateAIInsight, getAIInsightKeywords } from '@/lib/events-data';
-import { getCCTVIconClassName, getCCTVLabelClassName, getCCTVBadgeClassName } from '@/components/shared/styles';
+import { getCCTVIconClassName, getCCTVLabelClassName } from '@/components/shared/styles';
 
 interface MapViewProps {
   events: Event[];
@@ -25,6 +25,22 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
   const [searchInput, setSearchInput] = useState('');
   const [selectedRouteType, setSelectedRouteType] = useState<'ai' | 'nearby' | null>(null);
   const [zoomLevel, setZoomLevel] = useState(0); // 0: 축소(클러스터), 1: 확대(개별)
+
+  // CCTV 카메라 개수 포맷팅 헬퍼 함수
+  const formatCCTVCount = (count: number): string => {
+    return count > 999 ? '999+' : count.toString();
+  };
+
+  // CCTV 아이콘 박스 스타일 생성 헬퍼 함수
+  const getCCTVIconBoxStyle = (count: number, scale: number, hasMultiple: boolean, zIndex: number = 110) => {
+    return {
+      zIndex,
+      position: 'relative' as const,
+      transform: `scale(${scale})`,
+      paddingLeft: hasMultiple ? '4px' : undefined,
+      paddingRight: hasMultiple ? '4px' : undefined
+    };
+  };
   
   // 외부에서 줌 레벨 제어
   useEffect(() => {
@@ -550,18 +566,21 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                   // 나중에 모달 띄울 예정
                 }}
               >
-                <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative' }}>
+                <div 
+                  className={`${getCCTVIconClassName('default')} flex items-center justify-center ${item.count > 1 && zoomLevel === 0 ? 'w-auto min-w-[28px]' : ''}`} 
+                  style={getCCTVIconBoxStyle(item.count, mapScale, item.count > 1 && zoomLevel === 0, 60)}
+                >
                   <Icon 
                     icon="mdi:cctv" 
                     className="text-gray-400"
                     width="16px" 
                     height="16px"
                   />
-                  {/* 클러스터 뱃지 - 여러 CCTV가 있을 때 */}
-                  {item.count > 1 && (
-                    <div className={`${getCCTVBadgeClassName('default')} absolute -top-[18px] -right-[18px]`}>
-                      {item.count}
-                    </div>
+                  {/* CCTV 카메라 개수 - 축소 모드에서만 표시 */}
+                  {item.count > 1 && zoomLevel === 0 && (
+                    <span className="text-xs font-semibold text-gray-400 ml-1" style={{ whiteSpace: 'nowrap' }}>
+                      {formatCCTVCount(item.count)}
+                    </span>
                   )}
                 </div>
                 {/* CCTV 이름 라벨 */}
@@ -916,40 +935,42 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                   onEventClick?.(event.id);
                 }}
               >
-                <div 
-                  className={getCCTVIconClassName('tracking')} 
-                  style={{ 
-                    zIndex: 110, 
-                    position: 'relative',
-                    transform: zoomLevel === 1 ? 'scale(1.5)' : 'scale(1)',
-                    transformOrigin: 'center center'
-                  }}
-                >
-                  <Icon 
-                    icon="mdi:cctv" 
-                    className="text-red-400" 
-                    width="16px" 
-                    height="16px"
-                  />
-                  {/* 클러스터 뱃지 - 같은 위치의 이벤트 개수 표시 */}
-                  {(() => {
-                    // 같은 위치에 있는 이벤트 개수 계산 (위치가 1% 이내로 가까운 경우)
-                    const samePositionEvents = events.filter(e => {
-                      const otherPosition = getEventPosition(e);
-                      const distance = Math.sqrt(
-                        Math.pow(position.left - otherPosition.left, 2) + 
-                        Math.pow(position.top - otherPosition.top, 2)
-                      );
-                      return distance < 1; // 1% 이내 거리
-                    });
-                    const clusterCount = samePositionEvents.length;
-                    return clusterCount > 1 ? (
-                      <div className={`${getCCTVBadgeClassName('tracking')} absolute -top-[18px] -right-[18px]`}>
-                        {clusterCount}
-                      </div>
-                    ) : null;
-                  })()}
-                </div>
+                {(() => {
+                  // 같은 위치에 있는 이벤트 개수 계산 (위치가 1% 이내로 가까운 경우)
+                  const samePositionEvents = events.filter(e => {
+                    const otherPosition = getEventPosition(e);
+                    const distance = Math.sqrt(
+                      Math.pow(position.left - otherPosition.left, 2) + 
+                      Math.pow(position.top - otherPosition.top, 2)
+                    );
+                    return distance < 1; // 1% 이내 거리
+                  });
+                  const clusterCount = samePositionEvents.length;
+                  const hasMultiple = clusterCount > 1 && zoomLevel === 0;
+                  
+                  return (
+                    <div 
+                      className={`${getCCTVIconClassName('tracking')} flex items-center justify-center ${hasMultiple ? 'w-auto min-w-[28px]' : ''}`}
+                      style={{ 
+                        ...getCCTVIconBoxStyle(clusterCount, zoomLevel === 1 ? 1.5 : 1, hasMultiple),
+                        transformOrigin: 'center center'
+                      }}
+                    >
+                      <Icon 
+                        icon="mdi:cctv" 
+                        className="text-red-400" 
+                        width="16px" 
+                        height="16px"
+                      />
+                      {/* CCTV 카메라 개수 - 축소 모드에서만 표시 */}
+                      {hasMultiple && (
+                        <span className="text-xs font-semibold text-red-400 ml-1" style={{ whiteSpace: 'nowrap' }}>
+                          {formatCCTVCount(clusterCount)}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })()}
               </div>
             </div>
           );

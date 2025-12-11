@@ -5,8 +5,7 @@ import { Icon } from '@iconify/react';
 import { movementTimeline } from './constants';
 import { 
   getCCTVIconClassName, 
-  getCCTVLabelClassName, 
-  getCCTVBadgeClassName 
+  getCCTVLabelClassName
 } from '@/components/shared/styles';
 import { AdditionalDataNotificationPopup } from './AdditionalDataNotificationPopup';
 
@@ -155,10 +154,29 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
     return 'default';
   };
 
-  // borderColor를 뱃지 variant로 변환
-  const getBadgeVariant = (borderColor: string): 'default' | 'tracking' => {
-    if (borderColor === 'border-red-500') return 'tracking';
-    return 'default';
+  // 타임라인 타이틀 색상 결정 헬퍼 함수
+  const getTimelineTitleColor = (iconColor: string) => {
+    if (iconColor.includes('yellow')) return '#facc15';
+    if (iconColor.includes('blue')) return '#60a5fa';
+    if (iconColor.includes('red')) return '#f87171';
+    return '#9ca3af';
+  };
+
+  // CCTV 카메라 개수 포맷팅 헬퍼 함수
+  const formatCCTVCount = (count: number): string => {
+    return count > 999 ? '999+' : count.toString();
+  };
+
+  // CCTV 아이콘 박스 스타일 생성 헬퍼 함수
+  const getCCTVIconBoxStyle = (count: number, pinScale: number) => {
+    const hasMultiple = count > 1;
+    return {
+      zIndex: 110,
+      position: 'relative' as const,
+      transform: `scale(${pinScale})`,
+      paddingLeft: hasMultiple ? '4px' : undefined,
+      paddingRight: hasMultiple ? '4px' : undefined
+    };
   };
 
   // CCTV 아이콘 렌더링 헬퍼 함수
@@ -180,27 +198,35 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             handleCCTVClick(cctvIds[0], borderColor);
           }}
         >
-          <div className={getCCTVIconClassName(getCCTVVariant(borderColor))} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
+          <div 
+            className={`${getCCTVIconClassName(getCCTVVariant(borderColor))} flex items-center justify-center ${cctvIds.length > 1 ? 'w-auto min-w-[28px]' : ''}`} 
+            style={getCCTVIconBoxStyle(cctvIds.length, pinScale)}
+          >
             <Icon 
               icon="mdi:cctv" 
               className={iconColor}
               width="16px" 
               height="16px"
             />
-            {/* 클러스터 뱃지 - 같은 위치에 여러 CCTV가 있을 때 */}
+            {/* CCTV 카메라 개수 - 축소 모드에서만 표시 */}
             {cctvIds.length > 1 && (
-              <div className={`${getCCTVBadgeClassName(getBadgeVariant(borderColor))} absolute -top-[18px] -right-[18px]`}>
-                {cctvIds.length}
-              </div>
+              <span className={`text-xs font-semibold ${iconColor} ml-1`} style={{ whiteSpace: 'nowrap' }}>
+                {formatCCTVCount(cctvIds.length)}
+              </span>
             )}
           </div>
           {showCCTVName && (
-            <div className={`${getCCTVLabelClassName(getCCTVVariant(borderColor))} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+            <div className={`${getCCTVLabelClassName(getCCTVVariant(borderColor))} mt-1`}>
               {cctvIds[0]}
             </div>
           )}
           {/* 타임라인 타이틀 */}
-          <div className={`${getCCTVLabelClassName(getCCTVVariant(borderColor))} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'} ${iconColor}`}>
+          <div 
+            className={`${getCCTVLabelClassName(getCCTVVariant(borderColor)).replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'}`} 
+            style={{ 
+              color: getTimelineTitleColor(iconColor)
+            }}
+          >
             {timelineTitle}
           </div>
           {/* 시야각 표시 */}
@@ -262,12 +288,17 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               />
             </div>
             {showCCTVName && (
-              <div className={`${getCCTVLabelClassName(getCCTVVariant(borderColor))} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+              <div className={`${getCCTVLabelClassName(getCCTVVariant(borderColor))} mt-1`}>
                 {cctvIds.length > 1 ? `${cctvId}-${index + 1}` : cctvId}
               </div>
             )}
             {/* 타임라인 타이틀 */}
-            <div className={`${getCCTVLabelClassName(getCCTVVariant(borderColor))} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'} ${iconColor}`}>
+            <div 
+              className={`${getCCTVLabelClassName(getCCTVVariant(borderColor)).replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'}`} 
+              style={{ 
+                color: getTimelineTitleColor(iconColor)
+              }}
+            >
               {timelineTitle}
             </div>
             {/* 시야각 표시 */}
@@ -458,23 +489,26 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   // 나중에 모달 띄울 예정
                 }}
               >
-                <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative', transform: `scale(${pinScale})` }}>
+                <div 
+                  className={`${getCCTVIconClassName('default')} flex items-center justify-center ${item.count > 1 ? 'w-auto min-w-[28px]' : ''}`} 
+                  style={{ ...getCCTVIconBoxStyle(item.count, pinScale), zIndex: 60 }}
+                >
                   <Icon 
                     icon="mdi:cctv" 
                     className="text-gray-400"
                     width="16px" 
                     height="16px"
                   />
-                  {/* 클러스터 뱃지 - 여러 CCTV가 있을 때 */}
+                  {/* CCTV 카메라 개수 - 축소 모드에서만 표시 */}
                   {item.count > 1 && (
-                    <div className={`${getCCTVBadgeClassName('default')} absolute -top-[18px] -right-[18px]`}>
-                      {item.count}
-                    </div>
+                    <span className="text-xs font-semibold text-gray-400 ml-1" style={{ whiteSpace: 'nowrap' }}>
+                      {formatCCTVCount(item.count)}
+                    </span>
                   )}
                 </div>
                 {/* CCTV 이름 라벨 */}
                 {showCCTVName && (
-                  <div className={`${getCCTVLabelClassName('default')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                  <div className={`${getCCTVLabelClassName('default')} mt-1`}>
                     {cctvName}
                   </div>
                 )}
@@ -537,7 +571,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   </div>
                   {/* CCTV 이름 라벨 */}
                   {showCCTVName && (
-                    <div className={`${getCCTVLabelClassName('default')} absolute top-full left-1/2 -translate-x-1/2 mt-1`}>
+                    <div className={`${getCCTVLabelClassName('default')} mt-1`}>
                       CCTV-V-{index + 1}-{i + 1}
                     </div>
                   )}
@@ -602,12 +636,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           45
         )}
         
-        {/* 2. CCTV-15 - 용의자가 차량에 아이 태우는 장면 포착 */}
+        {/* 2. CCTV-15 - 용의자가 차량에 아이 태우는 장면 포착 (과거 동선) */}
         {renderCCTVIcons(
           location3CCTVs,
           { left: 70, top: 65 },
-          'border-red-500',
-          'text-red-400',
+          'border-blue-500',
+          'text-blue-400',
           getTimelineTitle('CCTV-15'),
           135
         )}
@@ -666,27 +700,36 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   handleCCTVClick(location5CCTVs[0] || 'CCTV-16', 'border-red-500');
                 }}
               >
-                <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
+                <div 
+                  className={`${getCCTVIconClassName('tracking')} flex items-center justify-center ${location5CCTVs.length > 1 ? 'w-auto min-w-[28px]' : ''}`} 
+                  style={getCCTVIconBoxStyle(location5CCTVs.length, pinScale)}
+                >
                   <Icon 
                     icon="mdi:cctv" 
                     className="text-red-400" 
                     width="16px" 
                     height="16px"
                   />
-                  {/* 클러스터 뱃지 */}
+                  {/* CCTV 카메라 개수 - 축소 모드에서만 표시 */}
                   {location5CCTVs.length > 1 && (
-                    <div className={`${getCCTVBadgeClassName('tracking')} absolute -top-[18px] -right-[18px]`} style={{ zIndex: 30 }}>
-                      {location5CCTVs.length}
-                    </div>
+                    <span className="text-xs font-semibold text-red-400 ml-1" style={{ whiteSpace: 'nowrap' }}>
+                      {formatCCTVCount(location5CCTVs.length)}
+                    </span>
                   )}
                 </div>
                 {showCCTVName && (
-                  <div className={`${getCCTVLabelClassName('tracking')} absolute top-full left-1/2 -translate-x-1/2 mt-1`} style={{ zIndex: 140 }}>
+                  <div className={`${getCCTVLabelClassName('tracking')} mt-1`} style={{ zIndex: 140 }}>
                     현재 위치
                   </div>
                 )}
                 {/* 타임라인 타이틀 */}
-                <div className={`${getCCTVLabelClassName('tracking')} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'} text-red-400`} style={{ zIndex: 140 }}>
+                <div 
+                  className={`${getCCTVLabelClassName('tracking').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'}`} 
+                  style={{ 
+                    zIndex: 140,
+                    color: '#f87171'
+                  }}
+                >
                   {getTimelineTitle('현재 위치')}
                 </div>
               </div>
@@ -726,7 +769,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                       </div>
                     )}
                     {/* 타임라인 타이틀 */}
-                    <div className={`${getCCTVLabelClassName('tracking')} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'} text-red-400`}>
+                    <div 
+                      className={`${getCCTVLabelClassName('tracking').replace('text-white', '')} absolute top-full left-1/2 -translate-x-1/2 ${showCCTVName ? 'mt-8' : 'mt-1'}`} 
+                      style={{ 
+                        color: '#f87171'
+                      }}
+                    >
                       {getTimelineTitle('현재 위치')}
                     </div>
                   </div>

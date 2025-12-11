@@ -78,7 +78,7 @@ export const movementTimeline = [
     title: '용의자가 차량에 아이 태우는 장면 포착', 
     subtitle: '세 번째 CCTV',
     cctvName: 'CCTV-15',
-    color: 'text-red-400',
+    color: 'text-blue-400',
     cctvId: 'CCTV-15'
   },
   { 

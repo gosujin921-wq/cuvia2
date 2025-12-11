@@ -75,59 +75,67 @@ export const fontWeights = {
 
 export const buttonStyles = {
   primary: {
-    base: 'px-4 py-2 text-sm font-semibold transition-colors',
-    active: 'bg-blue-600 hover:bg-blue-700 text-white',
-    inactive: 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]',
+    base: "px-4 py-2 text-sm font-semibold transition-colors",
+    active: "bg-blue-600 hover:bg-blue-700 text-white",
+    inactive: "bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]",
   },
   secondary: {
-    base: 'px-4 py-2 text-sm font-semibold transition-colors',
-    active: 'bg-blue-600 hover:bg-blue-700 text-white',
-    inactive: 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]',
+    base: "px-4 py-2 text-sm font-semibold transition-colors",
+    active: "bg-blue-600 hover:bg-blue-700 text-white",
+    inactive: "bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]",
   },
   icon: {
-    base: 'w-10 h-10 flex items-center justify-center transition-colors',
-    active: 'bg-blue-600 hover:bg-blue-700 text-white',
-    inactive: 'bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]',
+    base: "w-10 h-10 flex items-center justify-center transition-colors",
+    active: "bg-blue-600 hover:bg-blue-700 text-white",
+    inactive: "bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]",
   },
   gradient: {
-    base: 'px-4 py-2 text-sm font-medium transition-colors flex items-center justify-center gap-2',
-    default: 'bg-gradient-to-r from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] text-white rounded',
+    base: "px-4 py-2 text-sm font-semibold transition-all flex items-center justify-center gap-2",
+    style: "bg-gradient-to-br from-[#7C62F0] to-[#5A3FEA] hover:from-[#8B72F5] hover:to-[#6A4FFA] text-white shadow-lg hover:shadow-xl",
   },
   recipient: {
-    base: 'px-3 py-1 text-xs border transition-colors',
-    active: 'bg-[#155DFC] text-white border-[#155DFC]',
-    inactive: 'bg-[#0f0f0f] border-[#31353a] text-gray-300 hover:bg-[#2a2a2a]',
+    base: "px-3 py-1.5 text-sm font-medium transition-colors rounded",
+    active: "bg-blue-600 hover:bg-blue-700 text-white",
+    inactive: "bg-[#1a1a1a] hover:bg-[#2a2a2a] text-gray-300 border border-[#2a2a2a]",
   },
 };
 
 export const cardStyles = {
-  default: 'bg-[#0f0f0f] border border-[#31353a] p-4 rounded',
-  compact: 'bg-[#0f0f0f] border border-[#31353a] p-2 rounded',
+  default: "bg-[#0f0f0f] border border-[#31353a] p-4 rounded",
+  compact: "bg-[#0f0f0f] border border-[#31353a] p-2 rounded",
 };
 
 export const inputStyles = {
-  default: 'w-full px-4 py-3 bg-[#0f0f0f] border border-[#2a2a2a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500',
+  default: "w-full px-4 py-3 bg-[#0f0f0f] border border-[#2a2a2a] text-white placeholder-gray-500 focus:outline-none focus:border-blue-500",
 };
 
 export const cctvIconStyles = {
-  default: 'w-7 h-7 bg-[#1a1a1a] border-2 border-gray-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform',
-  active: 'w-7 h-7 bg-[#1a1a1a] border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform',
-  tracking: 'w-7 h-7 bg-[#1a1a1a] border-2 border-red-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform',
-  warning: 'w-7 h-7 bg-[#1a1a1a] border-2 border-yellow-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform',
+  default: "w-7 h-7 bg-[#1a1a1a] border-2 border-gray-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform",
+  active: "w-7 h-7 bg-[#1a1a1a] border-2 border-blue-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform",
+  tracking: "w-7 h-7 bg-[#1a1a1a] border-2 border-red-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform",
+  warning: "w-7 h-7 bg-[#1a1a1a] border-2 border-yellow-500 rounded-lg flex items-center justify-center shadow-xl relative hover:scale-110 transition-transform",
 };
 
 export const cctvLabelStyles = {
-  base: 'absolute top-full left-1/2 -translate-x-1/2 mt-1 px-2 py-0.5 bg-[#1a1a1a] border rounded text-white text-xs whitespace-nowrap shadow-lg z-10',
-  default: 'border-gray-500',
-  active: 'border-blue-500',
-  tracking: 'border-red-500',
-  warning: 'border-yellow-500',
+  base: "absolute top-full left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#1a1a1a] border rounded text-white text-xs whitespace-nowrap shadow-lg z-10",
+  default: "border-gray-500",
+  active: "border-blue-500",
+  tracking: "border-red-500",
+  warning: "border-yellow-500",
+};
+
+export const timelineTitleStyles = {
+  base: "absolute top-full left-1/2 -translate-x-1/2 px-2 py-0.5 bg-[#1a1a1a] border rounded text-xs shadow-lg z-10 whitespace-normal break-words max-w-[300px] w-fit",
+  default: "border-gray-500",
+  active: "border-blue-500",
+  tracking: "border-red-500",
+  warning: "border-yellow-500",
 };
 
 export const cctvBadgeStyles = {
-  base: 'absolute -top-[18px] -right-[18px] w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 z-20',
-  default: 'bg-purple-500/90 border-purple-400',
-  tracking: 'bg-blue-500/90 border-blue-400',
+  base: "absolute -top-[18px] -right-[18px] w-6 h-6 rounded-full flex items-center justify-center text-white text-xs font-semibold shadow-lg border-2 z-20",
+  default: "bg-purple-500/90 border-purple-400",
+  tracking: "bg-blue-500/90 border-blue-400",
 };
 
 export const cctvViewAngleStyles = {
@@ -136,13 +144,13 @@ export const cctvViewAngleStyles = {
 };
 
 export const ptzButtonStyles = {
-  base: 'p-2 border border-[#31353a] text-white transition-colors',
-  default: 'bg-[#0f0f0f] hover:bg-[#2a2a2a]',
-  active: 'bg-blue-600',
+  base: "p-2 border border-[#31353a] text-white transition-colors",
+  default: "bg-[#0f0f0f] hover:bg-[#2a2a2a]",
+  active: "bg-blue-600",
   preset: {
-    base: 'w-12 h-12 border border-[#31353a] text-white transition-colors rounded-full text-xs flex items-center justify-center',
-    default: 'bg-[#0f0f0f] hover:bg-[#2a2a2a]',
-    active: 'bg-blue-600',
+    base: "w-12 h-12 border border-[#31353a] text-white transition-colors rounded-full text-xs flex items-center justify-center",
+    default: "bg-[#0f0f0f] hover:bg-[#2a2a2a]",
+    active: "bg-blue-600",
   },
 };
 
@@ -165,6 +173,16 @@ export const getSecondaryButtonClassName = () => {
 export const getIconButtonClassName = (isActive: boolean = false) => {
   const base = buttonStyles.icon.base;
   const state = isActive ? buttonStyles.icon.active : buttonStyles.icon.inactive;
+  return `${base} ${state}`.trim();
+};
+
+export const getGradientButtonClassName = () => {
+  return `${buttonStyles.gradient.base} ${buttonStyles.gradient.style}`.trim();
+};
+
+export const getRecipientButtonClassName = (isSelected: boolean = false) => {
+  const base = buttonStyles.recipient.base;
+  const state = isSelected ? buttonStyles.recipient.active : buttonStyles.recipient.inactive;
   return `${base} ${state}`.trim();
 };
 
@@ -192,6 +210,13 @@ export const getCCTVBadgeClassName = (variant: 'default' | 'tracking' = 'default
   return `${base} ${color}`.trim();
 };
 
+export const getTimelineTitleClassName = (variant: 'default' | 'active' | 'tracking' | 'warning' = 'default', showCCTVName: boolean = false) => {
+  const base = timelineTitleStyles.base;
+  const border = timelineTitleStyles[variant];
+  const marginClass = showCCTVName ? 'mt-8' : 'mt-1';
+  return `${base} ${border} ${marginClass}`.trim();
+};
+
 export const getCCTVViewAngleClassName = () => {
   return cctvViewAngleStyles.container;
 };
@@ -205,15 +230,5 @@ export const getPTZButtonClassName = (isActive: boolean = false) => {
 export const getPTZPresetButtonClassName = (isActive: boolean = false) => {
   const base = ptzButtonStyles.preset.base;
   const state = isActive ? ptzButtonStyles.preset.active : ptzButtonStyles.preset.default;
-  return `${base} ${state}`.trim();
-};
-
-export const getGradientButtonClassName = () => {
-  return `${buttonStyles.gradient.base} ${buttonStyles.gradient.default}`.trim();
-};
-
-export const getRecipientButtonClassName = (isSelected: boolean) => {
-  const base = buttonStyles.recipient.base;
-  const state = isSelected ? buttonStyles.recipient.active : buttonStyles.recipient.inactive;
   return `${base} ${state}`.trim();
 };
