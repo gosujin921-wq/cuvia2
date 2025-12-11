@@ -852,9 +852,16 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                     cy="10"
                     r="9"
                     fill="none"
-                    stroke="rgba(59, 130, 246, 0.6)"
+                    stroke="#3B82F6"
                     strokeWidth="1.8"
                     strokeDasharray="2.4 2.4"
+                  />
+                  {/* 대시 안에 여백을 둔 하늘색 원 */}
+                  <circle
+                    cx="10"
+                    cy="10"
+                    r="5.5"
+                    fill="#60A5FA"
                   />
                 </svg>
               </div>

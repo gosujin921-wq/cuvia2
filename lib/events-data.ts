@@ -475,6 +475,56 @@ export const generateAIInsight = (event: BaseEvent): string => {
   return `${title} 이벤트 발생. ${description || ''} ${location}에서 발생한 이벤트로 위험도 ${risk} (위험도 수치: ${riskScore}%)입니다. 현재 상황을 분석 중이며, 필요시 즉시 대응이 필요합니다.`;
 };
 
+// 사건 완료 시 알림 메시지 생성
+export const generateEventCompletionMessage = (event: BaseEvent, dashboardEvent: ReturnType<typeof convertToDashboardEvent> | null): string => {
+  const { type, title, location, domain } = event;
+  const resolution = dashboardEvent?.resolution;
+  const resolutionCode = resolution?.code || '상황 종료';
+  const resolutionDescription = resolution?.description || '사건이 종결되었습니다.';
+
+  // 사건 유형별 종료 메시지
+  let message = `이 사건이 종료되었습니다.\n\n`;
+  
+  message += `**처리 결과**\n`;
+  message += `${resolutionCode}\n`;
+  message += `${resolutionDescription}\n\n`;
+
+  // 사건 유형별 간단한 종료 메시지
+  if (domain === 'A') {
+    if (type.includes('유괴') || type.includes('납치')) {
+      message += `용의자가 확보되었고, 아동은 안전하게 보호되었습니다.`;
+    } else if (type.includes('폭행') || type.includes('상해')) {
+      message += `용의자가 확보되었고, 피해자는 응급처치를 받았습니다.`;
+    } else if (type.includes('절도') || type.includes('강도')) {
+      message += `용의자가 확보되었고, 현장 보전이 완료되었습니다.`;
+    } else {
+      message += `사건이 성공적으로 해결되었습니다.`;
+    }
+  } else if (domain === 'B') {
+    if (type.includes('화재')) {
+      message += `화재가 진압되었고, 인명 피해는 없었습니다.`;
+    } else if (type.includes('교통사고')) {
+      message += `부상자는 병원으로 이송되었고, 도로 통제가 해제되었습니다.`;
+    } else {
+      message += `사건이 성공적으로 해결되었습니다.`;
+    }
+  } else if (domain === 'C') {
+    if (type.includes('배회')) {
+      message += `배회자가 확인되었고, 안전하게 보호되었습니다.`;
+    } else if (type.includes('이탈') || type.includes('보호구역')) {
+      message += `위치가 확인되었고, 보호자와 연락이 완료되었습니다.`;
+    } else {
+      message += `사건이 성공적으로 해결되었습니다.`;
+    }
+  } else {
+    message += `사건이 성공적으로 해결되었습니다.`;
+  }
+
+  message += `\n\n더 이상 모니터링이 필요하지 않습니다.`;
+
+  return message;
+};
+
 // 간단한 AI 인사이트 (EventDetail용)
 export const generateSimpleAIInsight = (event: BaseEvent): string => {
   const insight = generateAIInsight(event);

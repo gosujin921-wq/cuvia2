@@ -164,13 +164,18 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
                           target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
                         }}
                       />
+                      {/* 정확도 라벨 */}
+                      <div className="absolute top-2 right-2 px-2 py-1 bg-purple-600/90 backdrop-blur-sm text-white text-xs font-semibold rounded">
+                        정확도 {detected.confidence}%
+                      </div>
                     </div>
                     <div className="p-1.5 space-y-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-white text-xs font-semibold truncate">{detected.cctvId}</span>
-                      </div>
-                      <div className="text-gray-400 text-xs truncate">{detected.location}</div>
-                      <div className="text-gray-500 text-xs truncate">{detected.situation}</div>
+                      {/* 이유: 타이틀 */}
+                      <div className="text-white text-xs font-semibold line-clamp-1">{detected.description || detected.aiAnalysis || '포착됨'}</div>
+                      {/* CCTV명 (한 줄 이상 시 ... 처리) */}
+                      <div className="text-gray-400 text-xs truncate">{detected.cctvId}</div>
+                      {/* 주소 */}
+                      <div className="text-gray-500 text-xs truncate">{detected.location}</div>
                     </div>
                   </div>
                 ))}
@@ -232,10 +237,12 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
                           </button>
                         </div>
                         <div className="p-1.5 space-y-0.5">
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-white text-xs font-semibold truncate">{cctv.id}</span>
+                          {/* 위치: 타이틀 */}
+                          <div className="text-white text-xs font-semibold line-clamp-1">
+                            {cctv.location || '위치 정보 없음'}
                           </div>
-                          <div className="text-gray-400 text-xs truncate">{cctv.location}</div>
+                          {/* CCTV명 (1줄 이상 시 ... 처리) */}
+                          <div className="text-gray-400 text-xs truncate">{cctv.id}</div>
                         </div>
                       </div>
                     );
@@ -250,7 +257,7 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
         {activeTab === 'movement' && (
           <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
             <div className="flex items-center gap-2 text-sm text-white font-semibold mb-3 flex-shrink-0">
-              <Icon icon="mdi:map-marker" className="text-green-300" style={{ width: `${4 * iconScale}px`, height: `${4 * iconScale}px` }} />
+              <Icon icon="mdi:map-marker" className="w-5 h-5 text-green-300" />
               위치 및 동선
             </div>
             <div className="space-y-2 text-sm overflow-y-auto flex-1 min-h-0">
@@ -271,7 +278,7 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
         )}
 
         {activeTab === 'analysis' && (
-          <div className="flex flex-col space-y-6 pt-4 flex-1 min-h-0 overflow-y-auto">
+          <div className="flex flex-col space-y-6 flex-1 min-h-0 overflow-y-auto">
           {/* 인물 분석 & 차량 분석 */}
           <div className="grid grid-cols-2 gap-6">
             {/* 인물 분석 */}

@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState, useMemo, Suspense } from 'react';
 import { Icon } from '@iconify/react';
 import { useParams } from 'next/navigation';
-import { getEventById, generateAIInsight, domainLabels, convertToDashboardEvent, formatEventDateTime } from '@/lib/events-data';
+import { getEventById, generateAIInsight, generateEventCompletionMessage, domainLabels, convertToDashboardEvent, formatEventDateTime } from '@/lib/events-data';
 import { EventLeftPanel } from '@/components/event-detail/EventLeftPanel';
 import { EventCenterPanel } from '@/components/event-detail/EventCenterPanel';
 import { EventCenterColumn1 } from '@/components/event-detail/EventCenterColumn1';
@@ -11,6 +11,7 @@ import { EventCenterColumn2 } from '@/components/event-detail/EventCenterColumn2
 import { DetectedCCTVClipPopup } from '@/components/event-detail/DetectedCCTVClipPopup';
 import { MapCCTVPopup } from '@/components/event-detail/MapCCTVPopup';
 import { CombinedCCTVPopup } from '@/components/event-detail/CombinedCCTVPopup';
+import { EventCompletionNotificationPopup } from '@/components/event-detail/EventCompletionNotificationPopup';
 import { EventData, RiskFactor, ChatMessage, SavedClip } from '@/components/event-detail/types';
 import { behaviorHighlights, movementTimeline, cctvInfo, cctvThumbnailMap, cctvFovMap, detectedCCTVThumbnails } from '@/components/event-detail/constants';
 import { ScaledLayout } from '@/components/layouts/ScaledLayout';
@@ -230,6 +231,8 @@ const EventDetailPageContent = () => {
   const [dragStartHeight, setDragStartHeight] = useState(0);
   const [showAdditionalDataPopup, setShowAdditionalDataPopup] = useState(false);
   const [showBroadcastDraftPopup, setShowBroadcastDraftPopup] = useState(false);
+  const [showCompletionPopup, setShowCompletionPopup] = useState(false);
+  const [completionMessage, setCompletionMessage] = useState<string>('');
   
   // 맵 확대 상태
   const [zoomLevel, setZoomLevel] = useState(0); // 0: 축소(클러스터), 1: 확대(개별)
@@ -351,6 +354,7 @@ const EventDetailPageContent = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [showMapCCTVPopup, showDetectedCCTVPopup, showCombinedCCTVPopup, showAdditionalDataPopup, showBroadcastDraftPopup]);
+
   const addClipsToBroadcastRef = useRef<((clips: Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>) => void) | null>(null);
   const openBroadcastModalRef = useRef<(() => void) | null>(null);
   const lastBroadcastConfirmHandledRef = useRef<number | null>(null);
@@ -640,6 +644,46 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
     if (!baseEvent) return null;
     return convertToDashboardEvent(baseEvent, 0);
   }, [baseEvent]);
+
+  // 사건 완료 시 팝업 표시
+  useEffect(() => {
+    if (dashboardEvent && dashboardEvent.processingStage === '종결' && !showCompletionPopup) {
+      const message = generateEventCompletionMessage(baseEvent!, dashboardEvent);
+      setCompletionMessage(message);
+      setShowCompletionPopup(true);
+    }
+  }, [dashboardEvent, baseEvent, showCompletionPopup]);
+
+  // 키보드 9 누르면 사건 완료 팝업 표시 (나중에 삭제할 기능 - 테스트용)
+  useEffect(() => {
+    // 팝업이 열려있으면 키보드 이벤트 무시
+    if (showMapCCTVPopup || showDetectedCCTVPopup || showCombinedCCTVPopup || showAdditionalDataPopup || showBroadcastDraftPopup || showCompletionPopup) {
+      return;
+    }
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 입력 필드에 포커스가 있으면 무시
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) {
+        return;
+      }
+
+      if (e.key === '9') {
+        e.preventDefault();
+        e.stopPropagation();
+        // 사건 완료 팝업 표시 (테스트용)
+        if (baseEvent) {
+          const message = generateEventCompletionMessage(baseEvent, dashboardEvent);
+          setCompletionMessage(message);
+          setShowCompletionPopup(true);
+        } else {
+          console.log('baseEvent가 없습니다.');
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [showMapCCTVPopup, showDetectedCCTVPopup, showCombinedCCTVPopup, showAdditionalDataPopup, showBroadcastDraftPopup, showCompletionPopup, baseEvent, dashboardEvent]);
   
   // 우선순위 매핑 (risk -> priority)
   const priorityMap: Record<string, '긴급' | '경계' | '주의'> = {
@@ -795,17 +839,17 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 movementTimeline={movementTimeline}
                 zoomLevel={zoomLevel}
               />
-            </div>
-          </div>
+                  </div>
+                      </div>
         </main>
-        </div>
+                              </div>
 
         {/* Right Panel - AI Agent (채팅) */}
         <aside className={`bg-white border-l border-[#31353a] flex flex-col overflow-hidden relative transition-all duration-300 flex-shrink-0 ${isRightPanelCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[30rem] opacity-100'}`} style={{ borderLeftWidth: isRightPanelCollapsed ? '0' : '1px', borderTopWidth: '0', borderBottomWidth: '0', minHeight: 0, height: '100%', alignSelf: 'stretch' }}>
           {!isRightPanelCollapsed && (
             <>
               {/* 우측 패널 토글 버튼 */}
-              <button
+                              <button
                 onClick={() => setIsRightPanelCollapsed(true)}
                 className="absolute top-1/2 -translate-y-1/2 -left-2 w-8 h-14 flex flex-col items-center justify-center gap-1 text-gray-400 hover:text-white transition-colors focus:outline-none z-50 bg-[#161719] border border-[#31353a] rounded"
                 style={{ borderWidth: '1px' }}
@@ -814,7 +858,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
                 <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
                 <span className="w-1.5 h-1.5 rounded-full bg-current opacity-50 scale-75" />
-              </button>
+                              </button>
               <div className="flex-1 overflow-y-auto">
                 <EventCenterPanel
                   categoryLabel={categoryLabel}
@@ -828,7 +872,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   setSelectedMapCCTV={setSelectedMapCCTV}
                   setShowMapCCTVPopup={setShowMapCCTVPopup}
                 />
-              </div>
+                            </div>
             </>
           )}
         </aside>
@@ -869,7 +913,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         return (
           <div
             className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-6"
-            onClick={() => {
+                              onClick={() => {
               setShowDetectedCCTVPopup(false);
               setSelectedDetectedCCTV(null);
             }}
@@ -906,18 +950,18 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                       <img
                         src={detectedItem.thumbnail}
                         alt={detectedItem.cctvName}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
+                                className="absolute inset-0 w-full h-full object-cover"
+                                onError={(e) => {
+                                  const target = e.target as HTMLImageElement;
                           target.src = cctvThumbnailMap[detectedItem.cctvId] || '/cctv_img/001.jpg';
-                        }}
-                      />
+                                }}
+                              />
                       <div className="absolute top-3 left-3 px-3 py-1.5 bg-black/70 rounded text-white text-xs font-semibold">
                         {detectedItem.timestamp}
-                      </div>
+                            </div>
                       <div className="absolute top-3 right-3 px-3 py-1.5 bg-purple-600/80 rounded text-white text-xs font-semibold">
                         신뢰도 {detectedItem.confidence}%
-                      </div>
+                          </div>
                     </div>
                   </div>
                   <div className="px-4 pb-4">
@@ -996,54 +1040,54 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                         
                         return (
                           <>
-                            <div>
+                <div>
                               <div className="text-gray-400 text-xs mb-1">CCTV</div>
                               <div className="text-white font-semibold text-sm">
                                 {detectedItem.cctvId}  (PTZ / 화각 {fov})
-                              </div>
-                            </div>
-                            <div>
+                    </div>
+                  </div>
+                      <div>
                               <div className="text-gray-400 text-xs mb-1">지점</div>
                               <div className="text-gray-300 text-sm">
                                 {cctvName}{locationText}
                               </div>
-                            </div>
-                            <div>
+                      </div>
+                      <div>
                               <div className="text-gray-400 text-xs mb-1">방향</div>
                               <div className="text-gray-300 text-sm">
                                 {directionText}
                               </div>
-                            </div>
-                            <div>
+                      </div>
+                      <div>
                               <div className="text-gray-400 text-xs mb-1">군집</div>
                               <div className="text-gray-300 text-sm">
                                 {getCluster(detectedItem.cctvId)}
                               </div>
-                            </div>
-                            <div>
+                      </div>
+                      <div>
                               <div className="text-gray-400 text-xs mb-1">상태</div>
                               <div className="text-gray-300 text-sm flex items-center gap-1.5">
                                 <span className="w-2 h-2 bg-red-500 rounded-full"></span>
                                 LIVE / 실시간 기록 중
                               </div>
-                            </div>
-                            <div>
+                      </div>
+                      <div>
                               <div className="text-gray-400 text-xs mb-1">AI분석</div>
                               <div className="text-gray-300 text-sm">
                                 객체·행동 감지 활성
                               </div>
-                            </div>
-                            <div>
+                      </div>
+                      <div>
                               <div className="text-gray-400 text-xs mb-1">최근포착</div>
                               <div className="text-gray-300 text-sm">
                                 {getRecentCaptures(detectedItem.cctvId)}
-                              </div>
-                            </div>
+                      </div>
+                    </div>
                           </>
                         );
                       })()}
-                    </div>
                   </div>
+                </div>
 
                   {/* 클립 제어 */}
                   <div className="flex-1 p-6 overflow-y-auto">
@@ -1080,8 +1124,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             >
                               <Icon icon="mdi:fast-forward-10" className="w-5 h-5" />
                             </button>
-                          </div>
-                        </div>
+                  </div>
+                  </div>
 
                         {/* 재생 타임라인 */}
                         <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
@@ -1089,7 +1133,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                             <div className="flex items-center justify-between text-xs text-gray-400">
                               <span>{formatTime(clipCurrentTime)}</span>
                               <span>{formatTime(clipDuration)}</span>
-                            </div>
+                </div>
                             <div className="relative">
                               <input
                                 type="range"
@@ -1102,9 +1146,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${(clipCurrentTime / (clipDuration || 1)) * 100}%, #0f0f0f ${(clipCurrentTime / (clipDuration || 1)) * 100}%, #0f0f0f 100%)`
                                 }}
                               />
-                            </div>
-                          </div>
-                        </div>
+              </div>
+            </div>
+          </div>
                       </div>
                     </div>
                   </div>
@@ -1130,9 +1174,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     <div className="flex items-center gap-2 mb-2">
                       <Icon icon="mdi:alert-circle" className="w-4 h-4 text-yellow-400" />
                       <span className="text-yellow-400 font-semibold text-sm">용의자 의심 이유</span>
-                    </div>
+        </div>
                     <p className="text-gray-300 text-sm leading-relaxed">{detectedItem.suspectReason}</p>
-                  </div>
+      </div>
                 )}
 
                 {/* 상황 설명 */}
@@ -1200,6 +1244,31 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         onTrackingReselectComplete={handleTrackingReselectComplete}
       />
 
+      {/* 사건 종료 알림 팝업 */}
+      <EventCompletionNotificationPopup
+        isOpen={showCompletionPopup}
+        time={event?.time || new Date().toLocaleString('ko-KR')}
+        eventTitle={event?.title || ''}
+        content={completionMessage}
+        onClose={() => setShowCompletionPopup(false)}
+        onStopMonitoring={() => {
+          // 모니터링 중단 처리
+          console.log('모니터링 중단');
+          setShowCompletionPopup(false);
+          // TODO: 실제 모니터링 중단 로직 구현
+        }}
+        onCreateReport={() => {
+          // 보고서 작성 - AI 에이전트에 전달
+          const reportPrompt = `이 사건에 대한 보고서를 작성해주세요.\n\n${completionMessage}`;
+          setChatInput(reportPrompt);
+          // 우측 패널이 접혀있으면 열기
+          if (isRightPanelCollapsed) {
+            setIsRightPanelCollapsed(false);
+          }
+          setShowCompletionPopup(false);
+        }}
+      />
+
       {/* 맵 CCTV 팝업 모달 (추적 아이콘 클릭 시) */}
         <MapCCTVPopup
           isOpen={showMapCCTVPopup}
@@ -1240,19 +1309,19 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
             setCurrentCctvIndex(0);
           }}
         >
-            <div
+          <div
               className="bg-[#101013] border border-[#31353a] w-full max-w-6xl flex flex-col shadow-lg"
               style={{ transform: 'scale(0.8)', transformOrigin: 'center center', maxHeight: '120vh', height: 'auto' }}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {/* 팝업 헤더 */}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* 팝업 헤더 */}
               <div className="flex items-center justify-between p-6 border-b border-[#31353a] flex-shrink-0">
-                <div className="flex items-center gap-2 text-base font-semibold text-white">
-                  <Icon icon="mdi:cctv" className="w-5 h-5 text-[#50A1FF]" />
+              <div className="flex items-center gap-2 text-base font-semibold text-white">
+                <Icon icon="mdi:cctv" className="w-5 h-5 text-[#50A1FF]" />
                   CCTV 팝업
-                </div>
-                <button
-                  onClick={() => {
+              </div>
+              <button
+                onClick={() => {
                     setShowMapCCTVPopup(false);
                     setSelectedMapCCTV(null);
                     setCctvClusterList([]);
@@ -1260,23 +1329,23 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   }}
                   className="text-gray-400 hover:text-white focus:outline-none transition-colors"
                   aria-label="CCTV 팝업 닫기"
-                >
-                  <Icon icon="mdi:close" className="w-5 h-5" />
-                </button>
-              </div>
+              >
+                <Icon icon="mdi:close" className="w-5 h-5" />
+              </button>
+            </div>
 
-              {/* 메인 콘텐츠 영역 */}
+            {/* 메인 콘텐츠 영역 */}
               <div className="flex">
-                {/* 왼쪽: CCTV 영상 */}
+              {/* 왼쪽: CCTV 영상 */}
                 <div className="flex-1 bg-black flex flex-col flex-shrink-0">
                   <div className="p-4 pb-3">
-                    <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
-                      <img
+                <div className="w-full aspect-video relative overflow-hidden rounded bg-black">
+                  <img
                         src={selectedMapCCTV ? (cctvThumbnailMap[selectedMapCCTV as string] || '/cctv_img/001.jpg') : '/cctv_img/001.jpg'}
                         alt={`${selectedMapCCTV || ''} 라이브`}
-                        className="absolute inset-0 w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
                           target.src = '/cctv_img/001.jpg';
                         }}
                       />
@@ -1296,8 +1365,8 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                               <div className="flex items-center gap-2">
                                 <Icon icon="mdi:robot" className="w-4 h-4 text-purple-400" />
                                 <span>{timelineEntry?.title}</span>
-                              </div>
-                            </div>
+                    </div>
+                </div>
                           );
                         }
                         return null;
@@ -1305,18 +1374,18 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                     </div>
                   </div>
                   <div className="px-4 pb-4">
-                    <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
-                      <span>{new Date().toISOString().slice(0, 19).replace('T', ' ')}</span>
-                    </div>
-                  </div>
+                <div className="flex items-center justify-between text-xs text-gray-400 font-mono">
+                  <span>{new Date().toISOString().slice(0, 19).replace('T', ' ')}</span>
                 </div>
+              </div>
+                  </div>
 
                 {/* 오른쪽: CCTV 정보 + PTZ 제어 */}
                 <div className="w-[400px] bg-[#0f0f0f] border-l border-[#31353a] flex flex-col flex-shrink-0" style={{ minHeight: 0 }}>
                   {/* CCTV 정보 */}
                   <div className="p-6 border-b border-[#31353a] flex-shrink-0">
                     <div className="text-white font-semibold text-sm mb-4">CCTV 정보</div>
-                    <div className="space-y-3">
+                  <div className="space-y-3">
                       {(() => {
                         if (!selectedMapCCTV) return null;
                         const cctvKey = Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedMapCCTV);
@@ -1435,28 +1504,28 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                         <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
                           <div className="grid grid-cols-3 gap-2">
                             <div></div>
-                            <button
+                      <button
                               onClick={handlePTZUp}
                               className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="위로 이동"
                             >
                               <Icon icon="mdi:chevron-up" className="w-5 h-5 mx-auto" />
-                            </button>
+                      </button>
                             <div></div>
-                            <button
+                      <button
                               onClick={handlePTZLeft}
                               className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="왼쪽으로 이동"
                             >
                               <Icon icon="mdi:chevron-left" className="w-5 h-5 mx-auto" />
-                            </button>
-                            <button
+                      </button>
+                      <button
                               onClick={handlePTZCenter}
                               className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="중앙"
                             >
                               <Icon icon="mdi:target" className="w-5 h-5 mx-auto" />
-                            </button>
+                      </button>
                             <button
                               onClick={handlePTZRight}
                               className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
@@ -1473,49 +1542,49 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                               <Icon icon="mdi:chevron-down" className="w-5 h-5 mx-auto" />
                             </button>
                             <div></div>
-                          </div>
-                        </div>
+                  </div>
+                </div>
 
                         {/* Zoom 제어 */}
                         <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4">
                           <div className="flex items-center gap-2">
-                            <button
+                    <button
                               onClick={handleZoomOut}
                               className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="줌 아웃"
                             >
                               <Icon icon="mdi:minus" className="w-5 h-5" />
-                            </button>
+                    </button>
                             <div className="flex-1 h-2 bg-[#0f0f0f] rounded-full relative">
                               <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-yellow-400 rounded-full"></div>
                             </div>
-                            <button
+                    <button
                               onClick={handleZoomIn}
                               className="p-2 border border-[#31353a] text-white transition-colors rounded bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                               aria-label="줌 인"
                             >
                               <Icon icon="mdi:plus" className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
+                    </button>
+                </div>
+              </div>
+            </div>
 
                       {/* 프리셋 */}
                       <div className="bg-[#1a1a1a] border border-[#31353a] rounded-lg p-4 flex-1">
                         <div className="grid grid-cols-3 gap-2">
                           {[1, 2, 3, 4, 5, 6].map((preset) => (
-                            <button
+                        <button
                               key={preset}
                               onClick={() => handlePreset(preset)}
                               className="w-12 h-12 border border-[#31353a] text-white transition-colors rounded-full text-xs flex items-center justify-center bg-[#0f0f0f] hover:bg-[#2a2a2a]"
                             >
                               {preset}
-                            </button>
+                        </button>
                           ))}
                         </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
                 </div>
               </div>
 
@@ -1525,17 +1594,17 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   <div className="flex items-center justify-between mb-3">
                     <div className="text-gray-400 text-xs font-medium">클러스터 CCTV</div>
                     <div className="flex items-center gap-3">
-                      <button
+              <button
                         onClick={handlePrevCCTV}
                         className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                         aria-label="이전 CCTV"
                       >
                         <Icon icon="mdi:chevron-left" className="w-5 h-5" />
-                      </button>
+              </button>
                       <span className="text-sm text-gray-400">
                         {currentIndex + 1}/{currentCluster.length}
                       </span>
-                      <button
+                <button
                         onClick={handleNextCCTV}
                         className="p-2 bg-[#1a1a1a] border border-[#31353a] text-white hover:bg-[#2a2a2a] transition-colors rounded"
                         aria-label="다음 CCTV"
@@ -1550,7 +1619,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                       return (
                         <button
                           key={cctvId}
-                          onClick={() => {
+                  onClick={() => {
                             setSelectedMapCCTV(cctvId);
                             setCurrentCctvIndex(index);
                           }}
@@ -1569,7 +1638,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                               target.src = '/cctv_img/001.jpg';
                             }}
                           />
-                        </button>
+                </button>
                       );
                     })}
                   </div>
@@ -1590,9 +1659,9 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 >
                   닫기
                 </button>
-              </div>
             </div>
           </div>
+        </div>
       )}
     </ScaledLayout>
   );

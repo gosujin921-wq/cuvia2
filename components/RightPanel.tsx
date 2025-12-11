@@ -932,29 +932,6 @@ const RightPanel = () => {
           </div>
         </div>
 
-        {/* 키보드 단축키 안내 */}
-        <div className="space-y-2.5">
-          <h3 className="text-white font-semibold text-sm">키보드 단축키</h3>
-          <div className="bg-[#36383B] border border-[#31353a] p-3 space-y-2" style={{ borderWidth: '1px' }}>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-300">1</span>
-              <span className="text-white">유괴 의심 사건으로 이동</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-300">ESC</span>
-              <span className="text-white">선택 해제</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-300">↑ ↓</span>
-              <span className="text-white">이벤트 목록 탐색</span>
-            </div>
-            <div className="flex items-center justify-between text-xs">
-              <span className="text-gray-300">Enter</span>
-              <span className="text-white">이벤트 선택</span>
-            </div>
-          </div>
-        </div>
-
         {/* 3) 도시 기반시설 운영 상태 */}
         <div className="space-y-2.5" ref={infrastructureRef}>
           <h3 className="text-white font-semibold text-sm">도시 기반시설 운영 상태</h3>

@@ -243,9 +243,12 @@ export const DetectedCCTVClipPopup = ({
               {/* AI 해석 */}
               {detected.aiAnalysis && (
                 <div className="bg-[#0f1723] border border-[#155DFC] p-4 rounded">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon icon="mdi:sparkles" className="w-4 h-4 text-[#50A1FF]" />
-                    <span className="text-[#50A1FF] font-semibold text-sm">AI 해석</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="mdi:sparkles" className="w-4 h-4 text-[#50A1FF]" />
+                      <span className="text-[#50A1FF] font-semibold text-sm">AI 해석</span>
+                    </div>
+                    <span className="text-purple-400 text-xs font-semibold">정확도 {detected.confidence}%</span>
                   </div>
                   <p className="text-white text-sm leading-relaxed">{detected.aiAnalysis}</p>
                 </div>
@@ -254,9 +257,12 @@ export const DetectedCCTVClipPopup = ({
               {/* 용의자 의심 이유 */}
               {detected.suspectReason && (
                 <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon icon="mdi:alert-circle" className="w-4 h-4 text-yellow-400" />
-                    <span className="text-yellow-400 font-semibold text-sm">용의자 의심 이유</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="mdi:alert-circle" className="w-4 h-4 text-yellow-400" />
+                      <span className="text-yellow-400 font-semibold text-sm">용의자 의심 이유</span>
+                    </div>
+                    <span className="text-purple-400 text-xs font-semibold">정확도 {detected.confidence}%</span>
                   </div>
                   <p className="text-gray-300 text-sm leading-relaxed">{detected.suspectReason}</p>
                 </div>
@@ -265,9 +271,12 @@ export const DetectedCCTVClipPopup = ({
               {/* 상황 설명 */}
               {detected.situation && (
                 <div className="bg-[#1a1a1a] border border-[#31353a] p-4 rounded">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Icon icon="mdi:information" className="w-4 h-4 text-blue-400" />
-                    <span className="text-blue-400 font-semibold text-sm">상황 설명</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="mdi:information" className="w-4 h-4 text-blue-400" />
+                      <span className="text-blue-400 font-semibold text-sm">상황 설명</span>
+                    </div>
+                    <span className="text-purple-400 text-xs font-semibold">정확도 {detected.confidence}%</span>
                   </div>
                   <p className="text-gray-300 text-sm leading-relaxed">{detected.situation}</p>
                 </div>

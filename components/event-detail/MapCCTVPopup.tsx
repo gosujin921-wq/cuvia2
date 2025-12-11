@@ -56,7 +56,7 @@ export const MapCCTVPopup = ({
 }: MapCCTVPopupProps) => {
   const [activeKey, setActiveKey] = useState<string | null>(null);
   const [isTrackingBoxDraggable, setIsTrackingBoxDraggable] = useState(false);
-  const [trackingBoxPosition, setTrackingBoxPosition] = useState({ top: 30, left: 40 }); // 퍼센트 기준
+  const [trackingBoxPosition, setTrackingBoxPosition] = useState({ top: 50, left: 50 }); // 퍼센트 기준 (이미지 중앙)
   const [isDragging, setIsDragging] = useState(false);
 
   // 키보드 이벤트 핸들러
@@ -323,6 +323,10 @@ export const MapCCTVPopup = ({
           {/* 오른쪽: 클러스터 CCTV (영상 높이에 맞춤, 2컬럼) */}
           {hasMultiple && (
             <div className="w-[400px] pl-4 overflow-hidden">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-white font-semibold text-sm">주변 CCTV</div>
+                <div className="text-xs text-gray-400">총 {currentCluster.length}대</div>
+              </div>
               <div className="grid grid-cols-2 gap-2">
                 {currentCluster.map((cctvId: string, index: number) => {
                   const isActive = cctvId === selectedMapCCTV;
@@ -333,7 +337,7 @@ export const MapCCTVPopup = ({
                         setSelectedMapCCTV(cctvId);
                         setCurrentCctvIndex(index);
                       }}
-                      className={`aspect-video rounded overflow-hidden border-2 transition-all ${
+                      className={`relative aspect-video rounded overflow-hidden border-2 transition-all ${
                         isActive 
                           ? 'border-blue-500 ring-2 ring-blue-500/30' 
                           : 'border-[#31353a] hover:border-blue-500/50'
@@ -348,6 +352,11 @@ export const MapCCTVPopup = ({
                           target.src = '/cctv_img/001.jpg';
                         }}
                       />
+                      <div className="absolute inset-x-0 bottom-0 bg-black/60 px-2 py-1">
+                        <div className="text-white text-xs font-semibold truncate" title={cctvId}>
+                          {cctvId}
+                        </div>
+                      </div>
                     </button>
                   );
                 })}
@@ -509,27 +518,6 @@ export const MapCCTVPopup = ({
             닫기
           </button>
           <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={() => {
-                if (isTrackingBoxDraggable) {
-                  // 추적대상 재선택 완료
-                  if (onTrackingReselectComplete) {
-                    onTrackingReselectComplete();
-                  }
-                  setIsTrackingBoxDraggable(false);
-                  onClose();
-                } else {
-                  setIsTrackingBoxDraggable(true);
-                  if (onTrackingReselectStart) {
-                    onTrackingReselectStart();
-                  }
-                }
-              }}
-              className={isTrackingBoxDraggable ? getPrimaryButtonClassName() : getSecondaryButtonClassName()}
-            >
-              {isTrackingBoxDraggable ? '추적대상 재선택 완료' : '추적대상 재추적'}
-            </button>
           {selectedMapCCTV && monitoringCCTVs && (
             <>
               {!monitoringCCTVs.includes(selectedMapCCTV) && handleAddToMonitoring && (
