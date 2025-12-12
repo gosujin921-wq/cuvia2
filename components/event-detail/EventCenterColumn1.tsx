@@ -39,6 +39,20 @@ interface EventCenterColumn1Props {
     onClose: () => void;
     onSendToAgent: () => void;
   };
+  // 프로토타입용 props
+  prototypePin1Visible?: boolean;
+  prototypePin2Visible?: boolean;
+  prototypePin3Visible?: boolean;
+  prototypeRouteVisible?: boolean;
+  prototypePin1Label?: string;
+  prototypePin1Pulse?: boolean;
+  prototypePin1Color?: 'red' | 'yellow';
+  prototypePin2Pulse?: boolean;
+  prototypeShowRoute1to2?: boolean;
+  prototypePin3Pulse?: boolean;
+  prototypeShowRoute2to3?: boolean;
+  prototypePin3Color?: 'blue' | 'red';
+  prototypeShowRoute3to4?: boolean;
 }
 
 export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
@@ -63,6 +77,19 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
   zoomLevel: propZoomLevel,
   setZoomLevel: propSetZoomLevel,
   additionalDataNotification,
+  prototypePin1Visible = true,
+  prototypePin2Visible = true,
+  prototypePin3Visible = true,
+  prototypeRouteVisible = true,
+  prototypePin1Label,
+  prototypePin1Pulse = false,
+  prototypePin1Color = 'red',
+  prototypePin2Pulse = false,
+  prototypeShowRoute1to2 = false,
+  prototypePin3Pulse = false,
+  prototypeShowRoute2to3 = false,
+  prototypePin3Color = 'blue',
+  prototypeShowRoute3to4 = false,
 }) => {
   // 줌 레벨 기본값 (prop이 없으면 내부 상태 사용)
   const [internalZoomLevel, setInternalZoomLevel] = React.useState(0);
@@ -261,9 +288,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
       return cctvIds.map((cctvId, index) => {
         // 개별 아이콘들을 약간씩 다른 위치에 배치 (원형으로 배치)
         const angle = (index / cctvIds.length) * 2 * Math.PI;
-        const radius = 2; // 퍼센트 단위
+        const radius = cctvIds.length > 1 ? 4.5 : 0; // 퍼센트 단위, 여러 개일 때만 분산
         const offsetLeft = Math.cos(angle) * radius;
         const offsetTop = Math.sin(angle) * radius;
+        
+        // 각 CCTV마다 다른 시야각 회전값 적용 (0도부터 시작해서 각도별로 분산)
+        const individualViewAngle = viewAngleRotation + (index * 45); // 각 CCTV마다 45도씩 회전
         
         return (
           <div
@@ -279,7 +309,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               handleCCTVClick(cctvId, borderColor);
             }}
           >
-            <div className={getCCTVIconClassName(getCCTVVariant(borderColor))} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
+            <div className={getCCTVIconClassName(getCCTVVariant(borderColor))} style={getCCTVIconBoxStyle(1, pinScale)}>
               <Icon 
                 icon="mdi:cctv" 
                 className={iconColor}
@@ -310,7 +340,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                   height: '120px',
                   left: '50%',
                   top: '50%',
-                  transform: `translate(-50%, -50%) rotate(${viewAngleRotation}deg)`,
+                  transform: `translate(-50%, -50%) rotate(${individualViewAngle}deg)`,
                   transformOrigin: 'center center',
                   pointerEvents: 'none',
                   zIndex: 50,
@@ -543,9 +573,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             // 확대 모드: 개별 CCTV 아이콘 표시
             return Array.from({ length: item.count }, (_, i) => {
               const angle = (i / item.count) * 2 * Math.PI;
-              const radius = 2;
+              const radius = item.count > 1 ? 4.5 : 0; // 퍼센트 단위, 여러 개일 때만 분산
               const offsetLeft = Math.cos(angle) * radius;
               const offsetTop = Math.sin(angle) * radius;
+              
+              // 각 CCTV마다 다른 시야각 회전값 적용
+              const individualViewAngle = item.viewAngle + (i * 45); // 각 CCTV마다 45도씩 회전
               
               return (
                   <div
@@ -561,7 +594,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                       // 나중에 모달 띄울 예정
                     }}
                   >
-                    <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative', transform: `scale(${pinScale})` }}>
+                    <div className={getCCTVIconClassName('default')} style={{ ...getCCTVIconBoxStyle(1, pinScale), zIndex: 60 }}>
                       <Icon 
                         icon="mdi:cctv" 
                         className="text-gray-400"
@@ -584,7 +617,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                         height: '120px',
                         left: '50%',
                         top: '50%',
-                        transform: `translate(-50%, -50%) rotate(${item.viewAngle}deg)`,
+                        transform: `translate(-50%, -50%) rotate(${individualViewAngle}deg)`,
                         transformOrigin: 'center center',
                         pointerEvents: 'none',
                         zIndex: 30,
@@ -606,61 +639,226 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
           }
         })}
 
-        </div>
-
         {/* 지도 이미지 위에 SVG 오버레이 - 동선은 항상 표시 */}
         {/* 프로그레스바가 표시될 때는 동선 숨김 (추적 핀과 동일하게) */}
-        {!isTrackingProgress && (
-          <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" preserveAspectRatio="none">
-            {/* 동선 경로 - 타임라인 순서대로: CCTV-7 (노란색) → CCTV-15 → CCTV-12 → 현재 위치 (빨간색) */}
-            <polyline 
-              points={`30,160 140,130 80,120 ${trackingPinPosition.left * 2},${trackingPinPosition.top * 2}`}
-              fill="none" 
-              stroke="#5390ff" 
-              strokeWidth="0.5" 
-              strokeDasharray="2 2"
-              className="animate-dash"
-            />
+        {!isTrackingProgress && (prototypeRouteVisible || prototypeShowRoute1to2) && (
+          <svg viewBox="0 0 200 200" className="absolute inset-0 w-full h-full" preserveAspectRatio="none" style={{ visibility: (prototypeRouteVisible || prototypeShowRoute1to2) ? 'visible' : 'hidden' }}>
+            {/* 전체 동선 경로 - 타임라인 순서대로: CCTV-7 (노란색) → CCTV-15 → CCTV-12 → 현재 위치 (빨간색) */}
+            {prototypeRouteVisible && (
+              <polyline 
+                points={`30,160 140,130 80,120 ${trackingPinPosition.left * 2},${trackingPinPosition.top * 2}`}
+                fill="none" 
+                stroke="#5390ff" 
+                strokeWidth="0.5" 
+                strokeDasharray="2 2"
+                className="animate-dash"
+              />
+            )}
+            {/* 핀1과 핀2 사이 동선 (프로토타입) */}
+            {prototypeShowRoute1to2 && (
+              <polyline 
+                points="30,160 140,130"
+                fill="none" 
+                stroke="#5390ff" 
+                strokeWidth="0.5" 
+                strokeDasharray="2 2"
+                className="animate-dash"
+              />
+            )}
+            {/* 핀2와 핀3 사이 동선 (프로토타입) */}
+            {prototypeShowRoute2to3 && (
+              <polyline 
+                points="140,130 80,120"
+                fill="none" 
+                stroke="#5390ff" 
+                strokeWidth="0.5" 
+                strokeDasharray="2 2"
+                className="animate-dash"
+              />
+            )}
+            {/* 핀3과 핀4 사이 동선 (프로토타입) */}
+            {prototypeShowRoute3to4 && (
+              <polyline 
+                points={`80,120 ${trackingPinPosition.left * 2},${trackingPinPosition.top * 2}`}
+                fill="none" 
+                stroke="#5390ff" 
+                strokeWidth="0.5" 
+                strokeDasharray="2 2"
+                className="animate-dash"
+              />
+            )}
           </svg>
         )}
 
         {/* CCTV 아이콘들로 핀 대체 - 컬러 CCTV는 항상 표시 */}
         {/* 타임라인 순서: CCTV-7 (노란색) → CCTV-15 → CCTV-12 → 현재 위치 (빨간색) */}
-        {/* 1. CCTV-7 (노란색) - 유괴범과 아동 함께 이동 포착 */}
-        {renderCCTVIcons(
-          location1CCTVs,
-          { left: 15, top: 80 },
-          'border-yellow-500',
-          'text-yellow-400',
-          getTimelineTitle('CCTV-7'),
-          45
+        {/* 1. CCTV-7 (추적동선 - 빨간색) - 신고지역 */}
+        {prototypePin1Visible && (
+          <div 
+            className="absolute flex items-center justify-center" 
+            style={{ left: '15%', top: '80%', transform: 'translate(-50%, -50%)', zIndex: 120 }}
+          >
+            {/* 고정된 대쉬 스트로크 원 (제일 큰 원, 애니메이션 없음) - 추적 범위 표시 */}
+            {prototypePin1Pulse && (
+              <div className="absolute" style={{ width: '176px', height: '176px', zIndex: 75, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', visibility: prototypePin1Pulse ? 'visible' : 'hidden' }}>
+                <svg width="176" height="176" viewBox="0 0 176 176" style={{ position: 'absolute', top: 0, left: 0 }}>
+                  <circle
+                    cx="88"
+                    cy="88"
+                    r="88"
+                    fill="none"
+                    stroke="rgba(59, 130, 246, 0.6)"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                  />
+                </svg>
+                {/* 범위 라벨 */}
+                <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', marginTop: '100px', zIndex: 76 }}>
+                  <span className="text-blue-400 text-xs font-semibold whitespace-nowrap">추적 범위 : 500m</span>
+                </div>
+              </div>
+            )}
+            {/* 펄스 애니메이션 원들 (blue 컬러) */}
+            {prototypePin1Pulse && (
+              <>
+                <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80, animationDelay: '0s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.5)' }}></div>
+                </div>
+                <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 79, animationDelay: '0.3s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.4)' }}></div>
+                </div>
+                <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 78, animationDelay: '0.6s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.3)' }}></div>
+                </div>
+              </>
+            )}
+            {/* CCTV 아이콘 */}
+            <div style={{ zIndex: 130, position: 'relative' }}>
+              {renderCCTVIcons(
+                location1CCTVs,
+                { left: 15, top: 80 },
+                prototypePin1Color === 'yellow' ? 'border-yellow-500' : 'border-red-500',
+                prototypePin1Color === 'yellow' ? 'text-yellow-400' : 'text-red-400',
+                prototypePin1Label || getTimelineTitle('CCTV-7'),
+                45
+              )}
+            </div>
+          </div>
         )}
         
         {/* 2. CCTV-15 - 용의자가 차량에 아이 태우는 장면 포착 (과거 동선) */}
-        {renderCCTVIcons(
-          location3CCTVs,
-          { left: 70, top: 65 },
-          'border-blue-500',
-          'text-blue-400',
-          getTimelineTitle('CCTV-15'),
-          135
+        {prototypePin2Visible && (
+          <div 
+            className="absolute flex items-center justify-center" 
+            style={{ left: '70%', top: '65%', transform: 'translate(-50%, -50%)', zIndex: 120, visibility: prototypePin2Visible ? 'visible' : 'hidden' }}
+          >
+            {/* 고정된 대쉬 스트로크 원 (제일 큰 원, 애니메이션 없음) - 추적 범위 표시 */}
+            {prototypePin2Pulse && (
+              <div className="absolute" style={{ width: '176px', height: '176px', zIndex: 75, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', visibility: prototypePin2Pulse ? 'visible' : 'hidden' }}>
+                <svg width="176" height="176" viewBox="0 0 176 176" style={{ position: 'absolute', top: 0, left: 0 }}>
+                  <circle
+                    cx="88"
+                    cy="88"
+                    r="88"
+                    fill="none"
+                    stroke="rgba(59, 130, 246, 0.6)"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                  />
+                </svg>
+                {/* 범위 라벨 */}
+                <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', marginTop: '100px', zIndex: 76 }}>
+                  <span className="text-blue-400 text-xs font-semibold whitespace-nowrap">추적 범위 : 500m</span>
+                </div>
+              </div>
+            )}
+            {/* 펄스 애니메이션 원들 (blue 컬러) */}
+            {prototypePin2Pulse && (
+              <>
+                <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 80, animationDelay: '0s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.5)' }}></div>
+                </div>
+                <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 79, animationDelay: '0.3s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.4)' }}></div>
+                </div>
+                <div className="absolute animate-circle-pulse" style={{ width: '80px', height: '80px', zIndex: 78, animationDelay: '0.6s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.3)' }}></div>
+                </div>
+              </>
+            )}
+            {/* CCTV 아이콘 */}
+            <div style={{ zIndex: 130, position: 'relative' }}>
+              {renderCCTVIcons(
+                location3CCTVs,
+                { left: 70, top: 65 },
+                'border-blue-500',
+                'text-blue-400',
+                getTimelineTitle('CCTV-15'),
+                135
+              )}
+            </div>
+          </div>
         )}
         
         {/* 3. CCTV-12 - 차량 도주 추적 중 */}
-        {renderCCTVIcons(
-          location2CCTVs,
-          { left: 40, top: 60 },
-          'border-blue-500',
-          'text-blue-400',
-          getTimelineTitle('CCTV-12'),
-          90
+        {prototypePin3Visible && (
+          <div 
+            className="absolute flex items-center justify-center" 
+            style={{ left: '40%', top: '60%', transform: 'translate(-50%, -50%)', zIndex: 120, visibility: prototypePin3Visible ? 'visible' : 'hidden' }}
+          >
+            {/* 고정된 대쉬 스트로크 원 (제일 큰 원, 애니메이션 없음) - 추적 범위 표시 (1.5배) */}
+            {prototypePin3Pulse && (
+              <div className="absolute" style={{ width: '264px', height: '264px', zIndex: 75, left: '50%', top: '50%', transform: 'translate(-50%, -50%)', visibility: prototypePin3Pulse ? 'visible' : 'hidden' }}>
+                <svg width="264" height="264" viewBox="0 0 264 264" style={{ position: 'absolute', top: 0, left: 0 }}>
+                  <circle
+                    cx="132"
+                    cy="132"
+                    r="132"
+                    fill="none"
+                    stroke="rgba(59, 130, 246, 0.6)"
+                    strokeWidth="2"
+                    strokeDasharray="4 4"
+                  />
+                </svg>
+                {/* 범위 라벨 */}
+                <div className="absolute" style={{ top: '50%', left: '50%', transform: 'translate(-50%, -50%)', marginTop: '150px', zIndex: 76 }}>
+                  <span className="text-blue-400 text-xs font-semibold whitespace-nowrap">추적 범위 : 1,000m</span>
+                </div>
+              </div>
+            )}
+            {/* 펄스 애니메이션 원들 (1.5배 크기) */}
+            {prototypePin3Pulse && (
+              <>
+                <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 80, animationDelay: '0s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.5)' }}></div>
+                </div>
+                <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 79, animationDelay: '0.3s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.4)' }}></div>
+                </div>
+                <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 78, animationDelay: '0.6s' }}>
+                  <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(59, 130, 246, 0.3)' }}></div>
+                </div>
+              </>
+            )}
+            {/* CCTV 아이콘 */}
+            <div style={{ zIndex: 130, position: 'relative' }}>
+              {renderCCTVIcons(
+                location2CCTVs,
+                { left: 40, top: 60 },
+                prototypePin3Color === 'red' ? 'border-red-500' : 'border-blue-500',
+                prototypePin3Color === 'red' ? 'text-red-400' : 'text-blue-400',
+                getTimelineTitle('CCTV-12'),
+                90
+              )}
+            </div>
+          </div>
         )}
         
         {/* 현재 위치 CCTV - 모든 요소를 하나의 컨테이너에 중앙 정렬 */}
         {isTrackingPinVisible && (
           <div 
             className="absolute flex items-center justify-center" 
-            style={{ left: `${trackingPinPosition.left}%`, top: `${trackingPinPosition.top}%`, transform: 'translate(-50%, -50%)', zIndex: 120, width: '80px', height: '80px' }}
+            style={{ left: `${trackingPinPosition.left}%`, top: `${trackingPinPosition.top}%`, transform: 'translate(-50%, -50%)', zIndex: 120 }}
           >
             {/* 고정된 대쉬 스트로크 원 (제일 큰 원, 애니메이션 없음) - 추적 범위 표시 */}
             <div className="absolute" style={{ width: '176px', height: '176px', zIndex: 75, left: '50%', top: '50%', transform: 'translate(-50%, -50%)' }}>
@@ -737,9 +935,12 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
               // 확대 모드: 개별 CCTV 아이콘 표시
               location5CCTVs.map((cctvId, index) => {
                 const angle = (index / location5CCTVs.length) * 2 * Math.PI;
-                const radius = 2;
+                const radius = location5CCTVs.length > 1 ? 4.5 : 0; // 퍼센트 단위, 여러 개일 때만 분산
                 const offsetLeft = Math.cos(angle) * radius;
                 const offsetTop = Math.sin(angle) * radius;
+                
+                // 각 CCTV마다 다른 시야각 회전값 적용
+                const individualViewAngle = 0 + (index * 45); // 각 CCTV마다 45도씩 회전
                 
                 return (
                   <div
@@ -755,7 +956,7 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
                       handleCCTVClick(cctvId, 'border-red-500');
                     }}
                   >
-                    <div className={getCCTVIconClassName('tracking')} style={{ zIndex: 110, position: 'relative', transform: `scale(${pinScale})` }}>
+                    <div className={getCCTVIconClassName('tracking')} style={getCCTVIconBoxStyle(1, pinScale)}>
                       <Icon 
                         icon="mdi:cctv" 
                         className="text-red-400" 
@@ -783,6 +984,8 @@ export const EventCenterColumn1: React.FC<EventCenterColumn1Props> = ({
             )}
           </div>
         )}
+
+        </div>
 
         {/* 프로그레스바 오버레이 */}
         {isTrackingProgress && (

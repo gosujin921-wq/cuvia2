@@ -638,7 +638,7 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
                     // 나중에 모달 띄울 예정
                   }}
                 >
-                  <div className={getCCTVIconClassName('default')} style={{ zIndex: 60, position: 'relative' }}>
+                  <div className={getCCTVIconClassName('default')} style={{ ...getCCTVIconBoxStyle(1, mapScale, false, 60) }}>
                     <Icon 
                       icon="mdi:cctv" 
                       className="text-gray-400"
@@ -700,6 +700,92 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
             </div>
           );
         })()}
+
+        {/* 이벤트 핀들 - 추적 CCTV 아이콘으로 표시 */}
+        <div className="absolute inset-0" style={{ zIndex: 100, width: '100%', height: '100%', pointerEvents: 'none' }}>
+          {(events || []).map((event) => {
+            const position = getEventPosition(event);
+            const isHighlighted = highlightedEventId === event.id;
+            const isSelected = selectedEventId === event.id;
+
+            return (
+              <div
+                key={event.id}
+                data-event-pin
+                className="absolute flex items-center justify-center"
+                style={{
+                  left: `${position.left}%`,
+                  top: `${position.top}%`,
+                  transform: 'translate(-50%, -50%)',
+                  zIndex: isSelected ? 150 : isHighlighted ? 140 : 100,
+                  pointerEvents: 'auto',
+                }}
+              >
+                {/* 펄스 애니메이션 (여러 레이어) - 선택된 이벤트에만 표시, "상가 절도 의심, 현금 절취 포착" 제외 */}
+                {isSelected && !event.title.includes('상가 절도 의심') && !event.title.includes('현금 절취 포착') && (
+                  <>
+                    <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 80, animationDelay: '0s' }}>
+                      <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
+                    </div>
+                    <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 79, animationDelay: '0.3s' }}>
+                      <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.4)' }}></div>
+                    </div>
+                    <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 78, animationDelay: '0.6s' }}>
+                      <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}></div>
+                    </div>
+                  </>
+                )}
+                
+                {/* 추적 CCTV 아이콘 */}
+                <div 
+                  className="absolute cursor-pointer" 
+                  style={{ zIndex: 130 }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEventClick?.(event.id);
+                  }}
+                >
+                  {(() => {
+                    // 같은 위치에 있는 이벤트 개수 계산 (위치가 1% 이내로 가까운 경우)
+                    const samePositionEvents = events.filter(e => {
+                      const otherPosition = getEventPosition(e);
+                      const distance = Math.sqrt(
+                        Math.pow(position.left - otherPosition.left, 2) + 
+                        Math.pow(position.top - otherPosition.top, 2)
+                      );
+                      return distance < 1; // 1% 이내 거리
+                    });
+                    const clusterCount = samePositionEvents.length;
+                    const hasMultiple = clusterCount > 1 && zoomLevel === 0;
+                    
+                    return (
+                      <div 
+                        className={`${getCCTVIconClassName('tracking')} flex items-center justify-center ${hasMultiple ? 'w-auto min-w-[28px]' : ''}`}
+                        style={{ 
+                          ...getCCTVIconBoxStyle(clusterCount, mapScale, hasMultiple),
+                          transformOrigin: 'center center'
+                        }}
+                      >
+                        <Icon 
+                          icon="mdi:cctv" 
+                          className="text-red-400" 
+                          width="16px" 
+                          height="16px"
+                        />
+                        {/* CCTV 카메라 개수 - 축소 모드에서만 표시 */}
+                        {hasMultiple && (
+                          <span className="text-xs font-semibold text-red-400 ml-1" style={{ whiteSpace: 'nowrap' }}>
+                            {formatCCTVCount(clusterCount)}
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
       </div>
 
@@ -888,94 +974,6 @@ const MapView = ({ events, highlightedEventId, onEventClick, selectedEventId, on
           </div>
         );
       })()}
-
-      {/* 이벤트 핀들 - 추적 CCTV 아이콘으로 표시 */}
-      <div className="absolute inset-0" style={{ zIndex: 100, width: '100%', height: '100%', pointerEvents: 'none' }}>
-        {(events || []).map((event) => {
-          const position = getEventPosition(event);
-          const isHighlighted = highlightedEventId === event.id;
-          const isSelected = selectedEventId === event.id;
-
-          return (
-            <div
-              key={event.id}
-              data-event-pin
-              className="absolute flex items-center justify-center"
-              style={{
-                left: `${position.left}%`,
-                top: `${position.top}%`,
-                transform: 'translate(-50%, -50%)',
-                zIndex: isSelected ? 150 : isHighlighted ? 140 : 100,
-                pointerEvents: 'auto',
-                width: '80px',
-                height: '80px',
-              }}
-            >
-              {/* 펄스 애니메이션 (여러 레이어) - 선택된 이벤트에만 표시, "상가 절도 의심, 현금 절취 포착" 제외 */}
-              {isSelected && !event.title.includes('상가 절도 의심') && !event.title.includes('현금 절취 포착') && (
-                <>
-                  <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 80, animationDelay: '0s' }}>
-                    <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.5)' }}></div>
-                  </div>
-                  <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 79, animationDelay: '0.3s' }}>
-                    <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.4)' }}></div>
-                  </div>
-                  <div className="absolute animate-circle-pulse" style={{ width: '120px', height: '120px', zIndex: 78, animationDelay: '0.6s' }}>
-                    <div className="w-full h-full rounded-full" style={{ backgroundColor: 'rgba(239, 68, 68, 0.3)' }}></div>
-                  </div>
-                </>
-              )}
-              
-              {/* 추적 CCTV 아이콘 */}
-              <div 
-                className="absolute cursor-pointer" 
-                style={{ zIndex: 130 }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onEventClick?.(event.id);
-                }}
-              >
-                {(() => {
-                  // 같은 위치에 있는 이벤트 개수 계산 (위치가 1% 이내로 가까운 경우)
-                  const samePositionEvents = events.filter(e => {
-                    const otherPosition = getEventPosition(e);
-                    const distance = Math.sqrt(
-                      Math.pow(position.left - otherPosition.left, 2) + 
-                      Math.pow(position.top - otherPosition.top, 2)
-                    );
-                    return distance < 1; // 1% 이내 거리
-                  });
-                  const clusterCount = samePositionEvents.length;
-                  const hasMultiple = clusterCount > 1 && zoomLevel === 0;
-                  
-                  return (
-                    <div 
-                      className={`${getCCTVIconClassName('tracking')} flex items-center justify-center ${hasMultiple ? 'w-auto min-w-[28px]' : ''}`}
-                      style={{ 
-                        ...getCCTVIconBoxStyle(clusterCount, zoomLevel === 1 ? 1.5 : 1, hasMultiple),
-                        transformOrigin: 'center center'
-                      }}
-                    >
-                      <Icon 
-                        icon="mdi:cctv" 
-                        className="text-red-400" 
-                        width="16px" 
-                        height="16px"
-                      />
-                      {/* CCTV 카메라 개수 - 축소 모드에서만 표시 */}
-                      {hasMultiple && (
-                        <span className="text-xs font-semibold text-red-400 ml-1" style={{ whiteSpace: 'nowrap' }}>
-                          {formatCCTVCount(clusterCount)}
-                        </span>
-                      )}
-                    </div>
-                  );
-                })()}
-              </div>
-            </div>
-          );
-        })}
-      </div>
 
       {/* 플로팅 검색창 */}
       <div 

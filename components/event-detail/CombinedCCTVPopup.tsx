@@ -33,6 +33,7 @@ interface CombinedCCTVPopupProps {
   handleNextCCTV: () => void;
   onTrackingReselectComplete?: () => void;
   onTrackingReselectStart?: () => void;
+  prototypeDetectedClipConfidence?: Record<string, number>;
 }
 
 
@@ -63,6 +64,7 @@ export const CombinedCCTVPopup = ({
   handleNextCCTV,
   onTrackingReselectComplete,
   onTrackingReselectStart,
+  prototypeDetectedClipConfidence = {},
 }: CombinedCCTVPopupProps) => {
   const [activeTab, setActiveTab] = useState<'clip' | 'live'>('clip');
   const [activeKey, setActiveKey] = useState<string | null>(null);
@@ -209,7 +211,11 @@ export const CombinedCCTVPopup = ({
 
   if (!isOpen || !selectedCCTV) return null;
 
-  const detected = detectedCCTVThumbnails.find(d => d.cctvId === selectedCCTV);
+  const detectedBase = detectedCCTVThumbnails.find(d => d.cctvId === selectedCCTV);
+  const detected = detectedBase ? {
+    ...detectedBase,
+    confidence: prototypeDetectedClipConfidence[selectedCCTV] || detectedBase.confidence
+  } : null;
   const cctvKey = Object.keys(cctvInfo).find(key => cctvInfo[key].id === selectedCCTV);
   const cctv = cctvKey ? cctvInfo[cctvKey] : null;
   const fov = cctvFovMap[selectedCCTV] || '95°';

@@ -237,8 +237,33 @@ const EventDetailPageContent = () => {
   // 맵 확대 상태
   const [zoomLevel, setZoomLevel] = useState(0); // 0: 축소(클러스터), 1: 확대(개별)
 
+  // 프로토타입 초기 상태
+  const [prototypePin1Visible, setPrototypePin1Visible] = useState(true);
+  const [prototypePin2Visible, setPrototypePin2Visible] = useState(false);
+  const [prototypePin3Visible, setPrototypePin3Visible] = useState(false);
+  const [prototypeTrackingPinVisible, setPrototypeTrackingPinVisible] = useState(false);
+  const [prototypeRouteVisible, setPrototypeRouteVisible] = useState(false);
+  const [prototypePin1Label, setPrototypePin1Label] = useState('신고지역');
+  const [prototypePin1Pulse, setPrototypePin1Pulse] = useState(true);
+  const [prototypeShowDetectedClips, setPrototypeShowDetectedClips] = useState(false);
+  const [prototypeMovementTimelineFilter, setPrototypeMovementTimelineFilter] = useState<string[]>(['유괴 의심 신고 접수']);
+  const [prototypeBehaviorHighlightsFilter, setPrototypeBehaviorHighlightsFilter] = useState<string[]>(['놀이터']);
+  const [prototypeShowSuspectInfo, setPrototypeShowSuspectInfo] = useState(true);
+  const [prototypeShowChildInfo, setPrototypeShowChildInfo] = useState(true);
+  const [prototypePin1Color, setPrototypePin1Color] = useState<'red' | 'yellow'>('red');
+  const [prototypeStep, setPrototypeStep] = useState<'initial' | 'q' | 'w' | 'e' | 'r'>('initial');
+  const [prototypeShowVehicleAnalysis, setPrototypeShowVehicleAnalysis] = useState(false);
+  const [prototypePin2Pulse, setPrototypePin2Pulse] = useState(false);
+  const [prototypeShowRoute1to2, setPrototypeShowRoute1to2] = useState(false);
+  const [prototypePin3Pulse, setPrototypePin3Pulse] = useState(false);
+  const [prototypeShowRoute2to3, setPrototypeShowRoute2to3] = useState(false);
+  const [prototypeDetectedClipConfidence, setPrototypeDetectedClipConfidence] = useState<Record<string, number>>({});
+  const [prototypePin3Color, setPrototypePin3Color] = useState<'blue' | 'red'>('blue');
+  const [prototypePin4Visible, setPrototypePin4Visible] = useState(false);
+  const [prototypeShowRoute3to4, setPrototypeShowRoute3to4] = useState(false);
+
   // 추적 핀 관련 상태
-  const [isTrackingPinVisible, setIsTrackingPinVisible] = useState(true);
+  const [isTrackingPinVisible, setIsTrackingPinVisible] = useState(false);
   const [isTrackingProgress, setIsTrackingProgress] = useState(false);
   const [trackingProgress, setTrackingProgress] = useState(0);
   const [trackingPinPosition, setTrackingPinPosition] = useState({ left: 85, top: 45 }); // 기본 위치
@@ -267,8 +292,16 @@ const EventDetailPageContent = () => {
         setTrackingProgress(100);
         clearInterval(progressInterval);
         
-        // 4. 프로그레스 완료 후 핀 위치 업데이트 (약간 이동)
+        // 4. 프로그레스 완료 후 처리
         setTimeout(() => {
+          // 프로토타입: 합본 모니터링 팝업에서 재추적 시 CCTV 클립 정확도 변경
+          if (showCombinedCCTVPopup) {
+            setPrototypeDetectedClipConfidence(prev => ({
+              ...prev,
+              'CCTV-12': 98 // 산책로 방향 이동 포착 정확도 98%
+            }));
+          }
+          
           // 랜덤하게 약간 이동 (예: ±5% 범위 내)
           const offsetX = (Math.random() - 0.5) * 10; // -5 ~ +5
           const offsetY = (Math.random() - 0.5) * 10; // -5 ~ +5
@@ -332,10 +365,10 @@ const EventDetailPageContent = () => {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [isMounted]);
 
-  // 키보드 0 누르면 추가 자료 팝업 표시 (나중에 삭제할 기능)
+  // 프로토타입 키보드 이벤트 (q, w, e)
   useEffect(() => {
     // 팝업이 열려있으면 키보드 이벤트 무시
-    if (showMapCCTVPopup || showDetectedCCTVPopup || showCombinedCCTVPopup || showAdditionalDataPopup || showBroadcastDraftPopup) {
+    if (showMapCCTVPopup || showDetectedCCTVPopup || showCombinedCCTVPopup || showAdditionalDataPopup || showBroadcastDraftPopup || showCompletionPopup) {
       return;
     }
 
@@ -345,15 +378,48 @@ const EventDetailPageContent = () => {
         return;
       }
 
-      if (e.key === '0') {
+      if (e.key === 'q' || e.key === 'Q') {
+        e.preventDefault();
+        e.stopPropagation();
+        setPrototypeStep('q');
+        setPrototypePin1Color('yellow');
+        setPrototypePin1Label('유괴범과 아동 함께 이동 포착');
+        setPrototypeMovementTimelineFilter(['유괴 의심 신고 접수', '유괴범과 아동 함께 이동 포착']);
+        setPrototypeShowDetectedClips(true);
+        setPrototypeBehaviorHighlightsFilter(['유괴 의심', '놀이터']);
+      } else if (e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        e.stopPropagation();
+        setPrototypeStep('w');
+        setShowAdditionalDataPopup(true);
+      } else if (e.key === 'e' || e.key === 'E') {
+        e.preventDefault();
+        e.stopPropagation();
+        setPrototypeStep('e');
+        setPrototypePin3Visible(true);
+        setPrototypePin3Pulse(true);
+        setPrototypePin2Pulse(false);
+        setPrototypeShowRoute2to3(true);
+        setPrototypeMovementTimelineFilter(['유괴 의심 신고 접수', '유괴범과 아동 함께 이동 포착', '시민 신고: 산책로 쪽으로 뛰어감', '용의자가 차량에 아이 태우는 장면 포착', '차량 도주 추적 중']);
+        setPrototypeShowDetectedClips(true);
+        setPrototypePin3Color('red');
+      } else if (e.key === 'r' || e.key === 'R') {
+        e.preventDefault();
+        e.stopPropagation();
+        setPrototypeStep('r');
+        setPrototypePin4Visible(true);
+        setPrototypePin3Color('blue');
+        setPrototypeShowRoute3to4(true);
+        setPrototypeMovementTimelineFilter(['유괴 의심 신고 접수', '유괴범과 아동 함께 이동 포착', '시민 신고: 산책로 쪽으로 뛰어감', '용의자가 차량에 아이 태우는 장면 포착', '차량 도주 추적 중', '현재 위치 추적 중']);
+      } else if (e.key === '0') {
         e.preventDefault();
         setShowAdditionalDataPopup(true);
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showMapCCTVPopup, showDetectedCCTVPopup, showCombinedCCTVPopup, showAdditionalDataPopup, showBroadcastDraftPopup]);
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [showMapCCTVPopup, showDetectedCCTVPopup, showCombinedCCTVPopup, showAdditionalDataPopup, showBroadcastDraftPopup, showCompletionPopup]);
 
   const addClipsToBroadcastRef = useRef<((clips: Array<{ id: string; cctvId: string; cctvName: string; timestamp: string; duration: string; frameTimestamp: string; thumbnail: string; status: 'saved' | 'ready' }>) => void) | null>(null);
   const openBroadcastModalRef = useRef<(() => void) | null>(null);
@@ -563,6 +629,10 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
   const handleSendMessage = (messageText?: string) => {
     const text = (messageText ?? chatInput).trim();
     if (!text || isResponding) return;
+    
+    // 프로토타입: w 단계에서 "시민 신고: 산책로 쪽으로 뛰어감" 전송 시
+    const isWStepMessage = prototypeStep === 'w' && text.includes('산책로');
+    
     // 전파 초안 확인 단계에서의 긍정 응답 처리 (메시지 버블/추가 답변 없이 모달만 오픈)
     const isPositive =
       text === '응' || text === '응.' || text === '네' || text === '네.' || text === '그래' || text === '좋아';
@@ -598,6 +668,41 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
       const buttons = isCCTV ? ['CCTV-7 (현장)', 'CCTV-12 (북쪽 50m)', 'CCTV-15 (골목길)', 'CCTV-9 (동쪽 100m)', 'CCTV-11 (서쪽 80m)'] : undefined;
       addMessage('assistant', reply, buttons, isCCTV);
       setIsResponding(false);
+      
+      // 프로토타입: w 단계에서 메시지 전송 후 처리
+      if (isWStepMessage) {
+        // 재추적 프로그래스바 시작
+        setIsTrackingProgress(true);
+        setTrackingProgress(0);
+        
+        const duration = 2000; // 2초
+        const interval = 50;
+        const increment = 100 / (duration / interval);
+        
+        let currentProgress = 0;
+        const progressInterval = setInterval(() => {
+          currentProgress += increment;
+          if (currentProgress >= 100) {
+            setTrackingProgress(100);
+            clearInterval(progressInterval);
+            
+            // 프로그래스 완료 후 핀2 표시 및 기타 상태 업데이트
+            setTimeout(() => {
+              setPrototypePin2Visible(true);
+              setPrototypePin2Pulse(true);
+              setPrototypePin1Pulse(false);
+              setPrototypeShowRoute1to2(true);
+              setPrototypeMovementTimelineFilter(['유괴 의심 신고 접수', '유괴범과 아동 함께 이동 포착', '시민 신고: 산책로 쪽으로 뛰어감', '용의자가 차량에 아이 태우는 장면 포착']);
+              setPrototypeShowDetectedClips(true); // 3개 클립 표시
+              setPrototypeShowVehicleAnalysis(true);
+              setIsTrackingProgress(false);
+              setTrackingProgress(0);
+            }, 300);
+          } else {
+            setTrackingProgress(currentProgress);
+          }
+        }, interval);
+      }
     }, 700);
   };
 
@@ -753,6 +858,10 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
   return (
     <ScaledLayout>
         <div className="flex flex-1 overflow-hidden" style={{ minHeight: 0, height: '100%' }}>
+        {/* 프로토타입 라벨 */}
+        <div className="absolute top-4 left-1/2 -translate-x-1/2 z-50 px-4 py-2 bg-yellow-500/90 text-black text-sm font-semibold rounded-lg shadow-lg">
+          프로토타입 이벤트 상세
+        </div>
         <div className="flex flex-1 overflow-hidden relative" style={{ minHeight: 0, height: '100%' }}>
         {/* Left Panel - 대시보드 스타일 적용 */}
         <EventLeftPanel
@@ -794,10 +903,23 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setSelectedCombinedCCTV={setSelectedCombinedCCTV}
                 zoomLevel={zoomLevel}
                 setZoomLevel={setZoomLevel}
-                isTrackingPinVisible={isTrackingPinVisible}
+                isTrackingPinVisible={prototypePin4Visible ? true : prototypeTrackingPinVisible}
                 isTrackingProgress={isTrackingProgress}
                 trackingProgress={trackingProgress}
                 trackingPinPosition={trackingPinPosition}
+                prototypePin1Visible={prototypePin1Visible}
+                prototypePin2Visible={prototypePin2Visible}
+                prototypePin3Visible={prototypePin3Visible}
+                prototypeRouteVisible={prototypeRouteVisible}
+                prototypePin1Label={prototypePin1Label}
+                prototypePin1Pulse={prototypePin1Pulse}
+                prototypePin1Color={prototypePin1Color}
+                prototypePin2Pulse={prototypePin2Pulse}
+                prototypeShowRoute1to2={prototypeShowRoute1to2}
+                prototypePin3Pulse={prototypePin3Pulse}
+                prototypeShowRoute2to3={prototypeShowRoute2to3}
+                prototypePin3Color={prototypePin3Color}
+                prototypeShowRoute3to4={prototypeShowRoute3to4}
                 additionalDataNotification={{
                   isOpen: showAdditionalDataPopup,
                   time: '2024-01-15 14:30:25',
@@ -805,13 +927,19 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                   content: '추가 자료를 보내드립니다.\n\n용의자 관련 추가 정보:\n- 차량번호: 경기 12가 3456\n- 최근 목격 시각: 14:25\n- 이동 방향: 동쪽',
                   onClose: () => setShowAdditionalDataPopup(false),
                   onSendToAgent: () => {
-                    const popupContent = `시간: 2024-01-15 14:30:25\n발신 기관: 경찰서\n내용: 추가 자료를 보내드립니다.\n\n용의자 관련 추가 정보:\n- 차량번호: 경기 12가 3456\n- 최근 목격 시각: 14:25\n- 이동 방향: 동쪽`;
+                    const popupContent = prototypeStep === 'w' 
+                      ? `시민 신고: 산책로 쪽으로 뛰어감`
+                      : `시간: 2024-01-15 14:30:25\n발신 기관: 경찰서\n내용: 추가 자료를 보내드립니다.\n\n용의자 관련 추가 정보:\n- 차량번호: 경기 12가 3456\n- 최근 목격 시각: 14:25\n- 이동 방향: 동쪽`;
                     setChatInput(popupContent);
                     // 우측 패널이 접혀있으면 열기
                     if (isRightPanelCollapsed) {
                       setIsRightPanelCollapsed(false);
                     }
                     setShowAdditionalDataPopup(false);
+                    // w 키 이벤트인 경우 위치 및 동선에 추가
+                    if (prototypeStep === 'w') {
+                      setPrototypeMovementTimelineFilter(prev => [...prev, '시민 신고: 산책로 쪽으로 뛰어감']);
+                    }
                   },
                 }}
               />
@@ -827,7 +955,11 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 setShowDetectedCCTVPopup={setShowDetectedCCTVPopup}
                 setSelectedMapCCTV={setSelectedMapCCTV}
                 setShowMapCCTVPopup={setShowMapCCTVPopup}
-                detectedCCTVThumbnails={detectedCCTVThumbnails}
+                detectedCCTVThumbnails={prototypeShowDetectedClips 
+                  ? (prototypeStep === 'q' 
+                      ? detectedCCTVThumbnails.filter(d => d.cctvId === 'CCTV-7')
+                      : detectedCCTVThumbnails.slice(0, 3)) // w 이후에는 3개
+                  : []}
                 showMapCCTVPopup={showMapCCTVPopup}
                 showDetectedCCTVPopup={showDetectedCCTVPopup}
                 showCombinedCCTVPopup={showCombinedCCTVPopup}
@@ -838,6 +970,13 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
                 behaviorHighlights={behaviorHighlights}
                 movementTimeline={movementTimeline}
                 zoomLevel={zoomLevel}
+                prototypeShowDetectedClipsDefault={!prototypeShowDetectedClips}
+                prototypeMovementTimelineFilter={prototypeMovementTimelineFilter}
+                prototypeBehaviorHighlightsFilter={prototypeBehaviorHighlightsFilter}
+                prototypeShowSuspectInfo={prototypeShowSuspectInfo}
+                prototypeShowChildInfo={prototypeShowChildInfo}
+                prototypeShowVehicleAnalysis={prototypeShowVehicleAnalysis}
+                prototypeDetectedClipConfidence={prototypeDetectedClipConfidence}
               />
                   </div>
                       </div>
@@ -938,6 +1077,7 @@ ${event.description || '112 신고 접수 - 사건 발생.'}
         handlePrevCCTV={handlePrevCCTV}
         handleNextCCTV={handleNextCCTV}
         onTrackingReselectComplete={handleTrackingReselectComplete}
+        prototypeDetectedClipConfidence={prototypeDetectedClipConfidence}
       />
 
       {/* 사건 종료 알림 팝업 */}

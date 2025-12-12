@@ -49,6 +49,13 @@ interface EventCenterColumn2Props {
     color: string;
     cctvId: string | null;
   }>;
+  prototypeShowDetectedClipsDefault?: boolean;
+  prototypeMovementTimelineFilter?: string[];
+  prototypeBehaviorHighlightsFilter?: string[];
+  prototypeShowSuspectInfo?: boolean;
+  prototypeShowChildInfo?: boolean;
+  prototypeShowVehicleAnalysis?: boolean;
+  prototypeDetectedClipConfidence?: Record<string, number>;
 }
 
 export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
@@ -72,6 +79,13 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
   showBroadcastDraftPopup = false,
   zoomLevel = 0,
   movementTimeline,
+  prototypeShowDetectedClipsDefault = false,
+  prototypeMovementTimelineFilter,
+  prototypeBehaviorHighlightsFilter,
+  prototypeShowSuspectInfo = false,
+  prototypeShowChildInfo = false,
+  prototypeShowVehicleAnalysis = false,
+  prototypeDetectedClipConfidence = {},
 }) => {
   const [activeTab, setActiveTab] = useState<'cctv' | 'movement' | 'analysis'>('cctv');
 
@@ -141,45 +155,54 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
               포착된 CCTV 클립
             </div>
             <div className="overflow-y-auto flex-1">
-              <div className={`grid gap-3`} style={{ 
-                gridTemplateColumns: isRightPanelCollapsed ? `repeat(auto-fill, minmax(160px, 1fr))` : `repeat(4, minmax(0, 1fr))`,
-              }}>
-                {detectedCCTVThumbnails.map((detected) => (
-                  <div
-                    key={detected.id}
-                    className="bg-[#0f0f0f] border border-[#31353a] rounded-lg overflow-hidden cursor-pointer hover:border-purple-500 transition-colors"
-                    style={{ borderWidth: '1px' }}
-                    onClick={() => {
-                      setSelectedDetectedCCTV(detected.cctvId);
-                      setShowDetectedCCTVPopup(true);
-                    }}
-                  >
-                    <div className="relative aspect-video bg-black">
-                      <img
-                        src={detected.thumbnail}
-                        alt={detected.cctvName}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          const target = e.target as HTMLImageElement;
-                          target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
-                        }}
-                      />
+              {prototypeShowDetectedClipsDefault ? (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center">
+                    <Icon icon="mdi:video-off" className="w-12 h-12 text-gray-600 mx-auto mb-2" />
+                    <p className="text-gray-500 text-xs">영상 없음</p>
+                  </div>
+                </div>
+              ) : (
+                <div className={`grid gap-3`} style={{ 
+                  gridTemplateColumns: isRightPanelCollapsed ? `repeat(auto-fill, minmax(160px, 1fr))` : `repeat(4, minmax(0, 1fr))`,
+                }}>
+                  {detectedCCTVThumbnails.map((detected) => (
+                    <div
+                      key={detected.id}
+                      className="bg-[#0f0f0f] border border-[#31353a] rounded-lg overflow-hidden cursor-pointer hover:border-purple-500 transition-colors"
+                      style={{ borderWidth: '1px' }}
+                      onClick={() => {
+                        setSelectedDetectedCCTV(detected.cctvId);
+                        setShowDetectedCCTVPopup(true);
+                      }}
+                    >
+                      <div className="relative aspect-video bg-black">
+                        <img
+                          src={detected.thumbnail}
+                          alt={detected.cctvName}
+                          className="w-full h-full object-cover"
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            target.src = cctvThumbnailMap[detected.cctvId] || '/cctv_img/001.jpg';
+                          }}
+                        />
                       {/* 정확도 라벨 */}
                       <div className="absolute top-2 right-2 px-2 py-1 bg-purple-600/90 backdrop-blur-sm text-white text-xs font-semibold rounded">
-                        정확도 {detected.confidence}%
+                        정확도 {prototypeDetectedClipConfidence[detected.cctvId] || detected.confidence}%
+                      </div>
+                      </div>
+                      <div className="p-1.5 space-y-0.5">
+                        {/* 이유: 타이틀 */}
+                        <div className="text-white text-xs font-semibold line-clamp-1">{detected.description || detected.aiAnalysis || '포착됨'}</div>
+                        {/* CCTV명 (한 줄 이상 시 ... 처리) */}
+                        <div className="text-gray-400 text-xs truncate">{detected.cctvId}</div>
+                        {/* 주소 */}
+                        <div className="text-gray-500 text-xs truncate">{detected.location}</div>
                       </div>
                     </div>
-                    <div className="p-1.5 space-y-0.5">
-                      {/* 이유: 타이틀 */}
-                      <div className="text-white text-xs font-semibold line-clamp-1">{detected.description || detected.aiAnalysis || '포착됨'}</div>
-                      {/* CCTV명 (한 줄 이상 시 ... 처리) */}
-                      <div className="text-gray-400 text-xs truncate">{detected.cctvId}</div>
-                      {/* 주소 */}
-                      <div className="text-gray-500 text-xs truncate">{detected.location}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 
@@ -261,7 +284,15 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
               위치 및 동선
             </div>
             <div className="space-y-2 text-sm overflow-y-auto flex-1 min-h-0">
-              {[...movementTimeline].reverse().map((entry, index) => (
+              {[...movementTimeline]
+                .filter((entry) => {
+                  if (prototypeMovementTimelineFilter && prototypeMovementTimelineFilter.length > 0) {
+                    return prototypeMovementTimelineFilter.includes(entry.title);
+                  }
+                  return true;
+                })
+                .reverse()
+                .map((entry, index) => (
                 <div key={index} className="flex gap-3">
                   <div className="text-xs text-gray-500 w-16 flex-shrink-0">{entry.time}</div>
                   <div className="flex-1 min-w-0">
@@ -278,36 +309,77 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
         )}
 
         {activeTab === 'analysis' && (
-          <div className="flex flex-col space-y-6 flex-1 min-h-0 overflow-y-auto">
-          {/* 인물 분석 & 차량 분석 */}
-          <div className="grid grid-cols-2 gap-6">
-            {/* 인물 분석 */}
-            <div className="flex flex-col">
+          <div className="flex flex-col flex-1 min-h-0 overflow-y-auto">
+          {/* 분석 카드들 - 반응형 인라인 배치 */}
+          <div className="flex flex-wrap gap-6">
+            {/* 용의자 분석 카드 */}
+            <div className="flex flex-col flex-1 min-w-[280px]">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-sm text-white font-semibold">
                   <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
-                  인물 분석
+                  용의자 분석
                 </div>
                 <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
               </div>
               <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
                 <div>
-                  <div className="text-gray-400 text-xs mb-1">용의자 특징</div>
-                  <div className="text-white text-sm">검은색 후드티, 파란 가방</div>
+                  <div className="text-gray-400 text-xs mb-1">성별/연령</div>
+                  <div className="text-white text-sm">남성, 30대 초반 추정</div>
                 </div>
                 <div>
-                  <div className="text-gray-400 text-xs mb-1">최근 목격</div>
-                  <div className="text-white text-sm">15:22:45 - 세 번째 CCTV</div>
+                  <div className="text-gray-400 text-xs mb-1">착의</div>
+                  <div className="text-white text-sm">검은색 후드티, 청바지, 흰색 운동화</div>
                 </div>
                 <div>
-                  <div className="text-gray-400 text-xs mb-1">이동 경로</div>
-                  <div className="text-white text-sm">놀이터 → 산책로 → 차량 탑승</div>
+                  <div className="text-gray-400 text-xs mb-1">신체 정보</div>
+                  <div className="text-white text-sm">170cm 추정, 중간 체격</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">행동</div>
+                  <div className="text-white text-sm">아동을 강제로 이동시키는 장면 포착</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">ReID 신뢰도</div>
+                  <div className="text-green-400 text-sm">89%</div>
                 </div>
               </div>
             </div>
 
-            {/* 차량 분석 */}
-            <div className="flex flex-col">
+            {/* 아동 분석 카드 */}
+            <div className="flex flex-col flex-1 min-w-[280px]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2 text-sm text-white font-semibold">
+                  <Icon icon="mdi:account-search" className="w-4 h-4 text-blue-300" />
+                  아동 분석
+                </div>
+                <span className="px-2 py-0.5 bg-red-500/20 text-red-400 text-xs">추적중</span>
+              </div>
+              <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">성별/연령</div>
+                  <div className="text-white text-sm">남아, 약 9세 추정</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">착의</div>
+                  <div className="text-white text-sm">회색 점퍼, 검은색 바지</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">신체 정보</div>
+                  <div className="text-white text-sm">130cm 초반 추정</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">마지막 포착</div>
+                  <div className="text-white text-sm">골목 → 도로 방향 이동 후 차량 탑승</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">ReID 신뢰도</div>
+                  <div className="text-green-400 text-sm">87%</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 차량 분석 카드 */}
+            <div className="flex flex-col flex-1 min-w-[280px]">
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2 text-sm text-white font-semibold">
                   <Icon icon="mdi:car" className="w-4 h-4 text-blue-300" />
@@ -317,30 +389,45 @@ export const EventCenterColumn2: React.FC<EventCenterColumn2Props> = ({
               </div>
               <div className="bg-[#0f0f0f] border border-[#31353a] p-4 space-y-3" style={{ borderWidth: '1px' }}>
                 <div>
-                  <div className="text-gray-400 text-xs mb-1">차량 정보</div>
-                  <div className="text-white text-sm">차량번호 미확인, 검은색 승용차</div>
+                  <div className="text-gray-400 text-xs mb-1">차종</div>
+                  <div className="text-white text-sm">소형 승용차</div>
                 </div>
                 <div>
-                  <div className="text-gray-400 text-xs mb-1">최근 목격</div>
-                  <div className="text-white text-sm">15:22:45 - 세 번째 CCTV</div>
+                  <div className="text-gray-400 text-xs mb-1">색상</div>
+                  <div className="text-white text-sm">흰색</div>
                 </div>
                 <div>
-                  <div className="text-gray-400 text-xs mb-1">이동 방향</div>
-                  <div className="text-white text-sm">동쪽 방향 도주</div>
+                  <div className="text-gray-400 text-xs mb-1">번호판</div>
+                  <div className="text-white text-sm">12가3456</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">방향</div>
+                  <div className="text-white text-sm">북쪽으로 이동</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">속도</div>
+                  <div className="text-white text-sm">약 60km/h</div>
+                </div>
+                <div>
+                  <div className="text-gray-400 text-xs mb-1">인식 신뢰도</div>
+                  <div className="text-green-400 text-sm">92%</div>
                 </div>
               </div>
             </div>
           </div>
 
           {/* 행동 요약 */}
-          <div>
+          <div className="mt-6">
             <div className="flex items-center gap-2 text-sm text-red-300 font-semibold mb-3">
               <Icon icon="mdi:alert" className="w-4 h-4" />
               행동 요약
             </div>
             <div className="bg-[#2a1313] border border-red-500/40 p-4 space-y-2" style={{ borderWidth: '1px' }}>
               <ul className="text-sm text-red-100 space-y-1">
-                {behaviorHighlights.map((item) => (
+                {(prototypeBehaviorHighlightsFilter && prototypeBehaviorHighlightsFilter.length > 0
+                  ? behaviorHighlights.filter((item) => prototypeBehaviorHighlightsFilter.some(filter => item.includes(filter)))
+                  : behaviorHighlights
+                ).map((item) => (
                   <li key={item} className="flex items-start gap-2">
                     <span className="text-red-400 mt-0.5">•</span>
                     <span>{item}</span>
